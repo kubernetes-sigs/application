@@ -1,0 +1,32 @@
+
+# Builds a container to host the reference documentation for the APIs
+# To access documentation in the cluster on http://localhost:8989 run
+# kubectl port-forward  $(kubectl get pods --namespace=foo-system -l="app=docs" -o="jsonpath={.items[0].metadata.name}") 8989:80 --namespace=<install-name>-system
+FROM golang:1.9.3 as builder
+
+WORKDIR /go/src/github.com/kubernetes-sigs/apps_application
+RUN go get github.com/kubernetes-incubator/reference-docs/gen-apidocs
+
+COPY pkg/    pkg/
+COPY cmd/    cmd/
+COPY vendor/ vendor/
+COPY docs/ docs/
+
+
+RUN mkdir docs/openapi-spec || echo "openapi-spec dir exists""
+RUN mkdir docs/static_includes || echo "static_includes dir exists""
+RUN go run ./cmd/apiserver/main.go --etcd-servers=http://localhost:2379 --secure-port=9443 --print-openapi --delegated-auth=false > docs/openapi-spec/swagger.json
+RUN gen-apidocs --build-operations=false --use-tags=true --allow-errors=true --config-dir=docs
+
+# Run brodocs against docs set
+FROM pwittrock/brodocs:latest as brodocs
+COPY --from=builder /go/src/github.com/kubernetes-sigs/apps_application/docs docs/
+RUN mkdir /manifest
+RUN mkdir /build
+RUN cp docs/manifest.json /manifest/manifest.json
+RUN mv docs/includes /source
+RUN ./runbrodocs.sh
+
+# Publish docs in a container
+FROM nginx
+COPY --from=brodocs build/ /usr/share/nginx/html

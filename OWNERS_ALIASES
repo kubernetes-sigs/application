@@ -1,0 +1,35 @@
+
+# See the OWNERS docs: https://git.k8s.io/community/contributors/devel/owners.md
+
+aliases:
+  apps-application-approvers:
+    - mattfarina
+    - prydonius
+    - kow3ns
+  apps-application-reviewers:
+    - ant31
+    - bryanl
+    - garethr
+    - pwittrock
+    - adamreese
+    - bacongobbler
+    - jascott1
+    - mattfarina
+    - michelleN
+    - migmartri
+    - nebril
+    - prydonius
+    - seh
+    - SlickNik
+    - technosophos
+    - thomastaylor312
+    - vaikas-google
+    - viglesiasce
+    - cdrage
+    - containscafeine
+    - janetkuo
+    - kadel
+    - ngtuna
+    - runseb
+    - surajssd
+    - kow3ns
