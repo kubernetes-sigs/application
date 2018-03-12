@@ -1,0 +1,22 @@
+# Instructions to install API using the installer
+# IGNORE THIS FILE IF YOU ARE USING CRDS.
+# THIS IS ONLY FOR APISERVER AGGREGATION.
+# Build the apiserver
+FROM golang:1.9.3 as builder
+
+RUN apt update && apt install openssl -y && apt clean
+
+# Copy in the go src
+WORKDIR /go/src/github.com/kubernetes-sigs/apps_application
+COPY pkg/    pkg/
+COPY cmd/    cmd/
+COPY vendor/ vendor/
+
+# Build and test the API code
+RUN go build -a -o apiserver ./cmd/apiserver/main.go
+
+# Copy the apiserver into a thin image
+FROM ubuntu:latest  
+WORKDIR /root/
+COPY --from=builder /go/src/github.com/kubernetes-sigs/apps_application/apiserver .
+CMD ["./apiserver"]  
