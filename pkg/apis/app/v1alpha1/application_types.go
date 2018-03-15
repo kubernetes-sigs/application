@@ -41,7 +41,7 @@ type ApplicationSpec struct {
 
 	// Maintainers is an optional list of maintainers of the application. The maintainers in this list are maintain the
 	// the source code, images, and package for the application.
-	Maintainers []string `json:"maintainers,omitempty"`
+	Maintainers []Maintainer `json:"maintainers,omitempty"`
 
 	// Owners is an optional list of the owners of the installed application. The owners of the application should be
 	// contacted in the event of a planned or unplanned disruption affecting the application.
@@ -50,12 +50,14 @@ type ApplicationSpec struct {
 	// Keywords is an optional list of key words associated with the application (e.g. MySQL, RDBMS, database).
 	Keywords []string `json:"keywords,omitempty"`
 
-	// Info is a map of human readable key,value pairs for the Application.
-	Info map[string]string `json:"info,omitempty"`
+	// Info contains human readable key,value pairs for the Application.
+	Info []InfoItem `json:"info,omitempty"`
 
-	// Links is a map of human readable keys to URLs for the Application. This intended to be used to surface additional
-	// documentation, dashboards, etc.
-	Links map[string]string `json:"urls,omitempty"`
+	// Links are a list of descriptive URLs intended to be used to surface additional documentation, dashboards, etc.
+	Links []Link `json:"urls,omitempty"`
+
+	// Notes are a list of human readable snippets intended as a quick start for the users of the Application.
+	Notes []string `json:"notes,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
@@ -63,6 +65,37 @@ type ApplicationStatus struct {
 	// ObservedGeneration is used by the Application Controller to report the last Generation of an Application
 	// that it has observed.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+}
+
+// Maintainer contains information about an individual or organization that maintains the source code, images, and
+// package for an Application. An Application can have more than one maintainer.
+type Maintainer struct {
+	// Name is the descriptive name of the maintainer.
+	Name string `json:"name,omitempty"`
+
+	// Url could typically be a website address or a mailto: email address.
+	Url string `json:"url,omitempty"`
+}
+
+// Link contains information about an URL to surface documentation, dashboards, etc.
+type Link struct {
+	// Type defines the purpose of the link.
+	Type string `json:"type,omitempty"`
+
+	// Description is human readable content explaining the purpose of the link.
+	Description string `json:"description,omitempty"`
+
+	// Url typically points at a website address.
+	Url string `json:"url,omitempty"`
+}
+
+// InfoItem is a human readable key,value pair containing important information about how to access the Application.
+type InfoItem struct {
+	// Name is a human readable title for this piece of information.
+	Name string `json:"name,omitempty"`
+
+	// Value is human readable content.
+	Value string `json:"value,omitempty"`
 }
 
 // +genclient
