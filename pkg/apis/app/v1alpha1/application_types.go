@@ -39,7 +39,7 @@ type ApplicationSpec struct {
 	// Description is a brief string description of the Application.
 	Description string `json:"description,omitempty"`
 
-	// Maintainers is an optional list of maintainers of the application. The maintainers in this list are maintain the
+	// Maintainers is an optional list of maintainers of the application. The maintainers in this list maintain the
 	// the source code, images, and package for the application.
 	Maintainers []Maintainer `json:"maintainers,omitempty"`
 
