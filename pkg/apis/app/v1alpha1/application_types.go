@@ -73,8 +73,11 @@ type Maintainer struct {
 	// Name is the descriptive name of the maintainer.
 	Name string `json:"name,omitempty"`
 
-	// Url could typically be a website address or a mailto: email address.
+	// Url could typically be a website address.
 	Url string `json:"url,omitempty"`
+
+	// Email is the email address.
+	Email string `json:"email,omitempty"`
 }
 
 // Link contains information about an URL to surface documentation, dashboards, etc.
