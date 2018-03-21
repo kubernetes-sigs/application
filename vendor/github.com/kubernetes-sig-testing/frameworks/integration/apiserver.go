@@ -2,6 +2,7 @@ package integration
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"time"
 
@@ -23,6 +24,18 @@ type APIServer struct {
 	// doc.go) for details.
 	Path string
 
+	// Args is a list of arguments which will passed to the APIServer binary.
+	// Before they are passed on, they will be evaluated as go-template strings.
+	// This means you can use fields which are defined and exported on this
+	// APIServer struct (e.g. "--cert-dir={{ .Dir }}").
+	// Those templates will be evaluated after the defaulting of the APIServer's
+	// fields has already happened and just before the binary actually gets
+	// started. Thus you have access to caluclated fields like `URL` and others.
+	//
+	// If not specified, the minimal set of arguments to run the APIServer will
+	// be used.
+	Args []string
+
 	// CertDir is a path to a directory containing whatever certificates the
 	// APIServer will need.
 	//
@@ -42,12 +55,22 @@ type APIServer struct {
 	StartTimeout time.Duration
 	StopTimeout  time.Duration
 
+	// Out, Err specify where APIServer should write its StdOut, StdErr to.
+	//
+	// If not specified, the output will be discarded.
+	Out io.Writer
+	Err io.Writer
+
 	processState *internal.ProcessState
 }
 
 // Start starts the apiserver, waits for it to come up, and returns an error,
 // if occurred.
 func (s *APIServer) Start() error {
+	if s.EtcdURL == nil {
+		return fmt.Errorf("expected EtcdURL to be configured")
+	}
+
 	var err error
 
 	s.processState = &internal.ProcessState{}
@@ -64,20 +87,22 @@ func (s *APIServer) Start() error {
 		return err
 	}
 
-	s.processState.Args, err = internal.MakeAPIServerArgs(
-		s.processState.DefaultedProcessInput,
-		s.EtcdURL,
+	s.processState.StartMessage = internal.GetAPIServerStartMessage(s.processState.URL)
+
+	s.URL = &s.processState.URL
+	s.CertDir = s.processState.Dir
+	s.Path = s.processState.Path
+	s.StartTimeout = s.processState.StartTimeout
+	s.StopTimeout = s.processState.StopTimeout
+
+	s.processState.Args, err = internal.RenderTemplates(
+		internal.DoAPIServerArgDefaulting(s.Args), s,
 	)
 	if err != nil {
 		return err
 	}
 
-	s.processState.StartMessage = fmt.Sprintf(
-		"Serving insecurely on %s",
-		s.processState.URL.Host,
-	)
-
-	return s.processState.Start()
+	return s.processState.Start(s.Out, s.Err)
 }
 
 // Stop stops this process gracefully, waits for its termination, and cleans up

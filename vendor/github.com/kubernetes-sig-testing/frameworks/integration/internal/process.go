@@ -2,13 +2,13 @@ package internal
 
 import (
 	"fmt"
-	"net/url"
-	"os/exec"
-	"time"
-
-	"os"
-
+	"io"
 	"io/ioutil"
+	"net/url"
+	"os"
+	"os/exec"
+	"path"
+	"time"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -86,14 +86,20 @@ func DoDefaulting(
 	return defaults, nil
 }
 
-func (ps *ProcessState) Start() (err error) {
+func (ps *ProcessState) Start(stdout, stderr io.Writer) (err error) {
 	command := exec.Command(ps.Path, ps.Args...)
 
-	stdErr := gbytes.NewBuffer()
-	detectedStart := stdErr.Detect(ps.StartMessage)
+	startDetectStream := gbytes.NewBuffer()
+	detectedStart := startDetectStream.Detect(ps.StartMessage)
 	timedOut := time.After(ps.StartTimeout)
 
-	ps.Session, err = gexec.Start(command, nil, stdErr)
+	if stderr == nil {
+		stderr = startDetectStream
+	} else {
+		stderr = io.MultiWriter(startDetectStream, stderr)
+	}
+
+	ps.Session, err = gexec.Start(command, stdout, stderr)
 	if err != nil {
 		return err
 	}
@@ -103,7 +109,7 @@ func (ps *ProcessState) Start() (err error) {
 		return nil
 	case <-timedOut:
 		ps.Session.Terminate()
-		return fmt.Errorf("timeout waiting for process to start serving")
+		return fmt.Errorf("timeout waiting for process %s to start", path.Base(ps.Path))
 	}
 }
 
@@ -126,7 +132,7 @@ func (ps *ProcessState) Stop() error {
 	case <-detectedStop:
 		break
 	case <-timedOut:
-		return fmt.Errorf("timeout waiting for process to stop")
+		return fmt.Errorf("timeout waiting for process %s to stop", path.Base(ps.Path))
 	}
 
 	if ps.DirNeedsCleaning {

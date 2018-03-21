@@ -15,14 +15,17 @@ import (
 	"unicode/utf8"
 )
 
-// used by rulesets
+// baseAcronyms comes from https://en.wikipedia.org/wiki/List_of_information_technology_acronymss
+const baseAcronyms = `ACK,ACL,ADSL,AES,ANSI,API,ARP,ATM,BGP,BSS,CAT,CCITT,CHAP,CIDR,CIR,CLI,CPE,CPU,CRC,CRT,CSMA,CMOS,DCE,DEC,DES,DHCP,DNS,DRAM,DSL,DSLAM,DTE,DMI,EHA,EIA,EIGRP,EOF,ESS,FCC,FCS,FDDI,FTP,GBIC,gbps,GEPOF,HDLC,HTTP,HTTPS,IANA,ICMP,IDF,IDS,IEEE,IETF,IMAP,IP,IPS,ISDN,ISP,kbps,LACP,LAN,LAPB,LAPF,LLC,MAC,MAN,Mbps,MC,MDF,MIB,MoCA,MPLS,MTU,NAC,NAT,NBMA,NIC,NRZ,NRZI,NVRAM,OSI,OSPF,OUI,PAP,PAT,PC,PIM,PIM,PCM,PDU,POP3,POP,POST,POTS,PPP,PPTP,PTT,PVST,RADIUS,RAM,RARP,RFC,RIP,RLL,ROM,RSTP,RTP,RCP,SDLC,SFD,SFP,SLARP,SLIP,SMTP,SNA,SNAP,SNMP,SOF,SRAM,SSH,SSID,STP,SYN,TDM,TFTP,TIA,TOFU,UDP,URL,URI,USB,UTP,VC,VLAN,VLSM,VPN,W3C,WAN,WEP,WiFi,WPA,WWW`
+
+// Rule used by rulesets
 type Rule struct {
 	suffix      string
 	replacement string
 	exact       bool
 }
 
-// a Ruleset is the config of pluralization rules
+// Ruleset a Ruleset is the config of pluralization rules
 // you can extend the rules with the Add* methods
 type Ruleset struct {
 	uncountables map[string]bool
@@ -255,6 +258,12 @@ func NewDefaultRuleset() *Ruleset {
 	rs.AddUncountable("sheep")
 	rs.AddUncountable("jeans")
 	rs.AddUncountable("police")
+
+	acronyms := strings.Split(baseAcronyms, ",")
+	for _, acr := range acronyms {
+		rs.AddAcronym(acr)
+	}
+
 	return rs
 }
 
@@ -339,6 +348,17 @@ func (rs *Ruleset) isUncountable(word string) bool {
 	if _, exists := rs.uncountables[strings.ToLower(words[len(words)-1])]; exists {
 		return true
 	}
+	return false
+}
+
+//isAcronym returns if a word is acronym or not.
+func (rs *Ruleset) isAcronym(word string) bool {
+	for _, rule := range rs.acronyms {
+		if rule.suffix == word {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -429,7 +449,27 @@ func (rs *Ruleset) CamelizeDownFirst(word string) string {
 // Capitalize every word in sentence "hello there" -> "Hello There"
 func (rs *Ruleset) Titleize(word string) string {
 	words := splitAtCaseChangeWithTitlecase(word)
-	return strings.Join(words, " ")
+	result := strings.Join(words, " ")
+
+	var acronymWords []string
+	for index, word := range words {
+		if len(word) == 1 {
+			acronymWords = append(acronymWords, word)
+		}
+
+		if len(word) > 1 || index == len(words)-1 || len(acronymWords) > 1 {
+			acronym := strings.Join(acronymWords, "")
+			if !rs.isAcronym(acronym) {
+				acronymWords = acronymWords[:len(acronymWords)]
+				continue
+			}
+
+			result = strings.Replace(result, strings.Join(acronymWords, " "), acronym, 1)
+			acronymWords = []string{}
+		}
+	}
+
+	return result
 }
 
 func (rs *Ruleset) safeCaseAcronyms(word string) string {
@@ -774,6 +814,7 @@ func splitAtCaseChange(s string) []string {
 func splitAtCaseChangeWithTitlecase(s string) []string {
 	words := make([]string, 0)
 	word := make([]rune, 0)
+
 	for _, c := range s {
 		spacer := isSpacerChar(c)
 		if len(word) > 0 {
@@ -790,6 +831,7 @@ func splitAtCaseChangeWithTitlecase(s string) []string {
 			}
 		}
 	}
+
 	words = append(words, string(word))
 	return words
 }

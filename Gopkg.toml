@@ -1,42 +1,36 @@
-
-# Gopkg.toml example
+#  Copyright 2018 The Kubernetes Authors.
 #
-# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
-# for detailed Gopkg.toml documentation.
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
 #
-# required = ["github.com/user/thing/cmd/thing"]
-# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# [[constraint]]
-#   name = "github.com/user/project"
-#   version = "1.0.0"
-#
-# [[constraint]]
-#   name = "github.com/user/project2"
-#   branch = "dev"
-#   source = "github.com/myfork/project2"
-#
-# [[override]]
-#  name = "github.com/x/y"
-#  version = "2.4.0"
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
 # Uncomment to update deps with dep tool
-# ignored = ["github.com/najena/kubebuilder","github.com/najena/kubebuilder/cmd"]
+ ignored = ["github.com/kubernetes-sigs/kubebuilder","github.com/kubernetes-sigs/kubebuilder/cmd"]
+
+# Packages required by users
+required = ["github.com/kubernetes-sig-testing/frameworks/integration",
+            "k8s.io/client-go/plugin/pkg/client/auth",
+            "github.com/spf13/pflag"]
+
+[prune]
+  go-tests = true
 
 # Comment to update deps with dep tool
-[[constraint]]
-  version = "v1.8-alpha.0"
-  name = "github.com/najena/kubebuilder"
-
-[[constraint]]
-  name = "github.com/emicklei/go-restful"
+#[[constraint]]
+#  version = "v1.9-alpha.25"
+#  name = "github.com/kubernetes-sigs/kubebuilder"
 
 [[constraint]]
   name = "github.com/golang/glog"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/markbates/inflect"
+  revision = "44145f04b68cf362d9c4df2182967c2275eaefed"
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
@@ -48,15 +42,15 @@
 
 [[constraint]]
   name = "github.com/pkg/errors"
+  revision = "a22138067af1c4942683050411a841ade67fe1eb"
 
 [[constraint]]
   name = "github.com/spf13/cobra"
+  revision = "f62e98d28ab7ad31d707ba837a966378465c7b57"
 
 [[constraint]]
   name = "github.com/spf13/pflag"
-
-[[constraint]]
-  name = "github.com/spf13/viper"
+  revision = "9ff6c6923cfffbcd502984b8e0c80539a94968b7"
 
 [[constraint]]
   branch = "release-1.9"
@@ -67,9 +61,6 @@
   name = "k8s.io/apiextensions-apiserver"
 
 [[constraint]]
-  name = "github.com/kubernetes-sig-testing/frameworks"
-
-[[constraint]]
   branch = "release-1.9"
   name = "k8s.io/apimachinery"
 
@@ -78,59 +69,17 @@
   name = "k8s.io/apiserver"
 
 [[constraint]]
-  branch = "release-1.9"
-  name = "k8s.io/kube-aggregator"
-
-[[constraint]]
   branch = "release-6.0"
   name = "k8s.io/client-go"
 
 [[constraint]]
-  name = "k8s.io/gengo"
+  branch = "release-1.9"
+  name = "k8s.io/kube-aggregator"
 
-[[constraint]]
-  name = "k8s.io/kube-openapi"
+[[override]]
+  name = "github.com/Azure/go-autorest"
+  version = "v9.1.0"
 
-[[constraint]]
-  name = "github.com/go-openapi/swag"
-  revision = "f3f9494671f93fcff853e3c6e9e948b3eb71e590"
-
-[[constraint]]
-  name = "github.com/go-openapi/analysis"
-  revision = "b44dc874b601d9e4e2f6e19140e794ba24bead3b"
-
-[[constraint]]
-  name = "github.com/go-openapi/errors"
-  revision = "d24ebc2075bad502fac3a8ae27aa6dd58e1952dc"
-
-[[constraint]]
-  name = "github.com/go-openapi/jsonpointer"
-  revision = "46af16f9f7b149af66e5d1bd010e3574dc06de98"
-
-[[constraint]]
-  name = "github.com/go-openapi/jsonreference"
-  revision = "13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272"
-
-[[constraint]]
-  name = "github.com/go-openapi/loads"
-  revision = "a80dea3052f00e5f032e860dd7355cd0cc67e24d"
-
-[[constraint]]
-  name = "github.com/go-openapi/runtime"
-  revision = "11e322eeecc1032d5a0a96c566ed53f2b5c26e22"
-
-[[constraint]]
-  name = "github.com/go-openapi/spec"
-  revision = "7abd5745472fff5eb3685386d5fb8bf38683154d"
-
-[[constraint]]
-  name = "github.com/go-openapi/strfmt"
-  revision = "d65c7fdb29eca313476e529628176fe17e58c488"
-
-[[constraint]]
-  name = "github.com/go-openapi/validate"
-  revision = "deaf2c9013bc1a7f4c774662259a506ba874d80f"
-
-[[constraint]]
-  name = "github.com/mailru/easyjson"
-  revision = "2f5df55504ebc322e4d52d34df6a1f5b503bf26d"
+[[override]]
+  name = "github.com/emicklei/go-restful"
+  revision = "ff4f55a206334ef123e4f79bbf348980da81ca46"

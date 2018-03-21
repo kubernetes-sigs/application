@@ -17,7 +17,7 @@ RUN chmod +x $TEST_ASSET_KUBE_APISERVER
 RUN chmod +x $TEST_ASSET_KUBECTL
 
 # Copy in the go src
-WORKDIR /go/src/github.com/kubernetes-sigs/apps_application
+WORKDIR /go/src/github.com/kubernetes-sigs/application
 COPY pkg/    pkg/
 COPY cmd/    cmd/
 COPY vendor/ vendor/
@@ -30,5 +30,5 @@ RUN go test ./pkg/... ./cmd/...
 FROM ubuntu:latest  
 # RUN apk --no-cache add ca-certificates
 WORKDIR /root/
-COPY --from=builder /go/src/github.com/kubernetes-sigs/apps_application/controller-manager .
+COPY --from=builder /go/src/github.com/kubernetes-sigs/application/controller-manager .
 CMD ["./controller-manager", "--install-crds=false"]  

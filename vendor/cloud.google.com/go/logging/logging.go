@@ -321,6 +321,15 @@ type commonLabels map[string]string
 
 func (c commonLabels) set(l *Logger) { l.commonLabels = c }
 
+// ConcurrentWriteLimit determines how many goroutines will send log entries to the
+// underlying service. The default is 1. Set ConcurrentWriteLimit to a higher value to
+// increase throughput.
+func ConcurrentWriteLimit(n int) LoggerOption { return concurrentWriteLimit(n) }
+
+type concurrentWriteLimit int
+
+func (c concurrentWriteLimit) set(l *Logger) { l.bundler.HandlerLimit = int(c) }
+
 // DelayThreshold is the maximum amount of time that an entry should remain
 // buffered in memory before a call to the logging service is triggered. Larger
 // values of DelayThreshold will generally result in fewer calls to the logging
@@ -409,12 +418,14 @@ func (c *Client) Logger(logID string, opts ...LoggerOption) *Logger {
 	for _, opt := range opts {
 		opt.set(l)
 	}
-
 	l.stdLoggers = map[Severity]*log.Logger{}
 	for s := range severityName {
 		l.stdLoggers[s] = log.New(severityWriter{l, s}, "", 0)
 	}
+
 	c.loggers.Add(1)
+	// Start a goroutine that cleans up the bundler, its channel
+	// and the writer goroutines when the client is closed.
 	go func() {
 		defer c.loggers.Done()
 		<-c.donec
@@ -445,7 +456,7 @@ func (c *Client) Close() error {
 	c.loggers.Wait() // wait for all bundlers to flush and close
 	// Now there can be no more errors.
 	close(c.errc) // terminate error goroutine
-	// Prefer logging errors to close errors.
+	// Prefer errors arising from logging to the error returned from Close.
 	err := c.extractErrorInfo()
 	err2 := c.client.Close()
 	if err == nil {
@@ -525,9 +536,8 @@ type Entry struct {
 	// The zero value is Default.
 	Severity Severity
 
-	// Payload must be either a string or something that
-	// marshals via the encoding/json package to a JSON object
-	// (and not any other type of JSON value).
+	// Payload must be either a string, or something that marshals via the
+	// encoding/json package to a JSON object (and not any other type of JSON value).
 	Payload interface{}
 
 	// Labels optionally specifies key/value labels for the log entry.
@@ -556,9 +566,7 @@ type Entry struct {
 	// reading entries. It is an error to set it when writing entries.
 	LogName string
 
-	// Resource is the monitored resource associated with the entry. It is set
-	// by the client when reading entries. It is an error to set it when
-	// writing entries.
+	// Resource is the monitored resource associated with the entry.
 	Resource *mrpb.MonitoredResource
 
 	// Trace is the resource name of the trace associated with the log entry,
@@ -642,13 +650,19 @@ func toProtoStruct(v interface{}) (*structpb.Struct, error) {
 	if s, ok := v.(*structpb.Struct); ok {
 		return s, nil
 	}
-	// v is a Go struct that supports JSON marshalling. We want a Struct
+	// v is a Go value that supports JSON marshalling. We want a Struct
 	// protobuf. Some day we may have a more direct way to get there, but right
-	// now the only way is to marshal the Go struct to JSON, unmarshal into a
+	// now the only way is to marshal the Go value to JSON, unmarshal into a
 	// map, and then build the Struct proto from the map.
-	jb, err := json.Marshal(v)
-	if err != nil {
-		return nil, fmt.Errorf("logging: json.Marshal: %v", err)
+	var jb []byte
+	var err error
+	if raw, ok := v.(json.RawMessage); ok { // needed for Go 1.7 and below
+		jb = []byte(raw)
+	} else {
+		jb, err = json.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("logging: json.Marshal: %v", err)
+		}
 	}
 	var m map[string]interface{}
 	err = json.Unmarshal(jb, &m)
@@ -777,8 +791,8 @@ func toLogEntry(e Entry) (*logpb.LogEntry, error) {
 		Operation:   e.Operation,
 		Labels:      e.Labels,
 		Trace:       e.Trace,
+		Resource:    e.Resource,
 	}
-
 	switch p := e.Payload.(type) {
 	case string:
 		ent.Payload = &logpb.LogEntry_TextPayload{TextPayload: p}
