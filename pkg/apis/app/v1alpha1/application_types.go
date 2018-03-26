@@ -82,9 +82,6 @@ type Maintainer struct {
 
 // Link contains information about an URL to surface documentation, dashboards, etc.
 type Link struct {
-	// Type defines the purpose of the link.
-	Type string `json:"type,omitempty"`
-
 	// Description is human readable content explaining the purpose of the link.
 	Description string `json:"description,omitempty"`
 
