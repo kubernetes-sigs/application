@@ -54,10 +54,10 @@ type ApplicationSpec struct {
 	Info []InfoItem `json:"info,omitempty"`
 
 	// Links are a list of descriptive URLs intended to be used to surface additional documentation, dashboards, etc.
-	Links []Link `json:"urls,omitempty"`
+	Links []Link `json:"links,omitempty"`
 
-	// Notes are a list of human readable snippets intended as a quick start for the users of the Application.
-	Notes []string `json:"notes,omitempty"`
+	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
+	Notes string `json:"notes,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
