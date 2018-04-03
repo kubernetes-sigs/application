@@ -218,6 +218,7 @@ func (s *server) ModifyColumnFamilies(ctx context.Context, req *btapb.ModifyColu
 	return &btapb.Table{
 		Name:           tblName,
 		ColumnFamilies: toColumnFamilies(tbl.families),
+		Granularity:    btapb.Table_TimestampGranularity(btapb.Table_MILLIS),
 	}, nil
 }
 
@@ -415,7 +416,7 @@ func streamRow(stream btpb.Bigtable_ReadRowsServer, r *row, f *btpb.RowFilter) (
 	// We can't have a cell with just COMMIT set, which would imply a new empty cell.
 	// So modify the last cell to have the COMMIT flag set.
 	if len(rrr.Chunks) > 0 {
-		rrr.Chunks[len(rrr.Chunks)-1].RowStatus = &btpb.ReadRowsResponse_CellChunk_CommitRow{true}
+		rrr.Chunks[len(rrr.Chunks)-1].RowStatus = &btpb.ReadRowsResponse_CellChunk_CommitRow{CommitRow: true}
 	}
 
 	return true, stream.Send(rrr)
@@ -429,6 +430,10 @@ func filterRow(f *btpb.RowFilter, r *row) bool {
 	}
 	// Handle filters that apply beyond just including/excluding cells.
 	switch f := f.Filter.(type) {
+	case *btpb.RowFilter_BlockAllFilter:
+		return !f.BlockAllFilter
+	case *btpb.RowFilter_PassAllFilter:
+		return f.PassAllFilter
 	case *btpb.RowFilter_Chain_:
 		for _, sub := range f.Chain.Filters {
 			if !filterRow(sub, r) {

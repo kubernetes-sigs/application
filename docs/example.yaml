@@ -1,0 +1,179 @@
+apiVersion: app.k8s.io/v1alpha1
+kind: Application
+metadata:
+  name: "wordpress-01"
+  componentKinds:
+    - group: core
+      kind: Service
+    - group: apps
+      kind: StatefulSet
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+spec:
+  type: "wordpress"
+  selector:
+    matchLabels:
+     app.kubernetes.io/name: "wordpress-01"
+  version: "4.9.4"
+  description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+  maintainers: "Kenneth Owens kow3ns@github.com"
+  owners: "Kenneth Owens kow3ns@github.com"
+  keywords:
+   - "cms"
+   - "blog"
+   - "wordpress"
+  links:
+    about: "https://wordpress.org/"
+    web-server-dashboard: "https://metrics/internal/wordpress-01/web-app"
+    web-server-dashboard: "https://metrics/internal/wordpress-01/mysql"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql-hsvc
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "mysql-hsvc"
+    app.kubernetes.io/tier: "backend"
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wordpress
+    component: wordpres-mysql
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wordpress-mysql
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "mysql-rdbms"
+    app.kubernetes.io/tier: "backend"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "wordpress-01"
+      app.kubernetes.io/component: "mysql-rdbms"
+      app.kubernetes.io/tier: "backend"
+  replicas: 1
+  service: wordpress-mysql-hsvc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "wordpress-01"
+        app.kubernetes.io/component: "mysql-rdbms"
+        app.kubernetes.io/tier: "backend"
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+   volumeClaimTemplates:
+     - metadata:
+         name: mysql-persistent-storage
+       spec:
+         accessModes: [ "ReadWriteOnce" ]
+         resources:
+           requests:
+             storage: 250Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-webserver-svc
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "wordpress-svc"
+    app.kubernetes.io/tier: "frontend"
+spec:
+  ports:
+    - port: 80
+  selector:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/component: "wordpress-webserver"
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-webserver-hsvc
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "wordpress-hsvc"
+    app.kubernetes.io/tier: "frontend"
+spec:
+  ports:
+    - port: 3306
+  selector:
+     app.kubernetes.io/name: "wordpress-01"
+     app.kubernetes.io/component: "wordpress-webserver"
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wordpress-webserver
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "wordpress-webserver"
+    app.kubernetes.io/tier: "frontend"
+  annotations:
+      kubernetes.io/application: wordpress
+spec:
+  replicas: 1
+  service: wordpress-webserver-hsvc
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "wordpress-01"
+      app.kubernetes.io/component: "wordpress-webserver"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "wordpress-01"
+        app.kubernetes.io/version: "3"
+        app.kubernetes.io/component: "wordpress-webserver"
+        app.kubernetes.io/tier: "frontend"
+    spec:
+      containers:
+      - image: wordpress:4.8-apache
+        name: wordpress
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: wordpress-mysql
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort: 80
+          name: wordpress
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          mountPath: /var/www/html
+  volumeClaimTemplates:
+       - metadata:
+           name: mysql-persistent-storage
+         spec:
+           accessModes: [ "ReadWriteOnce" ]
+           resources:
+             requests:
+               storage: 250Gi

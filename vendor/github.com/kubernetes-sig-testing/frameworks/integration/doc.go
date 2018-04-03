@@ -47,7 +47,7 @@ against a kubernetes control plane.
 
 Binaries
 
-Both Etcd and APIServer use the same mechanism to determine which binaries to
+Etcd, APIServer & KubeCtl use the same mechanism to determine which binaries to
 use when they get started.
 
 1. If the component is configured with a `Path` the framework tries to run that
@@ -62,18 +62,52 @@ For example:
 	}
 	cp.Start()
 
-2. If the Path field on APIServer or Etcd is left unset and an environment
-variable named `TEST_ASSET_KUBE_APISERVER` or `TEST_ASSET_ETCD` is set, its
-value is used as a path to the binary for the APIServer or Etcd.
+2. If the Path field on APIServer, Etcd or KubeCtl is left unset and an
+environment variable named `TEST_ASSET_KUBE_APISERVER`, `TEST_ASSET_ETCD` or
+`TEST_ASSET_KUBECTL` is set, its value is used as a path to the binary for the
+APIServer, Etcd or KubeCtl.
 
 3. If neither the `Path` field, nor the environment variable is set, the
-framework tries to use the binaries `kube-apiserver` or `etcd` in the directory
-`${FRAMEWORK_DIR}/assets/bin/`.
+framework tries to use the binaries `kube-apiserver`, `etcd` or `kubectl` in
+the directory `${FRAMEWORK_DIR}/assets/bin/`.
 
 For convenience this framework ships with
 `${FRAMEWORK_DIR}/scripts/download-binaries.sh` which can be used to download
 pre-compiled versions of the needed binaries and place them in the default
 location (`${FRAMEWORK_DIR}/assets/bin/`).
+
+Arguments for Etcd and APIServer
+
+Those components will start without any configuration. However, if you want our
+need to, you can override certain configuration -- one of which are the
+arguments used when calling the binary.
+
+When you choose to specify your own set of arguments, those won't be appended
+to the default set of arguments, it is your responsibility to provide all the
+arguments needed for the binary to start successfully.
+
+All arguments are interpreted as go templates. Those templates have access to
+all exported fields of the `APIServer`/`Etcd` struct. It does not matter if
+those fields where explicitly set up or if they were defaulted by calling the
+`Start()` method, the template evaluation runs just before the binary is
+executed and right after the defaulting of all the struct's fields has
+happened.
+
+	// All arguments needed for a successful start must be specified
+	etcdArgs := []string{
+		"--listen-peer-urls=http://localhost:0",
+		"--advertise-client-urls={{ .URL.String }}",
+		"--listen-client-urls={{ .URL.String }}",
+		"--data-dir={{ .DataDir }}",
+		// add some custom arguments
+		"--this-is-my-very-important-custom-argument",
+		"--arguments-dont-have-to-be-templates=but they can",
+	}
+
+	etcd := &Etcd{
+		Args:    etcdArgs,
+		DataDir: "/my/special/data/dir",
+	}
 
 */
 package integration

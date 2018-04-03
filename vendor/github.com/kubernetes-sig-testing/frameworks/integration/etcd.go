@@ -1,7 +1,7 @@
 package integration
 
 import (
-	"fmt"
+	"io"
 	"time"
 
 	"net/url"
@@ -24,6 +24,18 @@ type Etcd struct {
 	// details.
 	Path string
 
+	// Args is a list of arguments which will passed to the Etcd binary. Before
+	// they are passed on, the`y will be evaluated as go-template strings. This
+	// means you can use fields which are defined and exported on this Etcd
+	// struct (e.g. "--data-dir={{ .Dir }}").
+	// Those templates will be evaluated after the defaulting of the Etcd's
+	// fields has already happened and just before the binary actually gets
+	// started. Thus you have access to caluclated fields like `URL` and others.
+	//
+	// If not specified, the minimal set of arguments to run the Etcd will be
+	// used.
+	Args []string
+
 	// DataDir is a path to a directory in which etcd can store its state.
 	//
 	// If left unspecified, then the Start() method will create a fresh temporary
@@ -36,6 +48,12 @@ type Etcd struct {
 	// If not specified, these default to 20 seconds.
 	StartTimeout time.Duration
 	StopTimeout  time.Duration
+
+	// Out, Err specify where Etcd should write its StdOut, StdErr to.
+	//
+	// If not specified, the output will be discarded.
+	Out io.Writer
+	Err io.Writer
 
 	processState *internal.ProcessState
 }
@@ -59,11 +77,22 @@ func (e *Etcd) Start() error {
 		return err
 	}
 
-	e.processState.Args = internal.MakeEtcdArgs(e.processState.DefaultedProcessInput)
+	e.processState.StartMessage = internal.GetEtcdStartMessage(e.processState.URL)
 
-	e.processState.StartMessage = fmt.Sprintf("serving insecure client requests on %s", e.processState.URL.Hostname())
+	e.URL = &e.processState.URL
+	e.DataDir = e.processState.Dir
+	e.Path = e.processState.Path
+	e.StartTimeout = e.processState.StartTimeout
+	e.StopTimeout = e.processState.StopTimeout
 
-	return e.processState.Start()
+	e.processState.Args, err = internal.RenderTemplates(
+		internal.DoEtcdArgDefaulting(e.Args), e,
+	)
+	if err != nil {
+		return err
+	}
+
+	return e.processState.Start(e.Out, e.Err)
 }
 
 // Stop stops this process gracefully, waits for its termination, and cleans up

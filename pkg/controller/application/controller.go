@@ -1,68 +1,57 @@
-/*
-Copyright 2018 The Kubernetes Authors.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 
 package application
 
 import (
-	"log"
+    "log"
 
-	"github.com/najena/kubebuilder/pkg/builders"
+    "github.com/kubernetes-sigs/kubebuilder/pkg/controller"
+    "github.com/kubernetes-sigs/kubebuilder/pkg/controller/types"
 
-	"github.com/kubernetes-sigs/apps_application/pkg/apis/application/v1alpha1"
-	listers "github.com/kubernetes-sigs/apps_application/pkg/client/listers_generated/application/v1alpha1"
-	"github.com/kubernetes-sigs/apps_application/pkg/controller/sharedinformers"
+    appv1alpha1client "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned/typed/app/v1alpha1"
+    appv1alpha1lister "github.com/kubernetes-sigs/application/pkg/client/listers/app/v1alpha1"
+    appv1alpha1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1alpha1"
+    appv1alpha1informer "github.com/kubernetes-sigs/application/pkg/client/informers/externalversions/app/v1alpha1"
+    "github.com/kubernetes-sigs/application/pkg/inject/args"
 )
 
-// EDIT THIS FILE!
-// Created by "kubebuilder create resource" for you to implement controller logic for the Application resource API
+// EDIT THIS FILE
+// This files was created by "kubebuilder create resource" for you to edit.
+// Controller implementation logic for Application resources goes here.
 
-// Reconcile handles enqueued messages
-func (c *ApplicationControllerImpl) Reconcile(u *v1alpha1.Application) error {
-	// INSERT YOUR CODE HERE - implement controller logic to reconcile observed and desired state of the object
-	log.Printf("Running reconcile Application for %s\n", u.Name)
-	return nil
+func (bc *ApplicationController) Reconcile(k types.ReconcileKey) error {
+    // INSERT YOUR CODE HERE
+    log.Printf("Implement the Reconcile function on application.ApplicationController to reconcile %s\n", k.Name)
+    return nil
 }
 
-// +controller:group=application,version=v1alpha1,kind=Application,resource=applications
-type ApplicationControllerImpl struct {
-	builders.DefaultControllerFns
-
-	// lister indexes properties about Application
-	lister listers.ApplicationLister
+// +controller:group=app,version=v1alpha1,kind=Application,resource=applications
+type ApplicationController struct {
+    // INSERT ADDITIONAL FIELDS HERE
+    applicationLister appv1alpha1lister.ApplicationLister
+    applicationclient appv1alpha1client.AppV1alpha1Interface
 }
 
-// Init initializes the controller and is called by the generated code
-// Register watches for additional resource types here.
-func (c *ApplicationControllerImpl) Init(arguments sharedinformers.ControllerInitArguments) {
-	// INSERT YOUR CODE HERE - add logic for initializing the controller as needed
+// ProvideController provides a controller that will be run at startup.  Kubebuilder will use codegeneration
+// to automatically register this controller in the inject package
+func ProvideController(arguments args.InjectArgs) (*controller.GenericController, error) {
+    // INSERT INITIALIZATIONS FOR ADDITIONAL FIELDS HERE
+    bc := &ApplicationController{
+        applicationLister: arguments.ControllerManager.GetInformerProvider(&appv1alpha1.Application{}).(appv1alpha1informer.ApplicationInformer).Lister(),
+        applicationclient: arguments.Clientset.AppV1alpha1(),
+    }
 
-	// Use the lister for indexing applications labels
-	c.lister = arguments.GetSharedInformers().Factory.Application().V1alpha1().Applications().Lister()
+    // Create a new controller that will call ApplicationController.Reconcile on changes to Applications
+    gc := &controller.GenericController{
+        Name: "ApplicationController",
+        Reconcile: bc.Reconcile,
+        InformerRegistry: arguments.ControllerManager,
+    }
+    if err := gc.Watch(&appv1alpha1.Application{}); err != nil {
+        return gc, err
+    }
 
-	// To watch other resource types, uncomment this function and replace Foo with the resource name to watch.
-	// Must define the func FooToApplication(i interface{}) (string, error) {} that returns the Application
-	// "namespace/name"" to reconcile in response to the updated Foo
-	// Note: To watch Kubernetes resources, you must also update the StartAdditionalInformers function in
-	// pkg/controllers/sharedinformers/informers.go
-	//
-	// arguments.Watch("ApplicationFoo",
-	//     arguments.GetSharedInformers().Factory.Bar().V1beta1().Bars().Informer(),
-	//     c.FooToApplication)
-}
-
-func (c *ApplicationControllerImpl) Get(namespace, name string) (*v1alpha1.Application, error) {
-	return c.lister.Applications(namespace).Get(name)
+    // INSERT ADDITIONAL WATCHES HERE BY CALLING gc.Watch.*() FUNCTIONS
+    // NOTE: Informers for Kubernetes resources *MUST* be registered in the pkg/inject package so that they are started.
+    return gc, nil
 }
