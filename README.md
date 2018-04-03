@@ -1,15 +1,23 @@
 # Kubernetes Applications
 
-Kubernetes has many primitives for managing workloads (e.g. Pods, ReplicaSets, Deployments, DaemonSets and 
-StatefulSets), storage (e.g. PersistentVolumeClaims and PersistentVolumes), and networking (e.g. Services, 
-Headless Services, and Ingresses). When these primitives are aggregated to provide a service to an end user or to 
-another system, the whole becomes something more than the individual parts. Instead of a set of loosely coupled 
-workloads and their corresponding storage and networking, we have an application. 
+> Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
 
-To address these issues, we are developing the Application CRD (Custom Resource Definition). This Kind can be used 
-by tools to communicate that the applications they create are more than just a loosely coupled set of API objects. It 
-is our hope that broad adoption of this resource will promote interoperability in the ecosystem and reduce 
-fragmentation.
+The above description, from the [Kubernetes homepage](https://kubernetes.io/), is centered on containerized _applications_. Yet, the Kubernetes metadata, objects, and visualizations (e.g., within Dashboard) are focused on container infrastructure rather than the applications themselves.
+
+The Application CRD and Controller in this project aim to change that in a way that's interoperable between many supporting tools.
+
+**It provides:**
+
+* The ability to describe an applications metadata (e.g., that an application like WordPress is running)
+* A point to connect the infrastructure, such as Deployments, to as a root object. This is useful for tying things together and even cleanup (i.e., garbage collection)
+* Information for supporting applications to help them query and understand the objects supporting an application
+* Application level health checks
+
+**This can be used by:**
+
+* Application operators who want to center what they operate on applications
+* Tools, such as Helm, that center their package releases on application installations can do so in a way that's interoperable with other tools (e.g., Dashboard)
+* Dashboards that want to visualize the applications in addition to or instead of an infrastructure view
 
 ## Goals
 
