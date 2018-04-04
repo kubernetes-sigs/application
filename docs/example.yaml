@@ -2,11 +2,6 @@ apiVersion: app.k8s.io/v1alpha1
 kind: Application
 metadata:
   name: "wordpress-01"
-  componentKinds:
-    - group: core
-      kind: Service
-    - group: apps
-      kind: StatefulSet
   labels:
     app.kubernetes.io/name: "wordpress-01"
 spec:
@@ -14,18 +9,29 @@ spec:
   selector:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
+  componentKinds:
+    - group: core
+      kind: Service
+    - group: apps
+      kind: StatefulSet
   version: "4.9.4"
   description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
-  maintainers: "Kenneth Owens kow3ns@github.com"
-  owners: "Kenneth Owens kow3ns@github.com"
+  maintainers:
+    - name: Kenneth Owens
+      email: kow3ns@github.com
+  owners:
+    - "Kenneth Owens kow3ns@github.com"
   keywords:
    - "cms"
    - "blog"
    - "wordpress"
   links:
-    about: "https://wordpress.org/"
-    web-server-dashboard: "https://metrics/internal/wordpress-01/web-app"
-    web-server-dashboard: "https://metrics/internal/wordpress-01/mysql"
+    - description: About
+      url: "https://wordpress.org/"
+    - description: Web Server Dashboard
+      url: "https://metrics/internal/wordpress-01/web-app"
+    - description: Mysql Dashboard
+      url: "https://metrics/internal/wordpress-01/mysql"
 ---
 apiVersion: v1
 kind: Service
