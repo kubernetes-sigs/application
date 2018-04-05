@@ -98,10 +98,19 @@ var (
 									Type: "string",
 								},
 								"info": v1beta1.JSONSchemaProps{
-									Type: "object",
-									AdditionalProperties: &v1beta1.JSONSchemaPropsOrBool{
-										Allows: true,
-										//Schema: &,
+									Type: "array",
+									Items: &v1beta1.JSONSchemaPropsOrArray{
+										Schema: &v1beta1.JSONSchemaProps{
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"name": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+												"value": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+											},
+										},
 									},
 								},
 								"keywords": v1beta1.JSONSchemaProps{
@@ -112,13 +121,43 @@ var (
 										},
 									},
 								},
+								"links": v1beta1.JSONSchemaProps{
+									Type: "array",
+									Items: &v1beta1.JSONSchemaPropsOrArray{
+										Schema: &v1beta1.JSONSchemaProps{
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"description": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+												"url": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+											},
+										},
+									},
+								},
 								"maintainers": v1beta1.JSONSchemaProps{
 									Type: "array",
 									Items: &v1beta1.JSONSchemaPropsOrArray{
 										Schema: &v1beta1.JSONSchemaProps{
-											Type: "string",
+											Type: "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{
+												"email": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+												"name": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+												"url": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+											},
 										},
 									},
+								},
+								"notes": v1beta1.JSONSchemaProps{
+									Type: "string",
 								},
 								"owners": v1beta1.JSONSchemaProps{
 									Type: "array",
@@ -166,13 +205,6 @@ var (
 								},
 								"type": v1beta1.JSONSchemaProps{
 									Type: "string",
-								},
-								"urls": v1beta1.JSONSchemaProps{
-									Type: "object",
-									AdditionalProperties: &v1beta1.JSONSchemaPropsOrBool{
-										Allows: true,
-										//Schema: &,
-									},
 								},
 								"version": v1beta1.JSONSchemaProps{
 									Type: "string",

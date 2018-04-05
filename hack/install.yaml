@@ -80,17 +80,40 @@ spec:
             description:
               type: string
             info:
-              additionalProperties:
-                type: string
-              type: object
+              items:
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+                type: object
+              type: array
             keywords:
               items:
                 type: string
               type: array
+            links:
+              items:
+                properties:
+                  description:
+                    type: string
+                  url:
+                    type: string
+                type: object
+              type: array
             maintainers:
               items:
-                type: string
+                properties:
+                  email:
+                    type: string
+                  name:
+                    type: string
+                  url:
+                    type: string
+                type: object
               type: array
+            notes:
+              type: string
             owners:
               items:
                 type: string
@@ -117,10 +140,6 @@ spec:
               type: object
             type:
               type: string
-            urls:
-              additionalProperties:
-                type: string
-              type: object
             version:
               type: string
           type: object
@@ -194,6 +213,13 @@ spec:
             cpu: 100m
             memory: 30Mi
           requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10
+  updateStrategy: {}
+status:
+  replicas: 0
+requests:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
