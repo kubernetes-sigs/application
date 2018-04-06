@@ -185,7 +185,9 @@ metadata:
        app.kubernetes.io/name: "wordpress-01"
     version: "4.9.4"
     description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
-    maintainers: "Kenneth Owens kow3ns@github.com"
+    maintainers:
+      - name: Kenneth Owens
+        email: kow3ns@github.com
     owners: "Kenneth Owens kow3ns@github.com"
     keywords:
      - "cms"
