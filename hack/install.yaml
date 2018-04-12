@@ -79,6 +79,11 @@ spec:
               type: array
             description:
               type: string
+            phase:
+              type: string
+              enum:
+              - Assembly
+              - Assembled
             info:
               items:
                 properties:

@@ -58,6 +58,9 @@ type ApplicationSpec struct {
 
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
 	Notes string `json:"notes,omitempty"`
+
+	// Phase represents the current phase of the application.
+	Phase ApplicationPhase `json:"phase,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
@@ -97,6 +100,17 @@ type InfoItem struct {
 	// Value is human readable content.
 	Value string `json:"value,omitempty"`
 }
+
+type ApplicationPhase string
+
+const (
+	// Used to indicate that not all of application's components
+	// have been deployed yet.
+	Assembly ApplicationPhase = "Assembly"
+	// Used to indicate that all of application's components
+	// have alraedy been deployed.
+	Assembled ApplicationPhase = "Assembled"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
