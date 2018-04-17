@@ -4,7 +4,7 @@
 
 The above description, from the [Kubernetes homepage](https://kubernetes.io/), is centered on containerized _applications_. Yet, the Kubernetes metadata, objects, and visualizations (e.g., within Dashboard) are focused on container infrastructure rather than the applications themselves.
 
-The Application CRD and Controller in this project aim to change that in a way that's interoperable between many supporting tools.
+The Application CRD (Custom Resource Definition) and Controller in this project aim to change that in a way that's interoperable between many supporting tools.
 
 **It provides:**
 
