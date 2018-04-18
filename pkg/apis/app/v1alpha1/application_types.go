@@ -60,6 +60,7 @@ type ApplicationSpec struct {
 	Notes string `json:"notes,omitempty"`
 
 	// AssemblyPhase represents the current phase of the application's assembly.
+	// An empty value is equivalent to "Succeeded".
 	AssemblyPhase ApplicationAssemblyPhase `json:"assemblyPhase,omitempty"`
 }
 
