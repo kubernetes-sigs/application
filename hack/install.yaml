@@ -79,11 +79,12 @@ spec:
               type: array
             description:
               type: string
-            phase:
+            assemblyPhase:
               type: string
               enum:
-              - Assembly
-              - Assembled
+              - Pending
+              - Succeeded
+              - Failed
             info:
               items:
                 properties:

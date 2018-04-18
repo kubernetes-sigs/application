@@ -59,8 +59,8 @@ type ApplicationSpec struct {
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
 	Notes string `json:"notes,omitempty"`
 
-	// Phase represents the current phase of the application.
-	Phase ApplicationPhase `json:"phase,omitempty"`
+	// AssemblyPhase represents the current phase of the application.
+	AssemblyPhase ApplicationAssemblyPhase `json:"phase,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
@@ -101,15 +101,19 @@ type InfoItem struct {
 	Value string `json:"value,omitempty"`
 }
 
-type ApplicationPhase string
+type ApplicationAssemblyPhase string
 
 const (
 	// Used to indicate that not all of application's components
 	// have been deployed yet.
-	Assembly ApplicationPhase = "Assembly"
+	Pending ApplicationAssemblyPhase = "Pending"
 	// Used to indicate that all of application's components
 	// have alraedy been deployed.
-	Assembled ApplicationPhase = "Assembled"
+	Succeeded = "Succeeded"
+	// Used to indicate that deployment of application's components
+	// failed. Some components might be present, but deployment of
+	// the remaining ones will not be re-attempted.
+	Failed = "Failed"
 )
 
 // +genclient

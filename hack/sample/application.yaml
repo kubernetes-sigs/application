@@ -19,7 +19,7 @@ spec:
       kind: StatefulSet
   version: "4.9.4"
   description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
-  phase: "Assembled"
+  assemblyPhase: "Pending"
   maintainers:
     - name: Kenneth Owens
       email: kow3ns@github.com
