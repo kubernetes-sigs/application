@@ -59,8 +59,8 @@ type ApplicationSpec struct {
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
 	Notes string `json:"notes,omitempty"`
 
-	// AssemblyPhase represents the current phase of the application.
-	AssemblyPhase ApplicationAssemblyPhase `json:"phase,omitempty"`
+	// AssemblyPhase represents the current phase of the application's assembly.
+	AssemblyPhase ApplicationAssemblyPhase `json:"assemblyPhase,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
