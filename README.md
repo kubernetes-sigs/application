@@ -116,9 +116,9 @@ aggregation and display of all the components in the Application.
     </tr>
     <tr>
         <td>spec.assemblyPhase</td>
-        <td>string</td>
-        <td>"Pending", "Succeeded" or "Failed". The installer can set this field
-        to indicate that the application's components are still being deployed
+        <td>string: "Pending", "Succeeded" or "Failed"</td>
+        <td>The installer can set this field to indicate that the
+        application's components are still being deployed
         ("Pending") or all are deployed already ("Succeeded"). When the
         application cannot be succesfully assembled, the installer can set this
         field to "Failed".</td>
