@@ -109,10 +109,19 @@ aggregation and display of all the components in the Application.
         dashboards, etc.</td>
     </tr>
     <tr>
-        <td>spec.Notes</td>
+        <td>spec.notes</td>
         <td>string</td>
         <td>Notes contain a human readable snippets intended as a quick start for the users of the
         Application.</td>
+    </tr>
+    <tr>
+        <td>spec.assemblyPhase</td>
+        <td>string</td>
+        <td>"Pending", "Succeeded" or "Failed". The installer can set this field
+        to indicate that the application's components are still being deployed
+        ("Pending") or all are deployed already ("Succeeded"). When the
+        application cannot be succesfully assembled, the installer can set this
+        field to "Failed".</td>
     </tr>
 </table>
 
