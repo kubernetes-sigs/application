@@ -79,6 +79,12 @@ spec:
               type: array
             description:
               type: string
+            assemblyPhase:
+              type: string
+              enum:
+              - Pending
+              - Succeeded
+              - Failed
             info:
               items:
                 properties:

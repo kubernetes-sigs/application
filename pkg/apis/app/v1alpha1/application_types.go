@@ -58,6 +58,10 @@ type ApplicationSpec struct {
 
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
 	Notes string `json:"notes,omitempty"`
+
+	// AssemblyPhase represents the current phase of the application's assembly.
+	// An empty value is equivalent to "Succeeded".
+	AssemblyPhase ApplicationAssemblyPhase `json:"assemblyPhase,omitempty"`
 }
 
 // ApplicationStatus defines controllers the observed state of Application
@@ -97,6 +101,21 @@ type InfoItem struct {
 	// Value is human readable content.
 	Value string `json:"value,omitempty"`
 }
+
+type ApplicationAssemblyPhase string
+
+const (
+	// Used to indicate that not all of application's components
+	// have been deployed yet.
+	Pending ApplicationAssemblyPhase = "Pending"
+	// Used to indicate that all of application's components
+	// have alraedy been deployed.
+	Succeeded = "Succeeded"
+	// Used to indicate that deployment of application's components
+	// failed. Some components might be present, but deployment of
+	// the remaining ones will not be re-attempted.
+	Failed = "Failed"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
