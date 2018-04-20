@@ -299,6 +299,11 @@
   version = "v2.0.1"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "a22138067af1c4942683050411a841ade67fe1eb"
+
+[[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
   revision = "9ff6c6923cfffbcd502984b8e0c80539a94968b7"
@@ -450,6 +455,7 @@
   packages = [
     "pkg/apis/apiextensions",
     "pkg/apis/apiextensions/v1beta1",
+    "pkg/client/clientset/clientset",
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
@@ -657,6 +663,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "39d331d34fd9e3b36e41531bf433f9459b4adec392323144e238ecdf8a17f57b"
+  inputs-digest = "7961d4b434e6b58bb239387f5c8517d636c032885b13885f09e408264528402d"
   solver-name = "gps-cdcl"
   solver-version = 1
