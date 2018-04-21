@@ -223,10 +223,3 @@ spec:
   updateStrategy: {}
 status:
   replicas: 0
-requests:
-            cpu: 100m
-            memory: 20Mi
-      terminationGracePeriodSeconds: 10
-  updateStrategy: {}
-status:
-  replicas: 0
