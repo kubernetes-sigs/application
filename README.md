@@ -4,7 +4,7 @@
 
 The above description, from the [Kubernetes homepage](https://kubernetes.io/), is centered on containerized _applications_. Yet, the Kubernetes metadata, objects, and visualizations (e.g., within Dashboard) are focused on container infrastructure rather than the applications themselves.
 
-The Application CRD (Custom Resource Definition) and Controller in this project aim to change that in a way that's interoperable between many supporting tools.
+The Application CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and [Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers) in this project aim to change that in a way that's interoperable between many supporting tools.
 
 **It provides:**
 
@@ -35,6 +35,7 @@ The Application CRD (Custom Resource Definition) and Controller in this project 
 1. Provide a way for UIs to surface metrics from an application.
 
 ## What is the Application CRD?
+
 The Application CRD provides a way for you to aggregate individual Kubernetes components (e.g. Sevrices, Deployemnts,
 StatefulSets, Ingresses, CRDs), and manage them as a group. It provides UIs with a resource that allows for the
 aggregation and display of all the components in the Application.
@@ -56,7 +57,7 @@ aggregation and display of all the components in the Application.
         <td>spec.componentKinds</td>
         <td>[]<a href=https://kubernetes.io/docs/reference/api-overview/#api-groups> GroupKind </a> </td>
         <td>This array of GroupKinds is used to indicate the types of resources that the application is composed of. As
-        an exmpale an Application that has a service and a deployment would set this field to
+        an example an Application that has a service and a deployment would set this field to
         <i>[{"group":"","kind": "Service"},{"group":"apps","kind":"StatefulSet"}]</i></td>
     </tr>
     <tr>
@@ -89,13 +90,13 @@ aggregation and display of all the components in the Application.
         <td>spec.owners</td>
         <td>[]string</td>
         <td>A list of the operational owners of the application. This field is meant to be left empty by the
-        distributors of appliation, and set by the installer to indicate who should be contacted in the event of a
+        distributors of application, and set by the installer to indicate who should be contacted in the event of a
         planned or unplanned disruption to the Application</td>
     </tr>
     <tr>
         <td>spec.keywords</td>
         <td>array string</td>
-        <td>A list of keyworkds that identify the application.</td>
+        <td>A list of keywords that identify the application.</td>
     </tr>
     <tr>
         <td>spec.info</td>
@@ -120,18 +121,20 @@ aggregation and display of all the components in the Application.
         <td>The installer can set this field to indicate that the
         application's components are still being deployed
         ("Pending") or all are deployed already ("Succeeded"). When the
-        application cannot be succesfully assembled, the installer can set this
+        application cannot be successfully assembled, the installer can set this
         field to "Failed".</td>
     </tr>
 </table>
 
 ## Building
+
 This project uses the [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) tool to for code generation.
 kubebuilder provides the same code generation features (and a bit more) for Custom Resource Definitions and Extension
 API Servers that are provided by the Kubernetes project. In order to build the source, you need to download and install
 the latest release of kubebuilder per the instructions there.
 
 ### Controller
+
 The controller doesn't do much at the moment. However, if you'd like to build it you'll need to install Docker and
 golang 1.9 or greater. To build the controller into an image named ```image``` use the following command.
 
@@ -140,6 +143,7 @@ docker <image> -f Dockerfile.controller
 ```
 
 ## Installing the CRD
+
 In order to install the CRD you will either need to use kubectl or you will need to call against the Kubernetes CRD
 API directly. An example [manifest](hack/install.yaml) is supplied in the hack directory. You can use the following
 command to install the CRD (where ```manifest`` is the manifest containing the CRD declaration).
@@ -149,10 +153,11 @@ kubectl apply -f <manifest>
 ```
 
 ## Generating an Installation Manifest
+
 When the CRD is installed as above, you need to ensure that the correct RBAC configuration is applied prior to
 installation. You can use `kubebulider create config` to generate a manifest that is configured to create the
 requisite RBAC permissions, CRD, and controller StatefulSet in the supplied namespace. The command below will generate
-a manifest that can be applied to create all of the necessary components the `mage` as the controller
+a manifest that can be applied to create all of the necessary components the `image` as the controller
 image and `namespace` as the namespace. Note that, if you would like to remove the controller from the configuration
 you can delete the generated StatefulSet from the manifest, and, while you must specify a controller image, you need
 can supply any string if you do not wish to install the controller when the manifest is applied (i.e. you intend to
@@ -163,9 +168,11 @@ kubebulider create config --controller-image <image>  --name <namespace>
 ```
 
 ## Using the Application CRD
+
 The application CRD can be used both via manifests and programmatically.
 
 ### Manifests
+
 The docs directory contains a [manifest](docs/example.yaml) that shows how to you can integrate the Application CRD
 with a WordPress deployment.
 
@@ -220,6 +227,7 @@ You can use the standard `kubectl` verbs (e.g. `get`, `apply`, `create`, `delete
 an Application specified in a manifest.
 
 ### Programmatically
+
 kubebuilder creates a Kubernetes [ClientSet](pkg/client/clientset/versioned/clientset.go) for the Application object.
 You can create a new client using either a rest.Config or a rest.Interface as below.
 
@@ -257,8 +265,8 @@ Learn how to engage with the Kubernetes community on the [community page](http:/
 
 You can reach the maintainers of this project at:
 
-- [Slack](http://slack.k8s.io/)
-- [Mailing List](https://groups.google.com/d/forum/k8s-app-extension)
+* [Slack](http://slack.k8s.io/)
+* [Mailing List](https://groups.google.com/d/forum/k8s-app-extension)
 
 ### Code of conduct
 
