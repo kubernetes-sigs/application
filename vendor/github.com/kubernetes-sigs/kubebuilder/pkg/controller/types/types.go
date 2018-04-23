@@ -24,8 +24,8 @@ import (
 // ReconcileFn takes the key of an object and reconciles its desired and observed state.
 type ReconcileFn func(ReconcileKey) error
 
-// HandleFnProvider returns cache.ResourceEventHandlerFuncs that may enqueue messages
-type HandleFnProvider func(workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs
+// HandleFnProvider returns cache.ResourceEventHandler that may enqueue messages
+type HandleFnProvider func(workqueue.RateLimitingInterface) cache.ResourceEventHandler
 
 // ReconcileKey provides a lookup key for a Kubernetes object.
 type ReconcileKey struct {
@@ -34,4 +34,20 @@ type ReconcileKey struct {
 
 	// Name is the name of the object.
 	Name string
+}
+
+func (r ReconcileKey) String() string {
+	if r.Namespace == "" {
+		return r.Name
+	}
+	return r.Namespace + "/" + r.Name
+}
+
+// ParseReconcileKey returns the ReconcileKey that has been encoded into a string.
+func ParseReconcileKey(key string) (ReconcileKey, error) {
+	namespace, name, err := cache.SplitMetaNamespaceKey(key)
+	if err != nil {
+		return ReconcileKey{}, err
+	}
+	return ReconcileKey{Name: name, Namespace: namespace}, nil
 }
