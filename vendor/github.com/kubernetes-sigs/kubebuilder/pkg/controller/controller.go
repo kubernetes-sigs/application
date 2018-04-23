@@ -124,6 +124,44 @@ func (gc *GenericController) WatchTransformationOf(obj metav1.Object, mapFn even
 		eventhandlers.MapAndEnqueue{Map: mapFn, Predicates: p})
 }
 
+// WatchTransformationsOf watches objects matching obj's type and enqueues the keys returned by mapFn.
+func (gc *GenericController) WatchTransformationsOf(obj metav1.Object, mapFn eventhandlers.ObjToKeys,
+	p ...predicates.Predicate) error {
+	gc.once.Do(gc.init)
+	return gc.queue.addEventHandler(obj,
+		eventhandlers.MapAndEnqueue{MultiMap: func(i interface{}) []types.ReconcileKey {
+			result := []types.ReconcileKey{}
+			for _, k := range mapFn(i) {
+				if namespace, name, err := cache.SplitMetaNamespaceKey(k); err == nil {
+					result = append(result, types.ReconcileKey{namespace, name})
+				}
+			}
+			return result
+		}, Predicates: p})
+}
+
+// WatchTransformationKeyOf watches objects matching obj's type and enqueues the key returned by mapFn.
+func (gc *GenericController) WatchTransformationKeyOf(obj metav1.Object, mapFn eventhandlers.ObjToReconcileKey,
+	p ...predicates.Predicate) error {
+	gc.once.Do(gc.init)
+	return gc.queue.addEventHandler(obj,
+		eventhandlers.MapAndEnqueue{MultiMap: func(i interface{}) []types.ReconcileKey {
+			if k := mapFn(i); len(k.Name) > 0 {
+				return []types.ReconcileKey{k}
+			} else {
+				return []types.ReconcileKey{}
+			}
+		}, Predicates: p})
+}
+
+// WatchTransformationKeysOf watches objects matching obj's type and enqueues the keys returned by mapFn.
+func (gc *GenericController) WatchTransformationKeysOf(obj metav1.Object, mapFn eventhandlers.ObjToReconcileKeys,
+	p ...predicates.Predicate) error {
+	gc.once.Do(gc.init)
+	return gc.queue.addEventHandler(obj,
+		eventhandlers.MapAndEnqueue{MultiMap: mapFn, Predicates: p})
+}
+
 // WatchEvents watches objects matching obj's type and uses the functions from provider to handle events.
 func (gc *GenericController) WatchEvents(obj metav1.Object, provider types.HandleFnProvider) error {
 	gc.once.Do(gc.init)
@@ -138,10 +176,10 @@ func (gc *GenericController) WatchChannel(source <-chan string) error {
 
 // fnToInterfaceAdapter adapts a function to an interface
 type fnToInterfaceAdapter struct {
-	val func(workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs
+	val func(workqueue.RateLimitingInterface) cache.ResourceEventHandler
 }
 
-func (f fnToInterfaceAdapter) Get(q workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs {
+func (f fnToInterfaceAdapter) Get(q workqueue.RateLimitingInterface) cache.ResourceEventHandler {
 	return f.val(q)
 }
 

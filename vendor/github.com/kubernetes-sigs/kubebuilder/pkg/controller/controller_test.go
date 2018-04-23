@@ -20,6 +20,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"time"
+
 	"github.com/kubernetes-sigs/kubebuilder/pkg/controller/eventhandlers"
 	"github.com/kubernetes-sigs/kubebuilder/pkg/controller/test"
 	"github.com/kubernetes-sigs/kubebuilder/pkg/controller/types"
@@ -29,7 +31,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
-	"time"
 )
 
 var _ = Describe("GenericController", func() {
@@ -218,7 +219,7 @@ var _ = Describe("GenericController", func() {
 				Expect(instance.GetMetrics().QueueLength).Should(Equal(0))
 			})
 
-			It("should use the map function to reconcile a different key", func() {
+			It("should use the transformation function to reconcile a different key", func() {
 				// Listen for Pod changes
 				Expect(instance.WatchTransformationOf(&corev1.Pod{}, func(obj interface{}) string {
 					p := obj.(*corev1.Pod)
@@ -233,10 +234,64 @@ var _ = Describe("GenericController", func() {
 				Expect(instance.GetMetrics().QueueLength).Should(Equal(0))
 			})
 
+			It("should use the transformationkey function to reconcile a different key", func() {
+				// Listen for Pod changes
+				Expect(instance.WatchTransformationKeyOf(&corev1.Pod{}, func(obj interface{}) types.ReconcileKey {
+					p := obj.(*corev1.Pod)
+					return types.ReconcileKey{p.Namespace + "-namespace", p.Name + "-name"}
+				})).Should(Succeed())
+
+				fakePodInformer.Add(&corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod", Namespace: "default"}})
+
+				val := ChannelResult{}
+				Eventually(result).Should(Receive(&val.result))
+				Expect(val.result).Should(Equal("default-namespace/test-pod-name"))
+				Expect(instance.GetMetrics().QueueLength).Should(Equal(0))
+			})
+
+			It("should use the transformationsof function to reconcile multiple different keys", func() {
+				// Listen for Pod changes
+				Expect(instance.WatchTransformationsOf(&corev1.Pod{}, func(obj interface{}) []string {
+					p := obj.(*corev1.Pod)
+					return []string{
+						p.Namespace + "-namespace/" + p.Name + "-name-1",
+						p.Namespace + "-namespace/" + p.Name + "-name-2"}
+				})).Should(Succeed())
+
+				fakePodInformer.Add(&corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod", Namespace: "default"}})
+
+				val := ChannelResult{}
+				Eventually(result).Should(Receive(&val.result))
+				Expect(val.result).Should(Equal("default-namespace/test-pod-name-1"))
+				Eventually(result).Should(Receive(&val.result))
+				Expect(val.result).Should(Equal("default-namespace/test-pod-name-2"))
+				Expect(instance.GetMetrics().QueueLength).Should(Equal(0))
+			})
+
+			It("should use the transformationkeysof function to reconcile multiple different keys", func() {
+				// Listen for Pod changes
+				Expect(instance.WatchTransformationKeysOf(&corev1.Pod{}, func(obj interface{}) []types.ReconcileKey {
+					p := obj.(*corev1.Pod)
+					return []types.ReconcileKey{
+						{p.Namespace + "-namespace", p.Name + "-name-1"},
+						{p.Namespace + "-namespace", p.Name + "-name-2"},
+					}
+				})).Should(Succeed())
+
+				fakePodInformer.Add(&corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod", Namespace: "default"}})
+
+				val := ChannelResult{}
+				Eventually(result).Should(Receive(&val.result))
+				Expect(val.result).Should(Equal("default-namespace/test-pod-name-1"))
+				Eventually(result).Should(Receive(&val.result))
+				Expect(val.result).Should(Equal("default-namespace/test-pod-name-2"))
+				Expect(instance.GetMetrics().QueueLength).Should(Equal(0))
+			})
+
 			It("should call the event handling add function", func() {
 				// Listen for Pod changes
 				Expect(instance.WatchEvents(&corev1.Pod{},
-					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs {
+					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandler {
 						return cache.ResourceEventHandlerFuncs{
 							AddFunc:    func(obj interface{}) { w.AddRateLimited("key/value") },
 							DeleteFunc: func(obj interface{}) { Fail("Delete function called") },
@@ -257,7 +312,7 @@ var _ = Describe("GenericController", func() {
 			It("should call the event handling update function", func() {
 				// Listen for Pod changes
 				Expect(instance.WatchEvents(&corev1.Pod{},
-					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs {
+					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandler {
 						return cache.ResourceEventHandlerFuncs{
 							AddFunc:    func(obj interface{}) { Fail("Add function called") },
 							DeleteFunc: func(obj interface{}) { Fail("Delete function called") },
@@ -288,7 +343,7 @@ var _ = Describe("GenericController", func() {
 			It("should call the event handling delete function", func() {
 				// Listen for Pod changes
 				Expect(instance.WatchEvents(&corev1.Pod{},
-					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandlerFuncs {
+					func(w workqueue.RateLimitingInterface) cache.ResourceEventHandler {
 						return cache.ResourceEventHandlerFuncs{
 							AddFunc:    func(obj interface{}) { Fail("Add function called") },
 							DeleteFunc: func(obj interface{}) { w.AddRateLimited("key/value") },
