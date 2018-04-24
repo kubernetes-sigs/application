@@ -4,12 +4,12 @@
 
 The above description, from the [Kubernetes homepage](https://kubernetes.io/), is centered on containerized _applications_. Yet, the Kubernetes metadata, objects, and visualizations (e.g., within Dashboard) are focused on container infrastructure rather than the applications themselves.
 
-The Application CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and [Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers) in this project aim to change that in a way that's interoperable between many supporting tools.
+The Application project consists of defining a CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and a [Custome Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers). The Application CRD is an endpoint in the Kubernetes API that stores a collection of Application objects. The Application CRD simply let you store and retrieve structured data. The Application Controller provides a declarative API for the Application CRD. The controller interprets the structured data takes action.
 
 **It provides:**
 
 * The ability to describe an applications metadata (e.g., that an application like WordPress is running)
-* A point to connect the infrastructure, such as Deployments, to as a root object. This is useful for tying things together and even cleanup (i.e., garbage collection)
+* An component to connect the infrastructure, such as Deployments, to as a root object. This is useful for tying things together and even cleanup (i.e., garbage collection)
 * Information for supporting applications to help them query and understand the objects supporting an application
 * Application level health checks
 
