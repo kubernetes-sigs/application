@@ -44,9 +44,9 @@ The Application project consists of defining a CRD [(Custom Resource Definition)
 
 ## What is the Application CRD?
 
-The Application CRD provides a way for you to aggregate individual Kubernetes components (e.g. Sevrices, Deployemnts,
-StatefulSets, Ingresses, CRDs), and manage them as a group. It provides UIs with a resource that allows for the
-aggregation and display of all the components in the Application.
+The Application CRD provides a way for you to aggregate individual Kubernetes objects (e.g. Sevrices, Deployemnts,
+StatefulSets, Ingresses, CRDs), and manage them as a group. Providing UIs with a resource that allows for the
+aggregation and display of all the objects in the Application. Every [Kubernetes object](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/#understanding-kubernetes-objects) includes two nested object fields that govern the object’s configuration: the object spec and the object status. The spec, which you must provide, describes your desired state for the object – the characteristics that you want the object to have. The status describes the actual state of the object, and is supplied and updated by the Kubernetes system. The Application CRD has the following schema:
 
 <table>
     <tr>
