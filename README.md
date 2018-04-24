@@ -6,27 +6,35 @@ The above description, from the [Kubernetes homepage](https://kubernetes.io/), i
 
 The Application project consists of defining a CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and a [Custome Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers). The Application CRD is an endpoint in the Kubernetes API that stores a collection of Application objects. The Application CRD simply let you store and retrieve structured data. The Application Controller provides a declarative API for the Application CRD. The controller interprets the structured data and takes action.
 
-**It provides:**
+## Purpose
 
-* The ability to describe an applications metadata (e.g., that an application like WordPress is running)
-* An component to connect the infrastructure, such as Deployments, to as a root object. This is useful for tying things together and even cleanup (i.e., garbage collection)
-* Information for supporting applications to help them query and understand the objects supporting an application
-* Application level health checks
+* Create an Application object to store an application's metadata
+* Create an Application object to facilitate the querying of the application's [Kubernetes Objects](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/)
+* Create an Application controller to take action on the Application objects
 
 **This can be used by:**
 
+* Dashboards that want to visualize the applications in addition to or instead of an infrastructure view
 * Application operators who want to center what they operate on applications
 * Tools, such as Helm, that center their package releases on application installations can do so in a way that's interoperable with other tools (e.g., Dashboard)
-* Dashboards that want to visualize the applications in addition to or instead of an infrastructure view
+
+**Potnetial Uses:**
+
+* This is useful for tying things together and even cleanup (i.e., garbage collection)
+* Information for supporting applications to help them query and understand the objects supporting an application
+* Application level health checks
 
 ## Goals
 
-1. Provide a standard API for creating, viewing, and managing applications in Kubernetes.
+1. Provide a standard API for viewing applications in Kubernetes.
+1. Provide a standard API for creating applications in Kubernetes.
+1. Provide a standard API for managing applications in Kubernetes.
 1. Provide a CLI implementation, via kubectl, that interacts with the Application API.
-1. Provide installation status and garbage collection for applications.
+1. Provide installation status for applications.
+1. Provide garbage collection for applications.
 1. Provide a standard way for applications to surface a basic health check to the UIs.
 1. Provide an explicit mechanism for applications to declare dependencies on another application.
-1. Promote interoperability among ecosystem tools and UIs by creating a standard that tools MAY implement.
+1. Promote interoperability among ecosystem tools and UIs by creating a standard that tools May be implement.
 1. Promote the use of common labels and annotations for Kubernetes Applications.
 
 ## Non-Goals
