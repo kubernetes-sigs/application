@@ -4,7 +4,7 @@
 
 The above description, from the [Kubernetes homepage](https://kubernetes.io/), is centered on containerized _applications_. Yet, the Kubernetes metadata, objects, and visualizations (e.g., within Dashboard) are focused on container infrastructure rather than the applications themselves.
 
-The Application project consists of defining a CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and a [Custome Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers). The Application CRD is an endpoint in the Kubernetes API that stores a collection of Application objects. The Application CRD simply let you store and retrieve structured data. The Application Controller provides a declarative API for the Application CRD. The controller interprets the structured data and takes action.
+The Application project consists of defining a CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and a [Custom Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers). The Application CRD is an endpoint in the Kubernetes API that stores a collection of Application objects. Every [Kubernetes object](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/#understanding-kubernetes-objects) includes two nested object fields that govern the object’s configuration: the object spec and the object status. The spec, which you must provide, describes your desired state for the object – the characteristics that you want the object to have. The status describes the actual state of the object, and is supplied and updated by the Kubernetes system. The CRD simply let you store and retrieve structured data. The Application Controller provides a declarative API for the Application CRD. The controller interprets the structured data and takes action.
 
 ## Purpose
 
@@ -18,7 +18,7 @@ The Application project consists of defining a CRD [(Custom Resource Definition)
 * Application operators who want to center what they operate on applications
 * Tools, such as Helm, that center their package releases on application installations can do so in a way that's interoperable with other tools (e.g., Dashboard)
 
-**Potnetial Uses:**
+**Potential Uses:**
 
 * This is useful for tying things together and even cleanup (i.e., garbage collection)
 * Information for supporting applications to help them query and understand the objects supporting an application
@@ -42,11 +42,9 @@ The Application project consists of defining a CRD [(Custom Resource Definition)
 1. Create a standard that all tools MUST implement.
 1. Provide a way for UIs to surface metrics from an application.
 
-## What is the Application CRD?
+## What is the Application CRD
 
-The Application CRD provides a way for you to aggregate individual Kubernetes objects (e.g. Sevrices, Deployemnts,
-StatefulSets, Ingresses, CRDs), and manage them as a group. Providing UIs with a resource that allows for the
-aggregation and display of all the objects in the Application. Every [Kubernetes object](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/#understanding-kubernetes-objects) includes two nested object fields that govern the object’s configuration: the object spec and the object status. The spec, which you must provide, describes your desired state for the object – the characteristics that you want the object to have. The status describes the actual state of the object, and is supplied and updated by the Kubernetes system. The Application CRD has the following schema:
+The Application CRD provides a way for you to aggregate individual Kubernetes objects (e.g. Services, Deployments, StatefulSets, Ingresses, and CRDs), and manage them as a group. Providing UIs with a resource that allows for the aggregation and display of all the objects in the Application. The Application CRD has the following schema:
 
 <table>
     <tr>
