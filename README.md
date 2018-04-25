@@ -34,7 +34,7 @@ Applications will provides a way for you to aggregate individual Kubernetes obje
 1. Provide garbage collection for applications.
 1. Provide a standard way for applications to surface a basic health check to the UIs.
 1. Provide an explicit mechanism for applications to declare dependencies on another application.
-1. Promote interoperability among ecosystem tools and UIs by creating a standard that tools May be implement.
+1. Promote interoperability among ecosystem tools and UIs by creating a standard that tools may implement.
 1. Promote the use of common labels and annotations for Kubernetes Applications.
 
 **Non-Goals**
