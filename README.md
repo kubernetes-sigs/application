@@ -184,6 +184,11 @@ apiVersion: app.k8s.io/v1alpha1
 kind: Application
 metadata:
   name: "wordpress-01"
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/version: "3"
+spec:
+  type: "wordpress"
   componentKinds:
     - group: core
       kind: Service
@@ -191,28 +196,23 @@ metadata:
       kind: Deployment
     - group: apps
       kind: StatefulSet
-  labels:
-    app.kubernetes.io/name: "wordpress-01"
-    app.kubernetes.io/version: "3"
-  spec:
-    type: "wordpress"
-    selector:
-      matchLabels:
-       app.kubernetes.io/name: "wordpress-01"
-    version: "4.9.4"
-    description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
-    maintainers:
-      - name: Kenneth Owens
-        email: kow3ns@github.com
-    owners: "Kenneth Owens kow3ns@github.com"
-    keywords:
-     - "cms"
-     - "blog"
-     - "wordpress"
-    links:
-      about: "https://wordpress.org/"
-      web-server-dashboard: "https://metrics/internal/wordpress-01/web-app"
-      web-server-dashboard: "https://metrics/internal/wordpress-01/mysql"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "wordpress-01"
+  version: "4.9.4"
+  description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+  maintainers:
+    - name: Kenneth Owens
+      email: kow3ns@github.com
+  owners: "Kenneth Owens kow3ns@github.com"
+  keywords:
+    - "cms"
+    - "blog"
+    - "wordpress"
+  links:
+    about: "https://wordpress.org/"
+    web-server-dashboard: "https://metrics/internal/wordpress-01/web-app"
+    web-server-dashboard: "https://metrics/internal/wordpress-01/mysql"
 ```
 
 Notice that each Service and StatefulSet is labeled such that Application's Selector matches the labels.
