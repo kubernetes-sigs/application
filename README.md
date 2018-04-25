@@ -101,7 +101,7 @@ The Application CRD provides a way for you to aggregate individual Kubernetes ob
     </tr>
     <tr>
         <td>spec.keywords</td>
-        <td>array string</td>
+        <td>[]string</td>
         <td>A list of keywords that identify the application.</td>
     </tr>
     <tr>
