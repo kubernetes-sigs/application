@@ -42,7 +42,7 @@ Applications will provides a way for you to aggregate individual Kubernetes obje
 1. Create a standard that all tools MUST implement.
 1. Provide a way for UIs to surface metrics from an application.
 
-## Application project 
+## Application Project 
 
 The Application project consists of defining a CRD [(Custom Resource Definition)](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#customresourcedefinitions) and a [Custom Controller](https://kubernetes.io/docs/concepts/api-extension/custom-resources/#custom-controllers). The Application CRD is an endpoint in the Kubernetes API that stores a collection of Application objects. Every [Kubernetes object](https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/#understanding-kubernetes-objects) includes two nested object fields that govern the object’s configuration: the object spec and the object status. The spec, which you must provide, describes your desired state for the object – the characteristics that you want the object to have. The status describes the actual state of the object, and is supplied and updated by the Kubernetes system. The CRD simply let you store and retrieve structured data. The controller interprets the structured data and takes action. The Application Controller provides a declarative API for the Application CRD.
 
