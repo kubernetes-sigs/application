@@ -183,19 +183,19 @@ and Services. It also contains some other relevant metadata described above.
 apiVersion: app.k8s.io/v1alpha1
 kind: Application
 metadata:
-  name: "wordpress-01"
-  componentKinds:
-    - group: core
-      kind: Service
-    - group: apps
-      kind: Deployment
-    - group: apps
-      kind: StatefulSet
+  name: "wordpress-01"t
   labels:
     app.kubernetes.io/name: "wordpress-01"
     app.kubernetes.io/version: "3"
   spec:
     type: "wordpress"
+    componentKinds:
+      - group: core
+        kind: Service
+      - group: apps
+        kind: Deployment
+      - group: apps
+        kind: StatefulSe
     selector:
       matchLabels:
        app.kubernetes.io/name: "wordpress-01"
