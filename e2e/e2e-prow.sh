@@ -23,6 +23,6 @@ ROOT_DIR="$GOPATH/src"
 cd $ROOT_DIR/
 mkdir -p github.com/kubernetes-sigs
 cd github.com/kubernetes-sigs
-git clone https://github.com/foxish/application
+git clone https://github.com/kubernetes-sigs/application
 cd application/
 go test -v ./e2e/...
