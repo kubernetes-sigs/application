@@ -36,7 +36,7 @@ The Application CRD [(Custom Resource Definition)](https://kubernetes.io/docs/co
 
 ## What is the Application CRD?
 
-The Application CRD provides a way for you to aggregate individual Kubernetes components (e.g. Sevrices, Deployemnts,
+The Application CRD provides a way for you to aggregate individual Kubernetes components (e.g. Services, Deployments,
 StatefulSets, Ingresses, CRDs), and manage them as a group. It provides UIs with a resource that allows for the
 aggregation and display of all the components in the Application.
 
@@ -128,7 +128,7 @@ aggregation and display of all the components in the Application.
 
 ## Building
 
-This project uses the [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) tool to for code generation.
+This project uses the [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) tool for code generation.
 kubebuilder provides the same code generation features (and a bit more) for Custom Resource Definitions and Extension
 API Servers that are provided by the Kubernetes project. In order to build the source, you need to download and install
 the latest release of kubebuilder per the instructions there.
@@ -139,7 +139,7 @@ The controller doesn't do much at the moment. However, if you'd like to build it
 golang 1.9 or greater. To build the controller into an image named ```image``` use the following command.
 
 ```commandline
-docker <image> -f Dockerfile.controller
+docker build -t <image> -f Dockerfile.controller .
 ```
 
 ## Installing the CRD
