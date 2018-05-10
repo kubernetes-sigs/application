@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // ApplicationSpec defines the specification for an Application.
@@ -100,6 +101,42 @@ type InfoItem struct {
 
 	// Value is human readable content.
 	Value string `json:"value,omitempty"`
+
+	// Value is derived from another source.
+	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
+}
+
+type InfoItemSource struct {
+  SecretKeyRef *ConfigMapKeySelector `json:"secretRef,omitempty"`
+  ServiceRef *ServiceSelector `json:"serviceRef,omitempty"`
+  IngressRef *IngressSelector `json:"ingressRef,omitempty"`
+}
+
+type ConfigMapKeySelector struct {
+	// The ConfigMap to select from.
+	core.LocalObjectReference `json:",inline"`
+	// The key to select.
+	Key string `json:"key" protobuf:"bytes,2,opt,name=key"`
+	// Specify whether the ConfigMap or it's key must be defined.
+	Optional *bool `json:"optional,omitempty"`
+}
+
+type ServiceSelector struct {
+	// The Service to select from.
+	core.LocalObjectReference `json:",inline"`
+	// The optional port to select.
+	Port *int32 `json:"port,omitempty"`
+	// The optional HTTP path.
+	Path string `json:"path,omitempty"`
+}
+
+type IngressSelector struct {
+	// The Ingress to select from.
+	core.LocalObjectReference `json:",inline"`
+	// The optional host to select.
+	Host string `json:"host,omitempty"`
+	// The optional HTTP path.
+	Path string `json:"path,omitempty"`
 }
 
 type ApplicationAssemblyPhase string
@@ -109,7 +146,7 @@ const (
 	// have been deployed yet.
 	Pending ApplicationAssemblyPhase = "Pending"
 	// Used to indicate that all of application's components
-	// have alraedy been deployed.
+	// have already been deployed.
 	Succeeded = "Succeeded"
 	// Used to indicate that deployment of application's components
 	// failed. Some components might be present, but deployment of
