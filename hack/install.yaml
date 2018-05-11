@@ -85,6 +85,8 @@ spec:
                     type: string
                   valueFrom:
                     properties:
+                      configMapKeyRef:
+                        type: object
                       ingressRef:
                         properties:
                           host:
@@ -92,12 +94,7 @@ spec:
                           path:
                             type: string
                         type: object
-                      secretRef:
-                        properties:
-                          key:
-                            type: string
-                          optional:
-                            type: bool
+                      secretKeyRef:
                         type: object
                       serviceRef:
                         properties:
@@ -218,6 +215,11 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+      terminationGracePeriodSeconds: 10
+  updateStrategy: {}
+status:
+  replicas: 0
+        memory: 20Mi
       terminationGracePeriodSeconds: 10
   updateStrategy: {}
 status:

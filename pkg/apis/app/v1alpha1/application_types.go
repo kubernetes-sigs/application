@@ -107,18 +107,10 @@ type InfoItem struct {
 }
 
 type InfoItemSource struct {
-  SecretKeyRef *ConfigMapKeySelector `json:"secretRef,omitempty"`
-  ServiceRef *ServiceSelector `json:"serviceRef,omitempty"`
-  IngressRef *IngressSelector `json:"ingressRef,omitempty"`
-}
-
-type ConfigMapKeySelector struct {
-	// The ConfigMap to select from.
-	core.LocalObjectReference `json:",inline"`
-	// The key to select.
-	Key string `json:"key" protobuf:"bytes,2,opt,name=key"`
-	// Specify whether the ConfigMap or it's key must be defined.
-	Optional *bool `json:"optional,omitempty"`
+	SecretKeyRef    *core.SecretKeySelector    `json:"secretKeyRef,omitempty"`
+	ConfigMapKeyRef *core.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+	ServiceRef      *ServiceSelector           `json:"serviceRef,omitempty"`
+	IngressRef      *IngressSelector           `json:"ingressRef,omitempty"`
 }
 
 type ServiceSelector struct {
