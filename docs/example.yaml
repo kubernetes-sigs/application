@@ -66,7 +66,7 @@ spec:
       app.kubernetes.io/component: "mysql-rdbms"
       app.kubernetes.io/tier: "backend"
   replicas: 1
-  service: wordpress-mysql-hsvc
+  serviceName: wordpress-mysql-hsvc
   template:
     metadata:
       labels:
@@ -89,14 +89,14 @@ spec:
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
-   volumeClaimTemplates:
-     - metadata:
-         name: mysql-persistent-storage
-       spec:
-         accessModes: [ "ReadWriteOnce" ]
-         resources:
-           requests:
-             storage: 250Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 250Gi
 ---
 apiVersion: v1
 kind: Service
@@ -145,7 +145,7 @@ metadata:
       kubernetes.io/application: wordpress
 spec:
   replicas: 1
-  service: wordpress-webserver-hsvc
+  serviceName: wordpress-webserver-hsvc
   selector:
     matchLabels:
       app.kubernetes.io/name: "wordpress-01"
@@ -176,10 +176,10 @@ spec:
         - name: wordpress-persistent-storage
           mountPath: /var/www/html
   volumeClaimTemplates:
-       - metadata:
-           name: mysql-persistent-storage
-         spec:
-           accessModes: [ "ReadWriteOnce" ]
-           resources:
-             requests:
-               storage: 250Gi
+  - metadata:
+     name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 250Gi
