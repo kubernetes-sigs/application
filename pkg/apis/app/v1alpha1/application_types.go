@@ -106,25 +106,48 @@ type InfoItem struct {
 	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
 }
 
+// InfoItemSource represents a source for the value of an InfoItem.
 type InfoItemSource struct {
-	SecretKeyRef    *core.SecretKeySelector    `json:"secretKeyRef,omitempty"`
-	ConfigMapKeyRef *core.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
-	ServiceRef      *ServiceSelector           `json:"serviceRef,omitempty"`
-	IngressRef      *IngressSelector           `json:"ingressRef,omitempty"`
+	// Selects a key of a Secret.
+	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+	// Selects a key of a ConfigMap.
+	ConfigMapKeyRef *ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+	// Select a Service.
+	ServiceRef *ServiceSelector `json:"serviceRef,omitempty"`
+	// Select an Ingress.
+	IngressRef *IngressSelector `json:"ingressRef,omitempty"`
 }
 
+// ConfigMapKeySelector selects a key from a ConfigMap.
+type ConfigMapKeySelector struct {
+	// The ConfigMap to select from.
+	core.ObjectReference
+	// The key to select.
+	Key string
+}
+
+// SecretKeySelector selects a key of a Secret.
+type SecretKeySelector struct {
+	// The Secrete to select from.
+	core.ObjectReference
+	// The key of the secret to select from.  Must be a valid secret key.
+	Key string
+}
+
+// ServiceSelector selects a Service.
 type ServiceSelector struct {
 	// The Service to select from.
-	core.LocalObjectReference `json:",inline"`
+	core.ObjectReference `json:",inline"`
 	// The optional port to select.
 	Port *int32 `json:"port,omitempty"`
 	// The optional HTTP path.
 	Path string `json:"path,omitempty"`
 }
 
+// IngressSelector selects an Ingress.
 type IngressSelector struct {
 	// The Ingress to select from.
-	core.LocalObjectReference `json:",inline"`
+	core.ObjectReference `json:",inline"`
 	// The optional host to select.
 	Host string `json:"host,omitempty"`
 	// The optional HTTP path.
