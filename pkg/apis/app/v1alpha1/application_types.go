@@ -128,7 +128,7 @@ type ConfigMapKeySelector struct {
 
 // SecretKeySelector selects a key from a Secret.
 type SecretKeySelector struct {
-	// The Secrete to select from.
+	// The Secret to select from.
 	core.ObjectReference
 	// The key to select.
 	Key string
