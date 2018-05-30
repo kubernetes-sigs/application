@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: default-system
 spec: {}
 status: {}
@@ -15,7 +15,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: default-role
 rules:
 - apiGroups:
@@ -31,7 +31,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: default-rolebinding
   namespace: default-system
 roleRef:
@@ -49,7 +49,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: applications.app.k8s.io
 spec:
   group: app.k8s.io
@@ -81,6 +81,8 @@ spec:
                 properties:
                   name:
                     type: string
+                  type:
+                    type: string
                   value:
                     type: string
                   valueFrom:
@@ -103,6 +105,8 @@ spec:
                           port:
                             type: int32
                         type: object
+                      type:
+                        type: string
                     type: object
                 type: object
               type: array
@@ -163,7 +167,7 @@ metadata:
   labels:
     api: default
     control-plane: controller-manager
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: default-controller-manager-service
   namespace: default-system
 spec:
@@ -171,7 +175,7 @@ spec:
   selector:
     api: default
     control-plane: controller-manager
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
 status:
   loadBalancer: {}
 ---
@@ -182,7 +186,7 @@ metadata:
   labels:
     api: default
     control-plane: controller-manager
-    kubebuilder.k8s.io: 0.1.8
+    kubebuilder.k8s.io: 0.1.10
   name: default-controller-manager
   namespace: default-system
 spec:
@@ -191,7 +195,7 @@ spec:
     matchLabels:
       api: default
       control-plane: controller-manager
-      kubebuilder.k8s.io: 0.1.8
+      kubebuilder.k8s.io: 0.1.10
   serviceName: default-controller-manager-service
   template:
     metadata:
@@ -199,7 +203,7 @@ spec:
       labels:
         api: default
         control-plane: controller-manager
-        kubebuilder.k8s.io: 0.1.8
+        kubebuilder.k8s.io: 0.1.10
     spec:
       containers:
       - args:
@@ -213,54 +217,6 @@ spec:
             cpu: 100m
             memory: 30Mi
           requests:
-            cpu: 100m
-            memory: 20Mi
-      terminationGracePeriodSeconds: 10
-  updateStrategy: {}
-status:
-  replicas: 0
-        memory: 20Mi
-      terminationGracePeriodSeconds: 10
-  updateStrategy: {}
-status:
-  replicas: 0
-manager
-  namespace: default-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      api: default
-      control-plane: controller-manager
-      platform: kubernetes_sigs_kubebuilder
-  serviceName: default-controller-manager-service
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        api: default
-        control-plane: controller-manager
-        platform: kubernetes_sigs_kubebuilder
-    spec:
-      containers:
-      - args:
-        - --install-crds=false
-        command:
-        - /root/controller-manager
-        image: my-image
-        name: controller-manager
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
-      terminationGracePeriodSeconds: 10
-  updateStrategy: {}
-status:
-  replicas: 0
-requests:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10

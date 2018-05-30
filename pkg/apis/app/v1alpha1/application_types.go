@@ -99,24 +99,49 @@ type InfoItem struct {
 	// Name is a human readable title for this piece of information.
 	Name string `json:"name,omitempty"`
 
+	// Type of the value for this InfoItem.
+	Type InfoItemType `json:"type,omitempty"`
+
 	// Value is human readable content.
 	Value string `json:"value,omitempty"`
 
-	// Value is derived from another source.
+	// ValueFrom defines a reference to derive the value from another source.
 	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
 }
 
+type InfoItemType string
+
+const (
+	ValueInfoItemType     InfoItemType = "Value"
+	ReferenceInfoItemType InfoItemType = "Reference"
+)
+
 // InfoItemSource represents a source for the value of an InfoItem.
 type InfoItemSource struct {
+	// Type of source.
+	Type InfoItemSourceType `json:"type,omitempty"`
+
 	// Selects a key of a Secret.
 	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+
 	// Selects a key of a ConfigMap.
 	ConfigMapKeyRef *ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+
 	// Select a Service.
 	ServiceRef *ServiceSelector `json:"serviceRef,omitempty"`
+
 	// Select an Ingress.
 	IngressRef *IngressSelector `json:"ingressRef,omitempty"`
 }
+
+type InfoItemSourceType string
+
+const (
+	SecretKeyRefInfoItemSourceType    InfoItemSourceType = "SecretKeyRef"
+	ConfigMapKeyRefInfoItemSourceType InfoItemSourceType = "ConfigMapKeyRef"
+	ServiceRefInfoItemSourceType      InfoItemSourceType = "ServiceRef"
+	IngressRefInfoItemSourceType      InfoItemSourceType = "IngressRef"
+)
 
 // ConfigMapKeySelector selects a key from a ConfigMap.
 type ConfigMapKeySelector struct {

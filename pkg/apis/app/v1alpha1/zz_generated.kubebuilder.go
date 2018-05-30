@@ -63,6 +63,10 @@ func getFloat(f float64) *float64 {
 	return &f
 }
 
+func getInt(i int64) *int64 {
+	return &i
+}
+
 var (
 	// Define CRDs for resources
 	ApplicationCRD = v1beta1.CustomResourceDefinition{
@@ -117,6 +121,9 @@ var (
 												"name": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
+												"type": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
 												"value": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
@@ -153,6 +160,9 @@ var (
 																	Format: "int32",
 																},
 															},
+														},
+														"type": v1beta1.JSONSchemaProps{
+															Type: "string",
 														},
 													},
 												},
