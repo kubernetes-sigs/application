@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // ApplicationSpec defines the specification for an Application.
@@ -98,8 +99,84 @@ type InfoItem struct {
 	// Name is a human readable title for this piece of information.
 	Name string `json:"name,omitempty"`
 
+	// Type of the value for this InfoItem.
+	Type InfoItemType `json:"type,omitempty"`
+
 	// Value is human readable content.
 	Value string `json:"value,omitempty"`
+
+	// ValueFrom defines a reference to derive the value from another source.
+	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
+}
+
+type InfoItemType string
+
+const (
+	ValueInfoItemType     InfoItemType = "Value"
+	ReferenceInfoItemType InfoItemType = "Reference"
+)
+
+// InfoItemSource represents a source for the value of an InfoItem.
+type InfoItemSource struct {
+	// Type of source.
+	Type InfoItemSourceType `json:"type,omitempty"`
+
+	// Selects a key of a Secret.
+	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+
+	// Selects a key of a ConfigMap.
+	ConfigMapKeyRef *ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+
+	// Select a Service.
+	ServiceRef *ServiceSelector `json:"serviceRef,omitempty"`
+
+	// Select an Ingress.
+	IngressRef *IngressSelector `json:"ingressRef,omitempty"`
+}
+
+type InfoItemSourceType string
+
+const (
+	SecretKeyRefInfoItemSourceType    InfoItemSourceType = "SecretKeyRef"
+	ConfigMapKeyRefInfoItemSourceType InfoItemSourceType = "ConfigMapKeyRef"
+	ServiceRefInfoItemSourceType      InfoItemSourceType = "ServiceRef"
+	IngressRefInfoItemSourceType      InfoItemSourceType = "IngressRef"
+)
+
+// ConfigMapKeySelector selects a key from a ConfigMap.
+type ConfigMapKeySelector struct {
+	// The ConfigMap to select from.
+	core.ObjectReference
+	// The key to select.
+	Key string
+}
+
+// SecretKeySelector selects a key from a Secret.
+type SecretKeySelector struct {
+	// The Secret to select from.
+	core.ObjectReference
+	// The key to select.
+	Key string
+}
+
+// ServiceSelector selects a Service.
+type ServiceSelector struct {
+	// The Service to select from.
+	core.ObjectReference `json:",inline"`
+	// The optional port to select.
+	Port *int32 `json:"port,omitempty"`
+	// The optional HTTP path.
+	Path string `json:"path,omitempty"`
+}
+
+// IngressSelector selects an Ingress.
+type IngressSelector struct {
+	// The Ingress to select from.
+	core.ObjectReference `json:",inline"`
+	// The optional host to select.
+	Host string `json:"host,omitempty"`
+	// The optional HTTP path.
+	Path string `json:"path,omitempty"`
 }
 
 type ApplicationAssemblyPhase string
@@ -109,7 +186,7 @@ const (
 	// have been deployed yet.
 	Pending ApplicationAssemblyPhase = "Pending"
 	// Used to indicate that all of application's components
-	// have alraedy been deployed.
+	// have already been deployed.
 	Succeeded = "Succeeded"
 	// Used to indicate that deployment of application's components
 	// failed. Some components might be present, but deployment of

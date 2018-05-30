@@ -63,6 +63,10 @@ func getFloat(f float64) *float64 {
 	return &f
 }
 
+func getInt(i int64) *int64 {
+	return &i
+}
+
 var (
 	// Define CRDs for resources
 	ApplicationCRD = v1beta1.CustomResourceDefinition{
@@ -100,15 +104,8 @@ var (
 									Type: "array",
 									Items: &v1beta1.JSONSchemaPropsOrArray{
 										Schema: &v1beta1.JSONSchemaProps{
-											Type: "object",
-											Properties: map[string]v1beta1.JSONSchemaProps{
-												"group": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-												"kind": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-											},
+											Type:       "object",
+											Properties: map[string]v1beta1.JSONSchemaProps{},
 										},
 									},
 								},
@@ -124,8 +121,50 @@ var (
 												"name": v1beta1.JSONSchemaProps{
 													Type: "string",
 												},
+												"type": v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
 												"value": v1beta1.JSONSchemaProps{
 													Type: "string",
+												},
+												"valueFrom": v1beta1.JSONSchemaProps{
+													Type: "object",
+													Properties: map[string]v1beta1.JSONSchemaProps{
+														"configMapKeyRef": v1beta1.JSONSchemaProps{
+															Type:       "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{},
+														},
+														"ingressRef": v1beta1.JSONSchemaProps{
+															Type: "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{
+																"host": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"path": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+															},
+														},
+														"secretKeyRef": v1beta1.JSONSchemaProps{
+															Type:       "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{},
+														},
+														"serviceRef": v1beta1.JSONSchemaProps{
+															Type: "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{
+																"path": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"port": v1beta1.JSONSchemaProps{
+																	Type:   "integer",
+																	Format: "int32",
+																},
+															},
+														},
+														"type": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+													},
 												},
 											},
 										},
@@ -186,40 +225,8 @@ var (
 									},
 								},
 								"selector": v1beta1.JSONSchemaProps{
-									Type: "object",
-									Properties: map[string]v1beta1.JSONSchemaProps{
-										"matchExpressions": v1beta1.JSONSchemaProps{
-											Type: "array",
-											Items: &v1beta1.JSONSchemaPropsOrArray{
-												Schema: &v1beta1.JSONSchemaProps{
-													Type: "object",
-													Properties: map[string]v1beta1.JSONSchemaProps{
-														"key": v1beta1.JSONSchemaProps{
-															Type: "string",
-														},
-														"operator": v1beta1.JSONSchemaProps{
-															Type: "string",
-														},
-														"values": v1beta1.JSONSchemaProps{
-															Type: "array",
-															Items: &v1beta1.JSONSchemaPropsOrArray{
-																Schema: &v1beta1.JSONSchemaProps{
-																	Type: "string",
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-										"matchLabels": v1beta1.JSONSchemaProps{
-											Type: "object",
-											AdditionalProperties: &v1beta1.JSONSchemaPropsOrBool{
-												Allows: true,
-												//Schema: &,
-											},
-										},
-									},
+									Type:       "object",
+									Properties: map[string]v1beta1.JSONSchemaProps{},
 								},
 								"type": v1beta1.JSONSchemaProps{
 									Type: "string",

@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: default-system
 spec: {}
 status: {}
@@ -15,7 +15,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: default-role
 rules:
 - apiGroups:
@@ -31,7 +31,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: default-rolebinding
   namespace: default-system
 roleRef:
@@ -49,7 +49,7 @@ metadata:
   creationTimestamp: null
   labels:
     api: default
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: applications.app.k8s.io
 spec:
   group: app.k8s.io
@@ -68,30 +68,46 @@ spec:
           type: object
         spec:
           properties:
+            assemblyPhase:
+              type: string
             componentKinds:
               items:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
                 type: object
               type: array
             description:
               type: string
-            assemblyPhase:
-              type: string
-              enum:
-              - Pending
-              - Succeeded
-              - Failed
             info:
               items:
                 properties:
                   name:
                     type: string
+                  type:
+                    type: string
                   value:
                     type: string
+                  valueFrom:
+                    properties:
+                      configMapKeyRef:
+                        type: object
+                      ingressRef:
+                        properties:
+                          host:
+                            type: string
+                          path:
+                            type: string
+                        type: object
+                      secretKeyRef:
+                        type: object
+                      serviceRef:
+                        properties:
+                          path:
+                            type: string
+                          port:
+                            type: int32
+                        type: object
+                      type:
+                        type: string
+                    type: object
                 type: object
               type: array
             keywords:
@@ -125,22 +141,6 @@ spec:
                 type: string
               type: array
             selector:
-              properties:
-                matchExpressions:
-                  items:
-                    properties:
-                      key:
-                        type: string
-                      operator:
-                        type: string
-                      values:
-                        items:
-                          type: string
-                        type: array
-                    type: object
-                  type: array
-                matchLabels:
-                  type: object
               type: object
             type:
               type: string
@@ -167,7 +167,7 @@ metadata:
   labels:
     api: default
     control-plane: controller-manager
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: default-controller-manager-service
   namespace: default-system
 spec:
@@ -175,7 +175,7 @@ spec:
   selector:
     api: default
     control-plane: controller-manager
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
 status:
   loadBalancer: {}
 ---
@@ -186,7 +186,7 @@ metadata:
   labels:
     api: default
     control-plane: controller-manager
-    platform: kubernetes_sigs_kubebuilder
+    kubebuilder.k8s.io: 0.1.10
   name: default-controller-manager
   namespace: default-system
 spec:
@@ -195,7 +195,7 @@ spec:
     matchLabels:
       api: default
       control-plane: controller-manager
-      platform: kubernetes_sigs_kubebuilder
+      kubebuilder.k8s.io: 0.1.10
   serviceName: default-controller-manager-service
   template:
     metadata:
@@ -203,7 +203,7 @@ spec:
       labels:
         api: default
         control-plane: controller-manager
-        platform: kubernetes_sigs_kubebuilder
+        kubebuilder.k8s.io: 0.1.10
     spec:
       containers:
       - args:
@@ -217,13 +217,6 @@ spec:
             cpu: 100m
             memory: 30Mi
           requests:
-            cpu: 100m
-            memory: 20Mi
-      terminationGracePeriodSeconds: 10
-  updateStrategy: {}
-status:
-  replicas: 0
-requests:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
