@@ -21,18 +21,10 @@ import (
 	"k8s.io/kubernetes/pkg/apis/core"
 )
 
-// ApplicationSpec defines the specification for an Application.
-type ApplicationSpec struct {
+// Descriptor defines the Metadata and informations about the Application.
+type Descriptor struct {
 	// Type is the type of the application (e.g. WordPress, MySQL, Cassandra).
 	Type string `json:"type,omitempty"`
-
-	// ComponentGroupKinds is a list of Kinds for Application's components (e.g. Deployments, Pods, Services, CRDs). It
-	// can be used in conjunction with the Application's Selector to list or watch the Applications components.
-	ComponentGroupKinds []metav1.GroupKind `json:"componentKinds,omitempty"`
-
-	// Selector is a label query over kinds that created by the application. It must match the component objects' labels.
-	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
-	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Version is an optional version indicator for the Application.
 	Version string `json:"version,omitempty"`
@@ -51,14 +43,28 @@ type ApplicationSpec struct {
 	// Keywords is an optional list of key words associated with the application (e.g. MySQL, RDBMS, database).
 	Keywords []string `json:"keywords,omitempty"`
 
-	// Info contains human readable key,value pairs for the Application.
-	Info []InfoItem `json:"info,omitempty"`
-
 	// Links are a list of descriptive URLs intended to be used to surface additional documentation, dashboards, etc.
 	Links []Link `json:"links,omitempty"`
 
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
 	Notes string `json:"notes,omitempty"`
+}
+
+// ApplicationSpec defines the specification for an Application.
+type ApplicationSpec struct {
+	// ComponentGroupKinds is a list of Kinds for Application's components (e.g. Deployments, Pods, Services, CRDs). It
+	// can be used in conjunction with the Application's Selector to list or watch the Applications components.
+	ComponentGroupKinds []metav1.GroupKind `json:"componentKinds,omitempty"`
+
+	// Descriptor regroups information and metadata about an application.
+	Descriptor Descriptor `json:"descriptor,omitempty"`
+
+	// Selector is a label query over kinds that created by the application. It must match the component objects' labels.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+
+	// Info contains human readable key,value pairs for the Application.
+	Info []InfoItem `json:"info,omitempty"`
 
 	// AssemblyPhase represents the current phase of the application's assembly.
 	// An empty value is equivalent to "Succeeded".

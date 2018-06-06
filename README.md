@@ -47,7 +47,7 @@ aggregation and display of all the components in the Application.
         <th>Description</th>
     </tr>
     <tr>
-        <td>spec.type</td>
+        <td>spec.descriptor.type</td>
         <td>string</td>
         <td>The type of the application (e.g. WordPress, MySQL, Cassandra). You can have many applications of different
         names in the same namespace. They type field is used to indicate that they are all the same type of application.
@@ -71,30 +71,30 @@ aggregation and display of all the components in the Application.
         matches.</td>
     </tr>
     <tr>
-        <td>spec.version</td>
+        <td>spec.descriptor.version</td>
         <td>string</a></td>
         <td>A version indicator for the application (e.g. 5.7 for MySQL version 5.7).</td>
     </tr>
     <tr>
-        <td>spec.description</td>
+        <td>spec.descriptor.description</td>
         <td>string</a></td>
         <td>A short, human readable textual description of the Application.</td>
     </tr>
     <tr>
-        <td>spec.maintainers</td>
+        <td>spec.descriptor.maintainers</td>
         <td>[]Maintainer</a></td>
         <td>A list of the maintainers of the Application. Each maintainer has a name, email, and URL. This
         field is meant for the distributors of the Application to indicate their identity and contact information.</td>
     </tr>
     <tr>
-        <td>spec.owners</td>
+        <td>spec.descriptor.owners</td>
         <td>[]string</td>
         <td>A list of the operational owners of the application. This field is meant to be left empty by the
         distributors of application, and set by the installer to indicate who should be contacted in the event of a
         planned or unplanned disruption to the Application</td>
     </tr>
     <tr>
-        <td>spec.keywords</td>
+        <td>spec.descriptor.keywords</td>
         <td>array string</td>
         <td>A list of keywords that identify the application.</td>
     </tr>
@@ -104,13 +104,13 @@ aggregation and display of all the components in the Application.
         <td>Info contains human readable key,value pairs for the Application.</td>
     </tr>
     <tr>
-        <td>spec.links</td>
+        <td>spec.descriptor.links</td>
         <td>[]Link</td>
         <td>Links are a list of descriptive URLs intended to be used to surface additional documentation,
         dashboards, etc.</td>
     </tr>
     <tr>
-        <td>spec.notes</td>
+        <td>spec.descriptor.notes</td>
         <td>string</td>
         <td>Notes contain a human readable snippets intended as a quick start for the users of the
         Application.</td>
@@ -188,7 +188,6 @@ metadata:
     app.kubernetes.io/name: "wordpress-01"
     app.kubernetes.io/version: "3"
 spec:
-  type: "wordpress"
   selector:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
@@ -199,25 +198,27 @@ spec:
       kind: Deployment
     - group: apps
       kind: StatefulSet
-  version: "4.9.4"
-  description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
   assemblyPhase: "Pending"
-  maintainers:
-    - name: Kenneth Owens
-      email: kow3ns@github.com
-  owners:
-    - "Kenneth Owens kow3ns@github.com"
-  keywords:
-    - "cms"
-    - "blog"
-    - "wordpress"
-  links:
-    - description: About
-      url: "https://wordpress.org/"
-    - description: Web Server Dashboard
-      url: "https://metrics/internal/wordpress-01/web-app"
-    - description: Mysql Dashboard
-      url: "https://metrics/internal/wordpress-01/mysql"
+  descriptor:
+    version: "4.9.4"
+    description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+    type: "wordpress"
+    maintainers:
+      - name: Kenneth Owens
+        email: kow3ns@github.com
+    owners:
+      - "Kenneth Owens kow3ns@github.com"
+    keywords:
+      - "cms"
+      - "blog"
+      - "wordpress"
+    links:
+      - description: About
+        url: "https://wordpress.org/"
+      - description: Web Server Dashboard
+        url: "https://metrics/internal/wordpress-01/web-app"
+      - description: Mysql Dashboard
+        url: "https://metrics/internal/wordpress-01/mysql"
 ```
 
 Notice that each Service and StatefulSet is labeled such that Application's Selector matches the labels.
