@@ -258,11 +258,7 @@ The other standard client operations are supported. The interface is described
 
 ## Contributing
 
-1. Make changes to the [Application CRD](pkg/apis/app/v1alpha1/application_types.go).
-1. Add [tests](pkg/apis/app/v1alpha1/application_types_test.go).
-1. Regenerate the generated code using `kubebuilder generate`.
-1. Update the [example](docs/example.yaml)
-
+Go to the [CONTRIBUTING.md](CONTRIBUTING.md) documentation
 
 ## Community, discussion, contribution, and support
 
