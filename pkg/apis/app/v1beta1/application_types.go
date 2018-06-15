@@ -51,6 +51,7 @@ type Descriptor struct {
 	Links []Link `json:"links,omitempty"`
 
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
+	// CommonMark markdown syntax may be used for rich text representation.
 	Notes string `json:"notes,omitempty"`
 }
 
