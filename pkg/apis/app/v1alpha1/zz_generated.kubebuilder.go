@@ -131,8 +131,12 @@ var (
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
 														"configMapKeyRef": v1beta1.JSONSchemaProps{
-															Type:       "object",
-															Properties: map[string]v1beta1.JSONSchemaProps{},
+															Type: "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{
+																"key": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+															},
 														},
 														"ingressRef": v1beta1.JSONSchemaProps{
 															Type: "object",
@@ -146,8 +150,12 @@ var (
 															},
 														},
 														"secretKeyRef": v1beta1.JSONSchemaProps{
-															Type:       "object",
-															Properties: map[string]v1beta1.JSONSchemaProps{},
+															Type: "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{
+																"key": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+															},
 														},
 														"serviceRef": v1beta1.JSONSchemaProps{
 															Type: "object",

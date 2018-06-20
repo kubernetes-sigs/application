@@ -88,6 +88,9 @@ spec:
                   valueFrom:
                     properties:
                       configMapKeyRef:
+                        properties:
+                          key:
+                            type: string
                         type: object
                       ingressRef:
                         properties:
@@ -97,6 +100,9 @@ spec:
                             type: string
                         type: object
                       secretKeyRef:
+                        properties:
+                          key:
+                            type: string
                         type: object
                       serviceRef:
                         properties:

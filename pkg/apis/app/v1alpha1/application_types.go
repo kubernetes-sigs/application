@@ -146,17 +146,17 @@ const (
 // ConfigMapKeySelector selects a key from a ConfigMap.
 type ConfigMapKeySelector struct {
 	// The ConfigMap to select from.
-	core.ObjectReference
+	core.ObjectReference `json:",inline"`
 	// The key to select.
-	Key string
+	Key string `json:"key,omitempty"`
 }
 
 // SecretKeySelector selects a key from a Secret.
 type SecretKeySelector struct {
 	// The Secret to select from.
-	core.ObjectReference
+	core.ObjectReference `json:",inline"`
 	// The key to select.
-	Key string
+	Key string `json:"key,omitempty"`
 }
 
 // ServiceSelector selects a Service.
