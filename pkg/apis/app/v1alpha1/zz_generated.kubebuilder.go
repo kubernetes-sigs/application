@@ -109,8 +109,73 @@ var (
 										},
 									},
 								},
-								"description": v1beta1.JSONSchemaProps{
-									Type: "string",
+								"descriptor": v1beta1.JSONSchemaProps{
+									Type: "object",
+									Properties: map[string]v1beta1.JSONSchemaProps{
+										"description": v1beta1.JSONSchemaProps{
+											Type: "string",
+										},
+										"keywords": v1beta1.JSONSchemaProps{
+											Type: "array",
+											Items: &v1beta1.JSONSchemaPropsOrArray{
+												Schema: &v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+											},
+										},
+										"links": v1beta1.JSONSchemaProps{
+											Type: "array",
+											Items: &v1beta1.JSONSchemaPropsOrArray{
+												Schema: &v1beta1.JSONSchemaProps{
+													Type: "object",
+													Properties: map[string]v1beta1.JSONSchemaProps{
+														"description": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"url": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+													},
+												},
+											},
+										},
+										"maintainers": v1beta1.JSONSchemaProps{
+											Type: "array",
+											Items: &v1beta1.JSONSchemaPropsOrArray{
+												Schema: &v1beta1.JSONSchemaProps{
+													Type: "object",
+													Properties: map[string]v1beta1.JSONSchemaProps{
+														"email": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"name": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"url": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+													},
+												},
+											},
+										},
+										"notes": v1beta1.JSONSchemaProps{
+											Type: "string",
+										},
+										"owners": v1beta1.JSONSchemaProps{
+											Type: "array",
+											Items: &v1beta1.JSONSchemaPropsOrArray{
+												Schema: &v1beta1.JSONSchemaProps{
+													Type: "string",
+												},
+											},
+										},
+										"type": v1beta1.JSONSchemaProps{
+											Type: "string",
+										},
+										"version": v1beta1.JSONSchemaProps{
+											Type: "string",
+										},
+									},
 								},
 								"info": v1beta1.JSONSchemaProps{
 									Type: "array",
@@ -178,69 +243,9 @@ var (
 										},
 									},
 								},
-								"keywords": v1beta1.JSONSchemaProps{
-									Type: "array",
-									Items: &v1beta1.JSONSchemaPropsOrArray{
-										Schema: &v1beta1.JSONSchemaProps{
-											Type: "string",
-										},
-									},
-								},
-								"links": v1beta1.JSONSchemaProps{
-									Type: "array",
-									Items: &v1beta1.JSONSchemaPropsOrArray{
-										Schema: &v1beta1.JSONSchemaProps{
-											Type: "object",
-											Properties: map[string]v1beta1.JSONSchemaProps{
-												"description": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-												"url": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-											},
-										},
-									},
-								},
-								"maintainers": v1beta1.JSONSchemaProps{
-									Type: "array",
-									Items: &v1beta1.JSONSchemaPropsOrArray{
-										Schema: &v1beta1.JSONSchemaProps{
-											Type: "object",
-											Properties: map[string]v1beta1.JSONSchemaProps{
-												"email": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-												"name": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-												"url": v1beta1.JSONSchemaProps{
-													Type: "string",
-												},
-											},
-										},
-									},
-								},
-								"notes": v1beta1.JSONSchemaProps{
-									Type: "string",
-								},
-								"owners": v1beta1.JSONSchemaProps{
-									Type: "array",
-									Items: &v1beta1.JSONSchemaPropsOrArray{
-										Schema: &v1beta1.JSONSchemaProps{
-											Type: "string",
-										},
-									},
-								},
 								"selector": v1beta1.JSONSchemaProps{
 									Type:       "object",
 									Properties: map[string]v1beta1.JSONSchemaProps{},
-								},
-								"type": v1beta1.JSONSchemaProps{
-									Type: "string",
-								},
-								"version": v1beta1.JSONSchemaProps{
-									Type: "string",
 								},
 							},
 						},

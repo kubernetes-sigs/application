@@ -67,7 +67,10 @@ spec:
         metadata:
           type: object
         spec:
+          type: object
           properties:
+            selector:
+              type: object
             assemblyPhase:
               type: string
             componentKinds:
@@ -116,43 +119,43 @@ spec:
                     type: object
                 type: object
               type: array
-            keywords:
-              items:
-                type: string
-              type: array
-            links:
-              items:
-                properties:
-                  description:
-                    type: string
-                  url:
-                    type: string
-                type: object
-              type: array
-            maintainers:
-              items:
-                properties:
-                  email:
-                    type: string
-                  name:
-                    type: string
-                  url:
-                    type: string
-                type: object
-              type: array
-            notes:
-              type: string
-            owners:
-              items:
-                type: string
-              type: array
-            selector:
+            descriptor:
               type: object
-            type:
-              type: string
-            version:
-              type: string
-          type: object
+              properties:
+                keywords:
+                  items:
+                    type: string
+                  type: array
+                links:
+                  items:
+                    properties:
+                      description:
+                        type: string
+                      url:
+                        type: string
+                    type: object
+                  type: array
+                maintainers:
+                  items:
+                    properties:
+                      email:
+                        type: string
+                      name:
+                        type: string
+                      url:
+                        type: string
+                    type: object
+                  type: array
+                notes:
+                  type: string
+                owners:
+                  items:
+                    type: string
+                  type: array
+                type:
+                  type: string
+                version:
+                  type: string
         status:
           properties:
             observedGeneration:
