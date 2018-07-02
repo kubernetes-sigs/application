@@ -180,7 +180,7 @@ The Application object shown below declares that the Application is a WordPress 
 and Services. It also contains some other relevant metadata described above.
 
 ```yaml
-apiVersion: app.k8s.io/v1alpha1
+apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   name: "wordpress-01"
@@ -244,7 +244,7 @@ client := clientset.New(ri)
 ```
 
 Once you've created a client you can interact with Applications via the structs declared in
-[types.go](pkg/apis/app/v1alpha1/application_types.go). For instance to retrieve an application you can used the code
+[types.go](pkg/apis/app/v1beta1/application_types.go). For instance to retrieve an application you can used the code
 below.
 
 ```go
@@ -255,7 +255,7 @@ if err != nil {
 ```
 
 The other standard client operations are supported. The interface is described
-[here](pkg/client/clientset/versioned/typed/app/v1alpha1/application.go).
+[here](pkg/client/clientset/versioned/typed/app/v1beta1/application.go).
 
 ## Contributing
 

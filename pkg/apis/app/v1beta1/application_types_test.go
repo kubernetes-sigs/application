@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1_test
+package v1beta1_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -22,8 +22,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "github.com/kubernetes-sigs/application/pkg/apis/app/v1alpha1"
-	. "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned/typed/app/v1alpha1"
+	. "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	. "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned/typed/app/v1beta1"
 )
 
 // EDIT THIS FILE!
@@ -51,7 +51,7 @@ var _ = Describe("Application", func() {
 	Describe("when sending a storage request", func() {
 		Context("for a valid config", func() {
 			It("should provide CRUD access to the object", func() {
-				client = cs.AppV1alpha1().Applications("default")
+				client = cs.AppV1beta1().Applications("default")
 
 				By("returning success from the create request")
 				actual, err := client.Create(&instance)

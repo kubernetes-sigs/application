@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package v1alpha1_test
+package v1beta1_test
 
 import (
 	"testing"
@@ -31,7 +31,7 @@ var testenv *test.TestEnvironment
 var config *rest.Config
 var cs *versioned.Clientset
 
-func TestV1alpha1(t *testing.T) {
+func TestV1beta1(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "v1 Suite", []Reporter{test.NewlineReporter{}})
 }

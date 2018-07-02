@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package v1alpha1
+package v1beta1
 
 import (
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -23,7 +23,7 @@ import (
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: "app.k8s.io", Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: "app.k8s.io", Version: "v1beta1"}
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {
@@ -75,7 +75,7 @@ var (
 		},
 		Spec: v1beta1.CustomResourceDefinitionSpec{
 			Group:   "app.k8s.io",
-			Version: "v1alpha1",
+			Version: "v1beta1",
 			Names: v1beta1.CustomResourceDefinitionNames{
 				Kind:   "Application",
 				Plural: "applications",

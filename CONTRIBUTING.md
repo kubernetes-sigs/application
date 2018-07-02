@@ -16,7 +16,7 @@ Kubernetes projects require that you sign a Contributor License Agreement (CLA) 
 
 This project uses and is built with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder). Kubebuilder does generates some of the code. Prior to submitting a pull request please check that you are not altering generated code and check if you need to regenerated code due to your change.
 
-1. Make changes to the [Application CRD](pkg/apis/app/v1alpha1/application_types.go).
-1. Add [tests](pkg/apis/app/v1alpha1/application_types_test.go).
+1. Make changes to the [Application CRD](pkg/apis/app/v1beta1/application_types.go).
+1. Add [tests](pkg/apis/app/v1beta1/application_types_test.go).
 1. Regenerate the generated code using `kubebuilder generate`.
 1. Update the [example](docs/example.yaml)

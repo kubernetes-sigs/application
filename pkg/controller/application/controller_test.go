@@ -10,8 +10,8 @@ import (
 	"github.com/kubernetes-sigs/kubebuilder/pkg/controller/types"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-    . "github.com/kubernetes-sigs/application/pkg/apis/app/v1alpha1"
-    . "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned/typed/app/v1alpha1"
+    . "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+    . "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned/typed/app/v1beta1"
 )
 
 // EDIT THIS FILE!
@@ -50,7 +50,7 @@ var _ = Describe("Application controller", func() {
             }
 
             // Create the instance
-            client = cs.AppV1alpha1().Applications("default")
+            client = cs.AppV1beta1().Applications("default")
             _, err := client.Create(&instance)
             Expect(err).ShouldNot(HaveOccurred())
 
