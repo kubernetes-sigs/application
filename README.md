@@ -155,7 +155,7 @@ kubectl apply -f <manifest>
 ## Generating an Installation Manifest
 
 When the CRD is installed as above, you need to ensure that the correct RBAC configuration is applied prior to
-installation. You can use `kubebulider create config` to generate a manifest that is configured to create the
+installation. You can use `kubebuilder create config` to generate a manifest that is configured to create the
 requisite RBAC permissions, CRD, and controller StatefulSet in the supplied namespace. The command below will generate
 a manifest that can be applied to create all of the necessary components the `image` as the controller
 image and `namespace` as the namespace. Note that, if you would like to remove the controller from the configuration
@@ -164,7 +164,7 @@ can supply any string if you do not wish to install the controller when the mani
 delete the StatefulSet from the generated manifest). Work is in progress to generate a controllerless configuration.
 
 ```commandline
-kubebulider create config --controller-image <image>  --name <namespace>
+kubebuilder create config --controller-image <image>  --name <namespace>
 ```
 
 ## Using the Application CRD
