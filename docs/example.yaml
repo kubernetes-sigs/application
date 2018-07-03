@@ -177,7 +177,7 @@ spec:
           mountPath: /var/www/html
   volumeClaimTemplates:
   - metadata:
-     name: mysql-persistent-storage
+     name: wordpress-persistent-storage
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
