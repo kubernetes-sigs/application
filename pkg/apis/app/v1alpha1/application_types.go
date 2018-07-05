@@ -30,6 +30,7 @@ type Descriptor struct {
 	Version string `json:"version,omitempty"`
 
 	// Description is a brief string description of the Application.
+	// Should contain plain text or plain-text-friendly markup (eg. markdown).
 	Description string `json:"description,omitempty"`
 
 	// Maintainers is an optional list of maintainers of the application. The maintainers in this list maintain the
@@ -47,6 +48,7 @@ type Descriptor struct {
 	Links []Link `json:"links,omitempty"`
 
 	// Notes contain a human readable snippets intended as a quick start for the users of the Application.
+	// Should contain plain text or plain-text-friendly markup (eg. markdown).
 	Notes string `json:"notes,omitempty"`
 }
 
