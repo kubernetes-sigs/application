@@ -165,7 +165,18 @@ var (
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
 												Schema: &v1beta1.JSONSchemaProps{
-													Type: "string",
+													Type: "object",
+													Properties: map[string]v1beta1.JSONSchemaProps{
+														"email": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"name": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"url": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+													},
 												},
 											},
 										},

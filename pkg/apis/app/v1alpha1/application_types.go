@@ -34,11 +34,11 @@ type Descriptor struct {
 
 	// Maintainers is an optional list of maintainers of the application. The maintainers in this list maintain the
 	// the source code, images, and package for the application.
-	Maintainers []Maintainer `json:"maintainers,omitempty"`
+	Maintainers []ContactData `json:"maintainers,omitempty"`
 
 	// Owners is an optional list of the owners of the installed application. The owners of the application should be
 	// contacted in the event of a planned or unplanned disruption affecting the application.
-	Owners []string `json:"owners,omitempty"`
+	Owners []ContactData `json:"owners,omitempty"`
 
 	// Keywords is an optional list of key words associated with the application (e.g. MySQL, RDBMS, database).
 	Keywords []string `json:"keywords,omitempty"`
@@ -78,10 +78,9 @@ type ApplicationStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
-// Maintainer contains information about an individual or organization that maintains the source code, images, and
-// package for an Application. An Application can have more than one maintainer.
-type Maintainer struct {
-	// Name is the descriptive name of the maintainer.
+// ContactData contains information about an individual or organization.
+type ContactData struct {
+	// Name is the descriptive name.
 	Name string `json:"name,omitempty"`
 
 	// Url could typically be a website address.

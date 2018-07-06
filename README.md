@@ -82,13 +82,13 @@ aggregation and display of all the components in the Application.
     </tr>
     <tr>
         <td>spec.descriptor.maintainers</td>
-        <td>[]Maintainer</a></td>
+        <td>[]ContactData</a></td>
         <td>A list of the maintainers of the Application. Each maintainer has a name, email, and URL. This
         field is meant for the distributors of the Application to indicate their identity and contact information.</td>
     </tr>
     <tr>
         <td>spec.descriptor.owners</td>
-        <td>[]string</td>
+        <td>[]ContactData</td>
         <td>A list of the operational owners of the application. This field is meant to be left empty by the
         distributors of application, and set by the installer to indicate who should be contacted in the event of a
         planned or unplanned disruption to the Application</td>
