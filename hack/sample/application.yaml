@@ -25,7 +25,8 @@ spec:
       - name: Kenneth Owens
         email: kow3ns@github.com
     owners:
-      - "Kenneth Owens kow3ns@github.com"
+      - name: Kenneth Owens
+        email: kow3ns@github.com
     keywords:
       - "cms"
       - "blog"
