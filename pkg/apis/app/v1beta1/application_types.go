@@ -32,6 +32,10 @@ type Descriptor struct {
 	// Description is a brief string description of the Application.
 	Description string `json:"description,omitempty"`
 
+	// Icons is an optional list of icons for an application. Icon information includes the source, size,
+	// and mime type.
+	Icons []ImageSpec `json:"icons,omitempty"`
+
 	// Maintainers is an optional list of maintainers of the application. The maintainers in this list maintain the
 	// the source code, images, and package for the application.
 	Maintainers []ContactData `json:"maintainers,omitempty"`
@@ -76,6 +80,19 @@ type ApplicationStatus struct {
 	// ObservedGeneration is used by the Application Controller to report the last Generation of an Application
 	// that it has observed.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+}
+
+// ImageSpec contains information about an image used as an icon.
+type ImageSpec struct {
+	// The source for image represented as either an absolute URL to the image or a Data URL containing
+	// the image. Data URLs are defined in RFC 2397.
+	Source string `json:"src"`
+
+	// (optional) The size of the image in pixels (e.g., 25x25).
+	Size string `json:"size,omitempty"`
+
+	// (optional) The mine type of the image (e.g., "image/png").
+	Type string `json:"type,omitempty"`
 }
 
 // ContactData contains information about an individual or organization.

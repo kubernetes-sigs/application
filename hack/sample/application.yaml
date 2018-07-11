@@ -20,6 +20,9 @@ spec:
     type: "wordpress"
     version: "4.9.4"
     description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+    icons:
+      - src: "https://example.com/wordpress.png"
+        type: "image/png"
     assemblyPhase: "Pending"
     maintainers:
       - name: Kenneth Owens

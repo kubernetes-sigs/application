@@ -16,6 +16,13 @@ spec:
       kind: StatefulSet
   version: "4.9.4"
   description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+  icons:
+    - src: "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
+      type: "image/png"
+      size: "1000x1000"
+    - src: "https://s.w.org/style/images/about/WordPress-logotype-standard.png"
+      type: "image/png"
+      size: "2000x680"
   maintainers:
     - name: Kenneth Owens
       email: kow3ns@github.com

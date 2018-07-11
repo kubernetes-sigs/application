@@ -115,6 +115,27 @@ var (
 										"description": v1beta1.JSONSchemaProps{
 											Type: "string",
 										},
+										"icons": v1beta1.JSONSchemaProps{
+											Type: "array",
+											Items: &v1beta1.JSONSchemaPropsOrArray{
+												Schema: &v1beta1.JSONSchemaProps{
+													Type: "object",
+													Properties: map[string]v1beta1.JSONSchemaProps{
+														"size": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"src": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"type": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+													},
+													Required: []string{
+														"src",
+													}},
+											},
+										},
 										"keywords": v1beta1.JSONSchemaProps{
 											Type: "array",
 											Items: &v1beta1.JSONSchemaPropsOrArray{
