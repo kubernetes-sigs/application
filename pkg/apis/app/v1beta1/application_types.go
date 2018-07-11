@@ -17,8 +17,8 @@ limitations under the License.
 package v1beta1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 // Descriptor defines the Metadata and informations about the Application.
@@ -151,7 +151,7 @@ const (
 // ConfigMapKeySelector selects a key from a ConfigMap.
 type ConfigMapKeySelector struct {
 	// The ConfigMap to select from.
-	core.ObjectReference `json:",inline"`
+	corev1.ObjectReference `json:",inline"`
 	// The key to select.
 	Key string `json:"key,omitempty"`
 }
@@ -159,7 +159,7 @@ type ConfigMapKeySelector struct {
 // SecretKeySelector selects a key from a Secret.
 type SecretKeySelector struct {
 	// The Secret to select from.
-	core.ObjectReference `json:",inline"`
+	corev1.ObjectReference `json:",inline"`
 	// The key to select.
 	Key string `json:"key,omitempty"`
 }
@@ -167,7 +167,7 @@ type SecretKeySelector struct {
 // ServiceSelector selects a Service.
 type ServiceSelector struct {
 	// The Service to select from.
-	core.ObjectReference `json:",inline"`
+	corev1.ObjectReference `json:",inline"`
 	// The optional port to select.
 	Port *int32 `json:"port,omitempty"`
 	// The optional HTTP path.
@@ -177,7 +177,7 @@ type ServiceSelector struct {
 // IngressSelector selects an Ingress.
 type IngressSelector struct {
 	// The Ingress to select from.
-	core.ObjectReference `json:",inline"`
+	corev1.ObjectReference `json:",inline"`
 	// The optional host to select.
 	Host string `json:"host,omitempty"`
 	// The optional HTTP path.
