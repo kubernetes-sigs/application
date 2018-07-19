@@ -81,6 +81,11 @@ aggregation and display of all the components in the Application.
         <td>A short, human readable textual description of the Application.</td>
     </tr>
     <tr>
+        <td>spec.descriptor.icons</td>
+        <td>[]ImageSpec</a></td>
+        <td>A list of icons for an application. Icon information includes the source, size, and mime type.</td>
+    </tr>
+    <tr>
         <td>spec.descriptor.maintainers</td>
         <td>[]ContactData</a></td>
         <td>A list of the maintainers of the Application. Each maintainer has a name, email, and URL. This
@@ -202,6 +207,9 @@ spec:
   descriptor:
     version: "4.9.4"
     description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
+    icons:
+      - src: "https://example.com/wordpress.png"
+        type: "image/png"
     type: "wordpress"
     maintainers:
       - name: Kenneth Owens
