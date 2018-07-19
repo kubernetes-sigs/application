@@ -54,8 +54,8 @@ spec:
   ports:
     - port: 3306
   selector:
-    app: wordpress
-    component: wordpres-mysql
+    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/component: "mysql-rdbms"
   clusterIP: None
 ---
 apiVersion: apps/v1
@@ -171,7 +171,7 @@ spec:
         name: wordpress
         env:
         - name: WORDPRESS_DB_HOST
-          value: wordpress-mysql
+          value: wordpress-mysql-hsvc
         - name: WORDPRESS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -185,7 +185,7 @@ spec:
           mountPath: /var/www/html
   volumeClaimTemplates:
   - metadata:
-     name: mysql-persistent-storage
+     name: wordpress-persistent-storage
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
