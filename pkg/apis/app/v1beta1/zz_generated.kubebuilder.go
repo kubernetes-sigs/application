@@ -121,19 +121,52 @@ var (
 												Schema: &v1beta1.JSONSchemaProps{
 													Type: "object",
 													Properties: map[string]v1beta1.JSONSchemaProps{
+														"binary": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
+														"configMapKeyRef": v1beta1.JSONSchemaProps{
+															Type: "object",
+															Properties: map[string]v1beta1.JSONSchemaProps{
+																"apiVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"fieldPath": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"key": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"kind": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"name": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"namespace": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"resourceVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"uid": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+															},
+														},
 														"size": v1beta1.JSONSchemaProps{
 															Type: "string",
 														},
-														"src": v1beta1.JSONSchemaProps{
+														"text": v1beta1.JSONSchemaProps{
 															Type: "string",
 														},
 														"type": v1beta1.JSONSchemaProps{
 															Type: "string",
 														},
+														"url": v1beta1.JSONSchemaProps{
+															Type: "string",
+														},
 													},
-													Required: []string{
-														"src",
-													}},
+												},
 											},
 										},
 										"keywords": v1beta1.JSONSchemaProps{
@@ -230,7 +263,28 @@ var (
 														"configMapKeyRef": v1beta1.JSONSchemaProps{
 															Type: "object",
 															Properties: map[string]v1beta1.JSONSchemaProps{
+																"apiVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"fieldPath": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
 																"key": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"kind": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"name": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"namespace": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"resourceVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"uid": v1beta1.JSONSchemaProps{
 																	Type: "string",
 																},
 															},
@@ -238,10 +292,31 @@ var (
 														"ingressRef": v1beta1.JSONSchemaProps{
 															Type: "object",
 															Properties: map[string]v1beta1.JSONSchemaProps{
+																"apiVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"fieldPath": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
 																"host": v1beta1.JSONSchemaProps{
 																	Type: "string",
 																},
+																"kind": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"name": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"namespace": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
 																"path": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"resourceVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"uid": v1beta1.JSONSchemaProps{
 																	Type: "string",
 																},
 															},
@@ -249,7 +324,28 @@ var (
 														"secretKeyRef": v1beta1.JSONSchemaProps{
 															Type: "object",
 															Properties: map[string]v1beta1.JSONSchemaProps{
+																"apiVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"fieldPath": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
 																"key": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"kind": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"name": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"namespace": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"resourceVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"uid": v1beta1.JSONSchemaProps{
 																	Type: "string",
 																},
 															},
@@ -257,12 +353,33 @@ var (
 														"serviceRef": v1beta1.JSONSchemaProps{
 															Type: "object",
 															Properties: map[string]v1beta1.JSONSchemaProps{
+																"apiVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"fieldPath": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"kind": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"name": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"namespace": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
 																"path": v1beta1.JSONSchemaProps{
 																	Type: "string",
 																},
 																"port": v1beta1.JSONSchemaProps{
 																	Type:   "integer",
 																	Format: "int32",
+																},
+																"resourceVersion": v1beta1.JSONSchemaProps{
+																	Type: "string",
+																},
+																"uid": v1beta1.JSONSchemaProps{
+																	Type: "string",
 																},
 															},
 														},

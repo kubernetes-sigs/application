@@ -83,7 +83,7 @@ aggregation and display of all the components in the Application.
     <tr>
         <td>spec.descriptor.icons</td>
         <td>[]ImageSpec</a></td>
-        <td>A list of icons for an application. Icon information includes the source, size, and mime type.</td>
+        <td>A list of icons for an application. Icon information includes the source URL or raw data, size, and mime type.</td>
     </tr>
     <tr>
         <td>spec.descriptor.maintainers</td>
@@ -208,7 +208,7 @@ spec:
     version: "4.9.4"
     description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
     icons:
-      - src: "https://example.com/wordpress.png"
+      - url: "https://example.com/wordpress.png"
         type: "image/png"
     type: "wordpress"
     maintainers:

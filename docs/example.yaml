@@ -17,12 +17,24 @@ spec:
   version: "4.9.4"
   description: "WordPress is open source software you can use to create a beautiful website, blog, or app."
   icons:
-    - src: "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
-      type: "image/png"
+    - type: "image/png"
       size: "1000x1000"
-    - src: "https://s.w.org/style/images/about/WordPress-logotype-standard.png"
-      type: "image/png"
+      url: "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
+    - type: "image/png"
       size: "2000x680"
+      url: "https://s.w.org/style/images/about/WordPress-logotype-standard.png"
+    - type: "image/png"
+      size: "1000x1000"
+      configMapKeyRef:
+        name: wordpress-icons
+        key: Wordpress-logotype-wmark.png 
+    - type: "image/png"
+      size: "256x256"
+      # Blank for brevity - real application would have base64-encoded binary.
+      binary: ""
+    - type: "image/svg+xml"
+      # Blank for brevity - real application would have inline SVG
+      text: ""
   maintainers:
     - name: Kenneth Owens
       email: kow3ns@github.com
@@ -191,3 +203,18 @@ spec:
       resources:
         requests:
           storage: 250Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-icons
+  labels:
+    app.kubernetes.io/name: "wordpress-01"
+  annotations:
+    kubernetes.io/application: wordpress
+binaryData:
+  # Blank for brevity - real application would have base64 encoded data
+  Wordpress-logotype-wmark.png: ""
+data:
+  # Blank for brevity - real application would have SVG from a file
+  Wordpress-logo.svg: ""
