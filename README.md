@@ -117,8 +117,8 @@ aggregation and display of all the components in the Application.
     <tr>
         <td>spec.descriptor.notes</td>
         <td>string</td>
-        <td>Notes contain a human readable snippets intended as a quick start for the users of the
-        Application.</td>
+        <td>Notes contain human readable snippets intended as a quick start for the users of the
+        Application. They may be plain text or <a href="spec.commonmark.org">CommonMark</a> markdown.</td>
     </tr>
     <tr>
         <td>spec.assemblyPhase</td>
