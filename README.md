@@ -64,9 +64,9 @@ aggregation and display of all the components in the Application.
         <td>spec.selector</td>
         <td><a href=https://kubernetes.io/docs/concepts/overview/working-with-objects/labels>LabelSelector</a></td>
         <td>The selector is used to match resources that belong to the Application. All of the applications
-        resources should be labels such that they match this selector. Users should use the
+        resources should have labels such that they match this selector. Users should use the
         <i>app.kubernetes.io/name</i> label on all components of the Application and set the selector to
-        match this label. For instance, <i>{"matchLables": [{"app.kubernetes.io/name": "my-cool-app"}]}</i> should be
+        match this label. For instance, <i>{"matchLabels": [{"app.kubernetes.io/name": "my-cool-app"}]}</i> should be
         used as the selector for an Application named "my-cool-app", and each component should contain a label that
         matches.</td>
     </tr>
