@@ -34,9 +34,9 @@ The Application CRD [(Custom Resource Definition)](https://kubernetes.io/docs/co
 1. Create a standard that all tools MUST implement.
 1. Provide a way for UIs to surface metrics from an application.
 
-## What is the Application CRD?
+## Application Objects
 
-The Application CRD provides a way for you to aggregate individual Kubernetes components (e.g. Services, Deployments,
+After creating the Application CRD, you can create Application objects. An Application object provides a way for you to aggregate individual Kubernetes components (e.g. Services, Deployments,
 StatefulSets, Ingresses, CRDs), and manage them as a group. It provides UIs with a resource that allows for the
 aggregation and display of all the components in the Application.
 
@@ -106,7 +106,7 @@ aggregation and display of all the components in the Application.
     <tr>
         <td>spec.info</td>
         <td>[]InfoItem</td>
-        <td>Info contains human readable key,value pairs for the Application.</td>
+        <td>Info contains human readable key-value pairs for the Application.</td>
     </tr>
     <tr>
         <td>spec.descriptor.links</td>
