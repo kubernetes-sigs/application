@@ -85,15 +85,36 @@ type ApplicationStatus struct {
 
 // ImageSpec contains information about an image used as an icon.
 type ImageSpec struct {
-	// The source for image represented as either an absolute URL to the image or a Data URL containing
-	// the image. Data URLs are defined in RFC 2397.
-	Source string `json:"src"`
+	// Binary contains the base64-encoded image binary.
+	//
+	// Only one of Binary, Text, URL, or ConfigMapKeyRef may be defined.
+	Binary string `json:"binary,omitempty"`
 
-	// (optional) The size of the image in pixels (e.g., 25x25).
+	// Text contains the image definition as plain text, for formats such as SVG.
+	//
+	// Only one of Binary, Text, URL, or ConfigMapKeyRef may be defined.
+	Text string `json:"text,omitempty"`
+
+	// URL for the image, either as an absolute URL to the image or a Data URL containing
+	// the image. Data URLs are defined in RFC 2397.
+	//
+	// Only one of Binary, Text, URL, or ConfigMapKeyRef may be defined.
+	URL string `json:"url,omitempty"`
+
+	// Size of the image in pixels (e.g., 25x25). Optional.
 	Size string `json:"size,omitempty"`
 
-	// (optional) The mine type of the image (e.g., "image/png").
+	// Type indicates the MIME type of the image (e.g., "image/png"). Optional.
 	Type string `json:"type,omitempty"`
+
+	// ConfigMapKeyRef is a reference to a ConfigMap entry containing the image data.
+	//
+	// Only one of Binary, Text, URL, or ConfigMapKeyRef may be defined.
+	ConfigMapKeyRef *ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+}
+
+// ImageData contains raw information for the image, either as binary, text, or a reference to a ConfigMap entry.
+type ImageData struct {
 }
 
 // ContactData contains information about an individual or organization.
