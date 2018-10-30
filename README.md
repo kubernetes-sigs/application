@@ -55,10 +55,10 @@ aggregation and display of all the components in the Application.
     </tr>
     <tr>
         <td>spec.componentKinds</td>
-        <td>[]<a href=https://kubernetes.io/docs/reference/api-overview/#api-groups> GroupKind </a> </td>
+        <td>[]<a href=https://kubernetes.io/docs/reference/using-api/api-overview/#api-groups> GroupKind </a> </td>
         <td>This array of GroupKinds is used to indicate the types of resources that the application is composed of. As
         an example an Application that has a service and a deployment would set this field to
-        <i>[{"group":"","kind": "Service"},{"group":"apps","kind":"StatefulSet"}]</i></td>
+        <i>[{"group":"core","kind": "Service"},{"group":"apps","kind":"Deployment"}]</i></td>
     </tr>
     <tr>
         <td>spec.selector</td>
