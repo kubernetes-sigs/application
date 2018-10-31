@@ -63,10 +63,9 @@ aggregation and display of all the components in the Application.
     <tr>
         <td>spec.selector</td>
         <td><a href=https://kubernetes.io/docs/concepts/overview/working-with-objects/labels>LabelSelector</a></td>
-        <td>The selector is used to match resources that belong to the Application. All of the applications
-        resources should have labels such that they match this selector. Users should use the
-        <i>app.kubernetes.io/name</i> label on all components of the Application and set the selector to
-        match this label. For instance, <i>{"matchLabels": [{"app.kubernetes.io/name": "my-cool-app"}]}</i> should be
+        <td>This selector is used to match resources that belong to the Application. All of the applications
+        resources should have labels such that they match this selector. Users are encouraged to follow the
+        <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels">recommended labels</a> on all components of the Application and set the selector to match these labels. For example, <i>{"matchLabels": [{"app.kubernetes.io/instance": "my-cool-app"}]}</i> could be
         used as the selector for an Application named "my-cool-app", and each component should contain a label that
         matches.</td>
     </tr>
@@ -190,12 +189,13 @@ kind: Application
 metadata:
   name: "wordpress-01"
   labels:
-    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/name: "wordpress"
+    app.kubernetes.io/instance: "wordpress-01"
     app.kubernetes.io/version: "3"
 spec:
   selector:
     matchLabels:
-     app.kubernetes.io/name: "wordpress-01"
+     app.kubernetes.io/instance: "wordpress-01"
   componentKinds:
     - group: core
       kind: Service
@@ -232,10 +232,11 @@ spec:
 Notice that each Service and StatefulSet is labeled such that Application's Selector matches the labels.
 
 ```yaml
-app.kubernetes.io/name: "wordpress-01"
+app.kubernetes.io/instance: "wordpress-01"
 ```
 
-The additional labels on the Applications components come from the recommended application labels and annotations.
+The additional labels on the Applications components come from the
+[recommended application labels and annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels).
 
 You can use the standard `kubectl` verbs (e.g. `get`, `apply`, `create`, `delete`, `list`, `watch`) to interact with
 an Application specified in a manifest.

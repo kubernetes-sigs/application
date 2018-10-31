@@ -3,12 +3,13 @@ kind: Application
 metadata:
   name: "wordpress-01"
   labels:
-    app.kubernetes.io/name: "wordpress-01"
+    app.kubernetes.io/name: "wordpress"
+    app.kubernetes.io/instance: "wordpress-01"
     app.kubernetes.io/version: "3"
 spec:
   selector:
     matchLabels:
-     app.kubernetes.io/name: "wordpress-01"
+     app.kubernetes.io/instance: "wordpress-01"
   componentKinds:
     - group: core
       kind: Service
