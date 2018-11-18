@@ -1,4 +1,4 @@
-// Copyright 2015 Google Inc. All Rights Reserved.
+// Copyright 2015 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
 package bigquery
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 
-	"cloud.google.com/go/internal/atomiccache"
 	bq "google.golang.org/api/bigquery/v2"
 )
 
 // Schema describes the fields in a table or query result.
 type Schema []*FieldSchema
 
+// FieldSchema describes a single field.
 type FieldSchema struct {
 	// The field name.
 	// Must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_),
@@ -102,19 +104,33 @@ func bqToSchema(ts *bq.TableSchema) Schema {
 	return s
 }
 
+// FieldType is the type of field.
 type FieldType string
 
 const (
-	StringFieldType    FieldType = "STRING"
-	BytesFieldType     FieldType = "BYTES"
-	IntegerFieldType   FieldType = "INTEGER"
-	FloatFieldType     FieldType = "FLOAT"
-	BooleanFieldType   FieldType = "BOOLEAN"
+	// StringFieldType is a string field type.
+	StringFieldType FieldType = "STRING"
+	// BytesFieldType is a bytes field type.
+	BytesFieldType FieldType = "BYTES"
+	// IntegerFieldType is a integer field type.
+	IntegerFieldType FieldType = "INTEGER"
+	// FloatFieldType is a float field type.
+	FloatFieldType FieldType = "FLOAT"
+	// BooleanFieldType is a boolean field type.
+	BooleanFieldType FieldType = "BOOLEAN"
+	// TimestampFieldType is a timestamp field type.
 	TimestampFieldType FieldType = "TIMESTAMP"
-	RecordFieldType    FieldType = "RECORD"
-	DateFieldType      FieldType = "DATE"
-	TimeFieldType      FieldType = "TIME"
-	DateTimeFieldType  FieldType = "DATETIME"
+	// RecordFieldType is a record field type. It is typically used to create columns with repeated or nested data.
+	RecordFieldType FieldType = "RECORD"
+	// DateFieldType is a date field type.
+	DateFieldType FieldType = "DATE"
+	// TimeFieldType is a time field type.
+	TimeFieldType FieldType = "TIME"
+	// DateTimeFieldType is a datetime field type.
+	DateTimeFieldType FieldType = "DATETIME"
+	// NumericFieldType is a numeric field type. Numeric types include integer types, floating point types and the
+	// NUMERIC data type.
+	NumericFieldType FieldType = "NUMERIC"
 )
 
 var (
@@ -122,6 +138,20 @@ var (
 	errUnsupportedFieldType = errors.New("bigquery: unsupported type of field in struct")
 	errInvalidFieldName     = errors.New("bigquery: invalid name of field in struct")
 	errBadNullable          = errors.New(`bigquery: use "nullable" only for []byte and struct pointers; for all other types, use a NullXXX type`)
+	errEmptyJSONSchema      = errors.New("bigquery: empty JSON schema")
+	fieldTypes              = map[FieldType]bool{
+		StringFieldType:    true,
+		BytesFieldType:     true,
+		IntegerFieldType:   true,
+		FloatFieldType:     true,
+		BooleanFieldType:   true,
+		TimestampFieldType: true,
+		RecordFieldType:    true,
+		DateFieldType:      true,
+		TimeFieldType:      true,
+		DateTimeFieldType:  true,
+		NumericFieldType:   true,
+	}
 )
 
 var typeOfByteSlice = reflect.TypeOf([]byte{})
@@ -142,6 +172,12 @@ var typeOfByteSlice = reflect.TypeOf([]byte{})
 //   DATE        civil.Date
 //   TIME        civil.Time
 //   DATETIME    civil.DateTime
+//   NUMERIC     *big.Rat
+//
+// The big.Rat type supports numbers of arbitrary size and precision. Values
+// will be rounded to 9 digits after the decimal point before being transmitted
+// to BigQuery. See https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#numeric-type
+// for more on NUMERIC.
 //
 // A Go slice or array type is inferred to be a BigQuery repeated field of the
 // element type. The element type must be one of the above listed types.
@@ -156,8 +192,9 @@ var typeOfByteSlice = reflect.TypeOf([]byte{})
 //   DATE        NullDate
 //   TIME        NullTime
 //   DATETIME    NullDateTime
-
+//
 // For a nullable BYTES field, use the type []byte and tag the field "nullable" (see below).
+// For a nullable NUMERIC field, use the type *big.Rat and tag the field "nullable".
 //
 // A struct field that is of struct type is inferred to be a required field of type
 // RECORD with a schema inferred recursively. For backwards compatibility, a field of
@@ -178,15 +215,14 @@ var typeOfByteSlice = reflect.TypeOf([]byte{})
 //     bigquery:"-"
 // omits the field from the inferred schema.
 // The "nullable" option marks the field as nullable (not required). It is only
-// needed for []byte and pointer-to-struct fields, and cannot appear on other
+// needed for []byte, *big.Rat and pointer-to-struct fields, and cannot appear on other
 // fields. In this example, the Go name of the field is retained:
 //     bigquery:",nullable"
 func InferSchema(st interface{}) (Schema, error) {
 	return inferSchemaReflectCached(reflect.TypeOf(st))
 }
 
-// TODO(jba): replace with sync.Map for Go 1.9.
-var schemaCache atomiccache.Cache
+var schemaCache sync.Map
 
 type cacheVal struct {
 	schema Schema
@@ -194,10 +230,15 @@ type cacheVal struct {
 }
 
 func inferSchemaReflectCached(t reflect.Type) (Schema, error) {
-	cv := schemaCache.Get(t, func() interface{} {
+	var cv cacheVal
+	v, ok := schemaCache.Load(t)
+	if ok {
+		cv = v.(cacheVal)
+	} else {
 		s, err := inferSchemaReflect(t)
-		return cacheVal{s, err}
-	}).(cacheVal)
+		cv = cacheVal{s, err}
+		schemaCache.Store(t, cv)
+	}
 	return cv.schema, cv.err
 }
 
@@ -245,6 +286,8 @@ func inferFieldSchema(rt reflect.Type, nullable bool) (*FieldSchema, error) {
 		return &FieldSchema{Required: true, Type: TimeFieldType}, nil
 	case typeOfDateTime:
 		return &FieldSchema{Required: true, Type: DateTimeFieldType}, nil
+	case typeOfRat:
+		return &FieldSchema{Required: !nullable, Type: NumericFieldType}, nil
 	}
 	if ft := nullableFieldType(rt); ft != "" {
 		return &FieldSchema{Required: false, Type: ft}, nil
@@ -384,4 +427,62 @@ func hasRecursiveType(t reflect.Type, seen *typeList) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+// bigQuerySchemaJSONField is an individual field in a JSON BigQuery table schema definition
+// (as generated by https://github.com/GoogleCloudPlatform/protoc-gen-bq-schema).
+type bigQueryJSONField struct {
+	Description string              `json:"description"`
+	Fields      []bigQueryJSONField `json:"fields"`
+	Mode        string              `json:"mode"`
+	Name        string              `json:"name"`
+	Type        string              `json:"type"`
+}
+
+// convertSchemaFromJSON generates a Schema:
+func convertSchemaFromJSON(fs []bigQueryJSONField) (Schema, error) {
+	convertedSchema := Schema{}
+	for _, f := range fs {
+		convertedFieldSchema := &FieldSchema{
+			Description: f.Description,
+			Name:        f.Name,
+			Required:    f.Mode == "REQUIRED",
+			Repeated:    f.Mode == "REPEATED",
+		}
+		if len(f.Fields) > 0 {
+			convertedNestedFieldSchema, err := convertSchemaFromJSON(f.Fields)
+			if err != nil {
+				return nil, err
+			}
+			convertedFieldSchema.Schema = convertedNestedFieldSchema
+		}
+
+		// Check that the field-type (string) maps to a known FieldType:
+		if _, ok := fieldTypes[FieldType(f.Type)]; !ok {
+			return nil, fmt.Errorf("unknown field type (%v)", f.Type)
+		}
+		convertedFieldSchema.Type = FieldType(f.Type)
+
+		convertedSchema = append(convertedSchema, convertedFieldSchema)
+	}
+	return convertedSchema, nil
+}
+
+// SchemaFromJSON takes a JSON BigQuery table schema definition
+// (as generated by https://github.com/GoogleCloudPlatform/protoc-gen-bq-schema)
+// and returns a fully-populated Schema.
+func SchemaFromJSON(schemaJSON []byte) (Schema, error) {
+
+	var bigQuerySchema []bigQueryJSONField
+
+	// Make sure we actually have some content:
+	if len(schemaJSON) == 0 {
+		return nil, errEmptyJSONSchema
+	}
+
+	if err := json.Unmarshal(schemaJSON, &bigQuerySchema); err != nil {
+		return nil, err
+	}
+
+	return convertSchemaFromJSON(bigQuerySchema)
 }

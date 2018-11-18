@@ -1,4 +1,4 @@
-// Copyright 2015 Google Inc. All Rights Reserved.
+// Copyright 2015 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,26 +15,24 @@
 package bigquery
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
-	gax "github.com/googleapis/gax-go"
-
 	"cloud.google.com/go/internal"
 	"cloud.google.com/go/internal/version"
-
+	gax "github.com/googleapis/gax-go"
+	bq "google.golang.org/api/bigquery/v2"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 	htransport "google.golang.org/api/transport/http"
-
-	"golang.org/x/net/context"
-	bq "google.golang.org/api/bigquery/v2"
 )
 
 const (
-	prodAddr  = "https://www.googleapis.com/bigquery/v2/"
+	prodAddr = "https://www.googleapis.com/bigquery/v2/"
+	// Scope is the Oauth2 scope for the service.
 	Scope     = "https://www.googleapis.com/auth/bigquery"
 	userAgent = "gcloud-golang-bigquery/20160429"
 )
@@ -147,7 +145,10 @@ func runWithRetry(ctx context.Context, call func() error) error {
 	})
 }
 
-// This is the correct definition of retryable according to the BigQuery team.
+// This is the correct definition of retryable according to the BigQuery team. It
+// also considers 502 ("Bad Gateway") and 503 ("Service Unavailable") errors
+// retryable; these are returned by systems between the client and the BigQuery
+// service.
 func retryableError(err error) bool {
 	e, ok := err.(*googleapi.Error)
 	if !ok {
@@ -157,5 +158,5 @@ func retryableError(err error) bool {
 	if len(e.Errors) > 0 {
 		reason = e.Errors[0].Reason
 	}
-	return e.Code == http.StatusBadGateway || reason == "backendError" || reason == "rateLimitExceeded"
+	return e.Code == http.StatusServiceUnavailable || e.Code == http.StatusBadGateway || reason == "backendError" || reason == "rateLimitExceeded"
 }

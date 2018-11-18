@@ -1,5 +1,5 @@
 /*
-Copyright 2017 Google Inc. All Rights Reserved.
+Copyright 2017 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@ package spanner
 import (
 	"container/heap"
 	"container/list"
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	sppb "google.golang.org/genproto/googleapis/spanner/v1"
 	"google.golang.org/grpc/codes"
@@ -258,8 +257,13 @@ func (s *session) destroy(isExpire bool) bool {
 	// Unregister s from healthcheck queue.
 	s.pool.hc.unregister(s)
 	// Remove s from Cloud Spanner service.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
+	s.delete(ctx)
+	return true
+}
+
+func (s *session) delete(ctx context.Context) {
 	// Ignore the error returned by runRetryable because even if we fail to explicitly destroy the session,
 	// it will be eventually garbage collected by Cloud Spanner.
 	err := runRetryable(ctx, func(ctx context.Context) error {
@@ -269,7 +273,6 @@ func (s *session) destroy(isExpire bool) bool {
 	if err != nil {
 		log.Printf("Failed to delete session %v. Error: %v", s.getID(), err)
 	}
-	return true
 }
 
 // prepareForWrite prepares the session for write if it is not already in that state.
@@ -289,13 +292,15 @@ func (s *session) prepareForWrite(ctx context.Context) error {
 type SessionPoolConfig struct {
 	// getRPCClient is the caller supplied method for getting a gRPC client to Cloud Spanner, this makes session pool able to use client pooling.
 	getRPCClient func() (sppb.SpannerClient, error)
-	// MaxOpened is the maximum number of opened sessions allowed by the
-	// session pool. Defaults to NumChannels * 100.
+	// MaxOpened is the maximum number of opened sessions allowed by the session
+	// pool. Defaults to NumChannels * 100. If the client tries to open a session and
+	// there are already MaxOpened sessions, it will block until one becomes
+	// available or the context passed to the client method is canceled or times out.
 	MaxOpened uint64
 	// MinOpened is the minimum number of opened sessions that the session pool
 	// tries to maintain. Session pool won't continue to expire sessions if number
-	// of opened connections drops below MinOpened. However, if session is found
-	// to be broken, it will still be evicted from session pool, therefore it is
+	// of opened connections drops below MinOpened. However, if a session is found
+	// to be broken, it will still be evicted from the session pool, therefore it is
 	// posssible that the number of opened sessions drops below MinOpened.
 	MinOpened uint64
 	// MaxIdle is the maximum number of idle sessions, pool is allowed to keep. Defaults to 0.
@@ -310,6 +315,8 @@ type SessionPoolConfig struct {
 	HealthCheckInterval time.Duration
 	// healthCheckSampleInterval is how often the health checker samples live session (for use in maintaining session pool size). Defaults to 1 min.
 	healthCheckSampleInterval time.Duration
+	// sessionLabels for the sessions created in the session pool.
+	sessionLabels map[string]string
 }
 
 // errNoRPCGetter returns error for SessionPoolConfig missing getRPCClient method.
@@ -318,9 +325,9 @@ func errNoRPCGetter() error {
 }
 
 // errMinOpenedGTMapOpened returns error for SessionPoolConfig.MaxOpened < SessionPoolConfig.MinOpened when SessionPoolConfig.MaxOpened is set.
-func errMinOpenedGTMaxOpened(spc *SessionPoolConfig) error {
+func errMinOpenedGTMaxOpened(maxOpened, minOpened uint64) error {
 	return spannerErrorf(codes.InvalidArgument,
-		"require SessionPoolConfig.MaxOpened >= SessionPoolConfig.MinOpened, got %v and %v", spc.MaxOpened, spc.MinOpened)
+		"require SessionPoolConfig.MaxOpened >= SessionPoolConfig.MinOpened, got %v and %v", maxOpened, minOpened)
 }
 
 // validate verifies that the SessionPoolConfig is good for use.
@@ -329,7 +336,7 @@ func (spc *SessionPoolConfig) validate() error {
 		return errNoRPCGetter()
 	}
 	if spc.MinOpened > spc.MaxOpened && spc.MaxOpened > 0 {
-		return errMinOpenedGTMaxOpened(spc)
+		return errMinOpenedGTMaxOpened(spc.MaxOpened, spc.MinOpened)
 	}
 	return nil
 }
@@ -449,6 +456,7 @@ func (p *sessionPool) createSession(ctx context.Context) (*session, error) {
 		if !done {
 			// Session creation failed, give budget back.
 			p.numOpened--
+			recordStat(ctx, OpenSessionCount, int64(p.numOpened))
 		}
 		p.createReqs--
 		// Notify other waiters blocking on session creation.
@@ -461,23 +469,35 @@ func (p *sessionPool) createSession(ctx context.Context) (*session, error) {
 		doneCreate(false)
 		return nil, err
 	}
-	var s *session
-	err = runRetryable(ctx, func(ctx context.Context) error {
-		sid, e := sc.CreateSession(ctx, &sppb.CreateSessionRequest{Database: p.db})
-		if e != nil {
-			return e
-		}
-		// If no error, construct the new session.
-		s = &session{valid: true, client: sc, id: sid.Name, pool: p, createTime: time.Now(), md: p.md}
-		p.hc.register(s)
-		return nil
-	})
+	s, err := createSession(ctx, sc, p.db, p.sessionLabels, p.md)
 	if err != nil {
 		doneCreate(false)
 		// Should return error directly because of the previous retries on CreateSession RPC.
 		return nil, err
 	}
+	s.pool = p
+	p.hc.register(s)
 	doneCreate(true)
+	return s, nil
+}
+
+func createSession(ctx context.Context, sc sppb.SpannerClient, db string, labels map[string]string, md metadata.MD) (*session, error) {
+	var s *session
+	err := runRetryable(ctx, func(ctx context.Context) error {
+		sid, e := sc.CreateSession(ctx, &sppb.CreateSessionRequest{
+			Database: db,
+			Session:  &sppb.Session{Labels: labels},
+		})
+		if e != nil {
+			return e
+		}
+		// If no error, construct the new session.
+		s = &session{valid: true, client: sc, id: sid.Name, createTime: time.Now(), md: md}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 	return s, nil
 }
 
@@ -546,6 +566,7 @@ func (p *sessionPool) take(ctx context.Context) (*sessionHandle, error) {
 		}
 		// Take budget before the actual session creation.
 		p.numOpened++
+		recordStat(ctx, OpenSessionCount, int64(p.numOpened))
 		p.createReqs++
 		p.mu.Unlock()
 		if s, err = p.createSession(ctx); err != nil {
@@ -608,6 +629,7 @@ func (p *sessionPool) takeWriteSession(ctx context.Context) (*sessionHandle, err
 
 			// Take budget before the actual session creation.
 			p.numOpened++
+			recordStat(ctx, OpenSessionCount, int64(p.numOpened))
 			p.createReqs++
 			p.mu.Unlock()
 			if s, err = p.createSession(ctx); err != nil {
@@ -668,6 +690,7 @@ func (p *sessionPool) remove(s *session, isExpire bool) bool {
 	if s.invalidate() {
 		// Decrease the number of opened sessions.
 		p.numOpened--
+		recordStat(context.Background(), OpenSessionCount, int64(p.numOpened))
 		// Broadcast that a session has been destroyed.
 		close(p.mayGetSession)
 		p.mayGetSession = make(chan struct{})
@@ -918,9 +941,7 @@ func (hc *healthChecker) worker(i int) {
 				}
 				select {
 				case <-time.After(time.Duration(rand.Int63n(pause) + pause/2)):
-					break
 				case <-hc.done:
-					break
 				}
 
 			}
@@ -950,7 +971,6 @@ func (hc *healthChecker) maintainer() {
 			case <-timeout:
 				return
 			default:
-				break
 			}
 
 			p := hc.pool
@@ -961,6 +981,7 @@ func (hc *healthChecker) maintainer() {
 				break
 			}
 			p.numOpened++
+			recordStat(ctx, OpenSessionCount, int64(p.numOpened))
 			p.createReqs++
 			shouldPrepareWrite := p.shouldPrepareWrite()
 			p.mu.Unlock()
@@ -990,7 +1011,6 @@ func (hc *healthChecker) maintainer() {
 			case <-timeout:
 				return
 			default:
-				break
 			}
 
 			p := hc.pool
@@ -1052,9 +1072,7 @@ func (hc *healthChecker) maintainer() {
 
 		select {
 		case <-timeout:
-			break
 		case <-hc.done:
-			break
 		}
 		iteration++
 	}
@@ -1067,7 +1085,7 @@ func shouldDropSession(err error) bool {
 	}
 	// If a Cloud Spanner can no longer locate the session (for example, if session is garbage collected), then caller
 	// should not try to return the session back into the session pool.
-	// TODO: once gRPC can return auxilary error information, stop parsing the error message.
+	// TODO: once gRPC can return auxiliary error information, stop parsing the error message.
 	if ErrCode(err) == codes.NotFound && strings.Contains(ErrDesc(err), "Session not found:") {
 		return true
 	}

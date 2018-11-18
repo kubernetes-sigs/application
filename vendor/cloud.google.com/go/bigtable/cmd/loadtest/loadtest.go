@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Google Inc. All Rights Reserved.
+Copyright 2015 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -34,7 +35,6 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/bigtable/internal/cbtconfig"
 	"cloud.google.com/go/bigtable/internal/stat"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 )
@@ -123,7 +123,7 @@ func main() {
 	go func() {
 		s := <-c
 		log.Printf("Caught %v, cleaning scratch table.", s)
-		adminClient.DeleteTable(context.Background(), *scratchTable)
+		_ = adminClient.DeleteTable(context.Background(), *scratchTable)
 		os.Exit(1)
 	}()
 

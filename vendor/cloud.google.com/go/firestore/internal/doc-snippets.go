@@ -1,4 +1,4 @@
-// Copyright 2017 Google Inc. All Rights Reserved.
+// Copyright 2017 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
 
 package internal
 
+// TODO(deklerk) can this file and directory be deleted, or is it being used for documentation somewhere?
+
 import (
+	"context"
 	"fmt"
 
 	firestore "cloud.google.com/go/firestore"
-
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 )
 
-const ELLIPSIS = 0
-
+// State represents a state.
 //[ structDef
 type State struct {
 	Capital    string  `firestore:"capital"`

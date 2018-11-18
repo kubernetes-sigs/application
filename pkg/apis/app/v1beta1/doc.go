@@ -14,13 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Api versions allow the api contract for a resource to be changed while keeping
-// backward compatibility by support multiple concurrent versions
-// of the same resource
-
+// Package v1beta1 contains API Schema definitions for the app v1beta1 API group
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
 // +k8s:conversion-gen=github.com/kubernetes-sigs/application/pkg/apis/app
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=app.k8s.io
-package v1beta1 // import "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+package v1beta1
