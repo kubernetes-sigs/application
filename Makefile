@@ -16,6 +16,10 @@ manager: generate fmt vet
 run: generate fmt vet
 	go run ./cmd/manager/main.go
 
+# Run against the configured Kubernetes cluster in ~/.kube/config
+debug: generate fmt vet
+	dlv debug cmd/manager/main.go
+
 # Install CRDs into a cluster
 install: manifests
 	kubectl apply -f config/crds

@@ -19,6 +19,7 @@ package v1beta1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/kubesdk/pkg/status"
 )
 
 // Descriptor defines the Metadata and informations about the Application.
@@ -78,9 +79,7 @@ type ApplicationSpec struct {
 
 // ApplicationStatus defines controllers the observed state of Application
 type ApplicationStatus struct {
-	// ObservedGeneration is used by the Application Controller to report the last Generation of an Application
-	// that it has observed.
-	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+	status.Meta `json:",inline"`
 }
 
 // ImageSpec contains information about an image used as an icon.
@@ -102,7 +101,7 @@ type ContactData struct {
 	Name string `json:"name,omitempty"`
 
 	// Url could typically be a website address.
-	Url string `json:"url,omitempty"`
+	URL string `json:"url,omitempty"`
 
 	// Email is the email address.
 	Email string `json:"email,omitempty"`
@@ -114,7 +113,7 @@ type Link struct {
 	Description string `json:"description,omitempty"`
 
 	// Url typically points at a website address.
-	Url string `json:"url,omitempty"`
+	URL string `json:"url,omitempty"`
 }
 
 // InfoItem is a human readable key,value pair containing important information about how to access the Application.
@@ -132,8 +131,10 @@ type InfoItem struct {
 	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
 }
 
+// InfoItemType is a string
 type InfoItemType string
 
+// Constants
 const (
 	ValueInfoItemType     InfoItemType = "Value"
 	ReferenceInfoItemType InfoItemType = "Reference"
@@ -157,8 +158,10 @@ type InfoItemSource struct {
 	IngressRef *IngressSelector `json:"ingressRef,omitempty"`
 }
 
+// InfoItemSourceType is a string
 type InfoItemSourceType string
 
+// Constants for info type
 const (
 	SecretKeyRefInfoItemSourceType    InfoItemSourceType = "SecretKeyRef"
 	ConfigMapKeyRefInfoItemSourceType InfoItemSourceType = "ConfigMapKeyRef"
@@ -202,8 +205,10 @@ type IngressSelector struct {
 	Path string `json:"path,omitempty"`
 }
 
+// ApplicationAssemblyPhase is a string
 type ApplicationAssemblyPhase string
 
+// Constants
 const (
 	// Used to indicate that not all of application's components
 	// have been deployed yet.

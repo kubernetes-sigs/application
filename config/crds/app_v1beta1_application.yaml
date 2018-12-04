@@ -189,6 +189,75 @@ spec:
           type: object
         status:
           properties:
+            components:
+              items:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  link:
+                    type: string
+                  name:
+                    type: string
+                  pdb:
+                    properties:
+                      currenthealthy:
+                        format: int32
+                        type: integer
+                      desiredhealthy:
+                        format: int32
+                        type: integer
+                    required:
+                    - currenthealthy
+                    - desiredhealthy
+                    type: object
+                  status:
+                    type: string
+                  sts:
+                    properties:
+                      currentcount:
+                        format: int32
+                        type: integer
+                      progress:
+                        format: int32
+                        type: integer
+                      readycount:
+                        format: int32
+                        type: integer
+                      replicas:
+                        format: int32
+                        type: integer
+                    required:
+                    - replicas
+                    - readycount
+                    - currentcount
+                    - progress
+                    type: object
+                type: object
+              type: array
+            conditions:
+              items:
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  lastUpdateTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - type
+                - status
+                type: object
+              type: array
             observedGeneration:
               format: int64
               type: integer
