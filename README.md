@@ -135,42 +135,36 @@ aggregation and display of all the components in the Application.
 
 This project uses the [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) tool for code generation.
 kubebuilder provides the same code generation features (and a bit more) for Custom Resource Definitions and Extension
-API Servers that are provided by the Kubernetes project. In order to build the source, you need to download and install
-the latest release of kubebuilder per the instructions there.
+API Servers that are provided by the Kubernetes project. Installing kubebuilder is not needed to build the project, but
+it is needed to do things like adding additional resources. 
+
+To generate the manifests and run unit tests:
+```commandline
+make
+```
 
 ### Controller
 
-The controller doesn't do much at the moment. However, if you'd like to build it you'll need to install Docker and
+The controller doesn't do much at the moment. However, if you'd like to build an image you'll need to install Docker and
 golang 1.9 or greater. To build the controller into an image named ```image``` use the following command.
 
 ```commandline
-docker build -t <image> -f Dockerfile.controller .
+make docker-build IMG=<image>
+make docker-push IMG=<image>
 ```
 
 ## Installing the CRD
 
-In order to install the CRD you will either need to use kubectl or you will need to call against the Kubernetes CRD
-API directly. An example [manifest](hack/install.yaml) is supplied in the hack directory. You can use the following
-command to install the CRD (where ```manifest`` is the manifest containing the CRD declaration).
+To install the crd and the controller, just run:
 
 ```commandline
-kubectl apply -f <manifest>
+make deploy
 ```
 
-## Generating an Installation Manifest
+This will install the controller into the application-system namespace and with the default RBAC permissions.
 
-When the CRD is installed as above, you need to ensure that the correct RBAC configuration is applied prior to
-installation. You can use `kubebuilder create config` to generate a manifest that is configured to create the
-requisite RBAC permissions, CRD, and controller StatefulSet in the supplied namespace. The command below will generate
-a manifest that can be applied to create all of the necessary components the `image` as the controller
-image and `namespace` as the namespace. Note that, if you would like to remove the controller from the configuration
-you can delete the generated StatefulSet from the manifest, and, while you must specify a controller image, you need
-can supply any string if you do not wish to install the controller when the manifest is applied (i.e. you intend to
-delete the StatefulSet from the generated manifest). Work is in progress to generate a controllerless configuration.
+There is also a sample Application CR in the config/samples folder.
 
-```commandline
-kubebuilder create config --controller-image <image>  --name <namespace>
-```
 
 ## Using the Application CRD
 
@@ -242,28 +236,31 @@ an Application specified in a manifest.
 
 ### Programmatically
 
-kubebuilder creates a Kubernetes [ClientSet](pkg/client/clientset/versioned/clientset.go) for the Application object.
-You can create a new client using either a rest.Config or a rest.Interface as below.
+Kubebuilder provides a client to get, create, update and delete resources and this also works for application resources.
+This is well documented in the kubebuilder book: https://book.kubebuilder.io/
 
+Create a client:
 ```go
-client,err := clientset.NewForConfig(config)
-
-client := clientset.New(ri)
+kubeClient, err := client.New(config)
 ```
 
-Once you've created a client you can interact with Applications via the structs declared in
-[types.go](pkg/apis/app/v1beta1/application_types.go). For instance to retrieve an application you can used the code
-below.
-
+Get an application resource:
 ```go
-app, err := client.AppV1Aplha1().Applications("my-namespace").Get("my-app",v1.GetOptions{})
-if err != nil {
-        handleError(err)
+object := &applicationsv1beta1.Application{}
+objectKey := types.NamespacedName{
+    Namespace: "namespace",
+    Name: "name",
 }
+err = kubeClient.Get(context.TODO(), objectKey, object)
 ```
 
-The other standard client operations are supported. The interface is described
-[here](pkg/client/clientset/versioned/typed/app/v1beta1/application.go).
+Create a new application resource:
+```go
+app := &applicationsv1beta1.Application{
+	...
+}
+err = kubeClient.Create(context.TODO(), app)
+```
 
 ## Contributing
 

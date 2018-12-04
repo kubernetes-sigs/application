@@ -17,36 +17,43 @@ limitations under the License.
 package testutil
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"os"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	applicationsv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/yaml"
-
-	applicationsv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
-	appcs "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func CreateApplication(kubeClient appcs.Interface, ns string, relativePath string) error {
+func CreateApplication(kubeClient client.Client, ns string, relativePath string) error {
 	app, err := parseApplicationYaml(relativePath)
 	if err != nil {
 		return err
 	}
+	app.Namespace = ns
 
-	_, err = kubeClient.AppV1beta1().Applications(ns).Get(app.Name, metav1.GetOptions{})
+	object := &applicationsv1beta1.Application{}
+	objectKey := types.NamespacedName{
+		Namespace: ns,
+		Name: app.Name,
+	}
+	err = kubeClient.Get(context.TODO(), objectKey, object)
 
 	if err == nil {
 		// Application already exists -> Update
-		_, err = kubeClient.AppV1beta1().Applications(ns).Update(app)
+		err = kubeClient.Update(context.TODO(), app)
 		if err != nil {
 			return err
 		}
-
 	} else {
 		// Application doesn't exist -> Create
-		_, err = kubeClient.AppV1beta1().Applications(ns).Create(app)
+		fmt.Printf("Creating new Application\n")
+		err = kubeClient.Create(context.TODO(), app)
 		if err != nil {
 			return err
 		}
@@ -55,17 +62,23 @@ func CreateApplication(kubeClient appcs.Interface, ns string, relativePath strin
 	return nil
 }
 
-func DeleteApplication(kubeClient appcs.Interface, ns string, relativePath string) error {
+func DeleteApplication(kubeClient client.Client, ns string, relativePath string) error {
 	app, err := parseApplicationYaml(relativePath)
 	if err != nil {
 		return err
 	}
 
-	if err := kubeClient.AppV1beta1().Applications(ns).Delete(app.Name, &metav1.DeleteOptions{}); err != nil {
+	object := &applicationsv1beta1.Application{}
+	objectKey := types.NamespacedName{
+		Namespace: ns,
+		Name: app.Name,
+	}
+	err = kubeClient.Get(context.TODO(), objectKey, object)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return kubeClient.Delete(context.TODO(), object)
 }
 
 func parseApplicationYaml(relativePath string) (*applicationsv1beta1.Application, error) {

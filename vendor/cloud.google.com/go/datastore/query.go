@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All Rights Reserved.
+// Copyright 2014 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package datastore
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -25,7 +26,6 @@ import (
 
 	"cloud.google.com/go/internal/trace"
 	wrapperspb "github.com/golang/protobuf/ptypes/wrappers"
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 	pb "google.golang.org/genproto/googleapis/datastore/v1"
 )
@@ -443,7 +443,7 @@ func (q *Query) toProto(req *pb.RunQueryRequest) error {
 // Count returns the number of results for the given query.
 //
 // The running time and number of API calls made by Count scale linearly with
-// with the sum of the query's offset and limit. Unless the result count is
+// the sum of the query's offset and limit. Unless the result count is
 // expected to be small, it is best to specify a limit; otherwise Count will
 // continue until it finishes counting or the provided context expires.
 func (c *Client) Count(ctx context.Context, q *Query) (n int, err error) {
@@ -768,7 +768,7 @@ func (c Cursor) String() string {
 	return strings.TrimRight(base64.URLEncoding.EncodeToString(c.cc), "=")
 }
 
-// Decode decodes a cursor from its base-64 string representation.
+// DecodeCursor decodes a cursor from its base-64 string representation.
 func DecodeCursor(s string) (Cursor, error) {
 	if s == "" {
 		return Cursor{}, nil

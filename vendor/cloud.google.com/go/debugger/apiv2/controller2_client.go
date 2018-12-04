@@ -17,11 +17,10 @@
 package debugger
 
 import (
+	"context"
 	"time"
 
-	"cloud.google.com/go/internal/version"
 	gax "github.com/googleapis/gax-go"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 	"google.golang.org/api/transport"
 	clouddebuggerpb "google.golang.org/genproto/googleapis/devtools/clouddebugger/v2"
@@ -67,6 +66,8 @@ func defaultController2CallOptions() *Controller2CallOptions {
 }
 
 // Controller2Client is a client for interacting with Stackdriver Debugger API.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type Controller2Client struct {
 	// The connection to the service.
 	conn *grpc.ClientConn
@@ -133,8 +134,8 @@ func (c *Controller2Client) Close() error {
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
 func (c *Controller2Client) SetGoogleClientInfo(keyval ...string) {
-	kv := append([]string{"gl-go", version.Go()}, keyval...)
-	kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)
+	kv := append([]string{"gl-go", versionGo()}, keyval...)
+	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)
 	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
 }
 

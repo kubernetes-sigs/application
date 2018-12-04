@@ -1,4 +1,4 @@
-// Copyright 2017 Google Inc. All Rights Reserved.
+// Copyright 2017 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 package firestore
 
 import (
+	"context"
 	"errors"
 
 	pb "google.golang.org/genproto/googleapis/firestore/v1beta1"
-
-	"golang.org/x/net/context"
 )
 
 // A WriteBatch holds multiple database updates. Build a batch with the Create, Set,
