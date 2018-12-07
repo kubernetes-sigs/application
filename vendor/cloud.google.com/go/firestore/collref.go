@@ -1,4 +1,4 @@
-// Copyright 2017 Google Inc. All Rights Reserved.
+// Copyright 2017 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
 package firestore
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // A CollectionRef is a reference to Firestore collection.
@@ -94,6 +93,16 @@ func (c *CollectionRef) Add(ctx context.Context, data interface{}) (*DocumentRef
 		return nil, nil, err
 	}
 	return d, wr, nil
+}
+
+// DocumentRefs returns references to all the documents in the collection, including
+// missing documents. A missing document is a document that does not exist but has
+// sub-documents.
+func (c *CollectionRef) DocumentRefs(ctx context.Context) *DocumentRefIterator {
+	if err := checkTransaction(ctx); err != nil {
+		return &DocumentRefIterator{err: err}
+	}
+	return newDocumentRefIterator(ctx, c, nil)
 }
 
 const alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"

@@ -1,4 +1,4 @@
-// Copyright 2018 Google Inc. All Rights Reserved.
+// Copyright 2018 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package firestore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -25,7 +26,6 @@ import (
 	"cloud.google.com/go/internal/btree"
 	"github.com/golang/protobuf/ptypes"
 	gax "github.com/googleapis/gax-go"
-	"golang.org/x/net/context"
 	pb "google.golang.org/genproto/googleapis/firestore/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -33,15 +33,18 @@ import (
 
 // LogWatchStreams controls whether watch stream status changes are logged.
 // This feature is EXPERIMENTAL and may disappear at any time.
-var LogWatchStreams bool = false
+var LogWatchStreams = false
 
 // DocumentChangeKind describes the kind of change to a document between
 // query snapshots.
 type DocumentChangeKind int
 
 const (
+	// DocumentAdded indicates that the document was added for the first time.
 	DocumentAdded DocumentChangeKind = iota
+	// DocumentRemoved indicates that the document was removed.
 	DocumentRemoved
+	// DocumentModified indicates that the document was modified.
 	DocumentModified
 )
 
@@ -62,7 +65,8 @@ type DocumentChange struct {
 // https://github.com/googleapis/nodejs-firestore/blob/master/src/watch.js.
 
 // The sole target ID for all streams from this client.
-const watchTargetID int32 = 'g' + 'o'
+// Variable for testing.
+var watchTargetID int32 = 'g' + 'o'
 
 var defaultBackoff = gax.Backoff{
 	// Values from https://github.com/googleapis/nodejs-firestore/blob/master/src/backoff.js.
@@ -98,7 +102,7 @@ func newWatchStreamForDocument(ctx context.Context, dr *DocumentRef) *watchStrea
 	compare := func(_, _ *DocumentSnapshot) (int, error) { return 0, nil }
 	return newWatchStream(ctx, dr.Parent.c, compare, &pb.Target{
 		TargetType: &pb.Target_Documents{
-			Documents: &pb.Target_DocumentsTarget{[]string{dr.Path}},
+			Documents: &pb.Target_DocumentsTarget{Documents: []string{dr.Path}},
 		},
 		TargetId: watchTargetID,
 	})

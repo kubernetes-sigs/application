@@ -17,9 +17,9 @@
 package errorreporting
 
 import (
-	"cloud.google.com/go/internal/version"
+	"context"
+
 	gax "github.com/googleapis/gax-go"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 	"google.golang.org/api/transport"
 	clouderrorreportingpb "google.golang.org/genproto/googleapis/devtools/clouderrorreporting/v1beta1"
@@ -47,6 +47,8 @@ func defaultReportErrorsCallOptions() *ReportErrorsCallOptions {
 }
 
 // ReportErrorsClient is a client for interacting with Stackdriver Error Reporting API.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type ReportErrorsClient struct {
 	// The connection to the service.
 	conn *grpc.ClientConn
@@ -94,8 +96,8 @@ func (c *ReportErrorsClient) Close() error {
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
 func (c *ReportErrorsClient) SetGoogleClientInfo(keyval ...string) {
-	kv := append([]string{"gl-go", version.Go()}, keyval...)
-	kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)
+	kv := append([]string{"gl-go", versionGo()}, keyval...)
+	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)
 	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
 }
 

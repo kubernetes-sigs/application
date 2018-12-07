@@ -17,12 +17,12 @@
 package monitoring
 
 import (
+	"context"
 	"math"
 	"time"
 
-	"cloud.google.com/go/internal/version"
+	"github.com/golang/protobuf/proto"
 	gax "github.com/googleapis/gax-go"
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/api/transport"
@@ -81,6 +81,8 @@ func defaultMetricCallOptions() *MetricCallOptions {
 }
 
 // MetricClient is a client for interacting with Stackdriver Monitoring API.
+//
+// Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 type MetricClient struct {
 	// The connection to the service.
 	conn *grpc.ClientConn
@@ -129,8 +131,8 @@ func (c *MetricClient) Close() error {
 // the `x-goog-api-client` header passed on each request. Intended for
 // use by Google-written clients.
 func (c *MetricClient) setGoogleClientInfo(keyval ...string) {
-	kv := append([]string{"gl-go", version.Go()}, keyval...)
-	kv = append(kv, "gapic", version.Repo, "gax", gax.Version, "grpc", grpc.Version)
+	kv := append([]string{"gl-go", versionGo()}, keyval...)
+	kv = append(kv, "gapic", versionClient, "gax", gax.Version, "grpc", grpc.Version)
 	c.xGoogMetadata = metadata.Pairs("x-goog-api-client", gax.XGoogHeader(kv...))
 }
 
@@ -139,6 +141,7 @@ func (c *MetricClient) ListMonitoredResourceDescriptors(ctx context.Context, req
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.ListMonitoredResourceDescriptors[0:len(c.CallOptions.ListMonitoredResourceDescriptors):len(c.CallOptions.ListMonitoredResourceDescriptors)], opts...)
 	it := &MonitoredResourceDescriptorIterator{}
+	req = proto.Clone(req).(*monitoringpb.ListMonitoredResourceDescriptorsRequest)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*monitoredrespb.MonitoredResourceDescriptor, string, error) {
 		var resp *monitoringpb.ListMonitoredResourceDescriptorsResponse
 		req.PageToken = pageToken
@@ -166,6 +169,7 @@ func (c *MetricClient) ListMonitoredResourceDescriptors(ctx context.Context, req
 		return nextPageToken, nil
 	}
 	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
+	it.pageInfo.MaxSize = int(req.PageSize)
 	return it
 }
 
@@ -190,6 +194,7 @@ func (c *MetricClient) ListMetricDescriptors(ctx context.Context, req *monitorin
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.ListMetricDescriptors[0:len(c.CallOptions.ListMetricDescriptors):len(c.CallOptions.ListMetricDescriptors)], opts...)
 	it := &MetricDescriptorIterator{}
+	req = proto.Clone(req).(*monitoringpb.ListMetricDescriptorsRequest)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*metricpb.MetricDescriptor, string, error) {
 		var resp *monitoringpb.ListMetricDescriptorsResponse
 		req.PageToken = pageToken
@@ -217,6 +222,7 @@ func (c *MetricClient) ListMetricDescriptors(ctx context.Context, req *monitorin
 		return nextPageToken, nil
 	}
 	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
+	it.pageInfo.MaxSize = int(req.PageSize)
 	return it
 }
 
@@ -272,6 +278,7 @@ func (c *MetricClient) ListTimeSeries(ctx context.Context, req *monitoringpb.Lis
 	ctx = insertMetadata(ctx, c.xGoogMetadata)
 	opts = append(c.CallOptions.ListTimeSeries[0:len(c.CallOptions.ListTimeSeries):len(c.CallOptions.ListTimeSeries)], opts...)
 	it := &TimeSeriesIterator{}
+	req = proto.Clone(req).(*monitoringpb.ListTimeSeriesRequest)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*monitoringpb.TimeSeries, string, error) {
 		var resp *monitoringpb.ListTimeSeriesResponse
 		req.PageToken = pageToken
@@ -299,6 +306,7 @@ func (c *MetricClient) ListTimeSeries(ctx context.Context, req *monitoringpb.Lis
 		return nextPageToken, nil
 	}
 	it.pageInfo, it.nextFunc = iterator.NewPageInfo(fetch, it.bufLen, it.takeBuf)
+	it.pageInfo.MaxSize = int(req.PageSize)
 	return it
 }
 

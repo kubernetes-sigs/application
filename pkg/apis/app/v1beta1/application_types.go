@@ -220,18 +220,25 @@ const (
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Application
+// Application is the Schema for the applications API
 // +k8s:openapi-gen=true
-// +resource:path=applications
-// The Application object acts as an aggregator for components that comprise an Application. Its
-// Spec.ComponentGroupKinds indicate the GroupKinds of the components the comprise the Application. Its Spec. Selector
-// is used to list and watch those components. All components of an Application should be labeled such the Application's
-// Spec. Selector matches.
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	// The specification object for the Application.
-	Spec ApplicationSpec `json:"spec,omitempty"`
-	// The status object for the Application.
+
+	Spec   ApplicationSpec   `json:"spec,omitempty"`
 	Status ApplicationStatus `json:"status,omitempty"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// ApplicationList contains a list of Application
+type ApplicationList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Application `json:"items"`
+}
+
+func init() {
+	SchemeBuilder.Register(&Application{}, &ApplicationList{})
 }

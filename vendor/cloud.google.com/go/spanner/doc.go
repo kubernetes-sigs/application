@@ -1,5 +1,5 @@
 /*
-Copyright 2017 Google Inc. All Rights Reserved.
+Copyright 2017 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@ Note: This package is in beta. Some backwards-incompatible changes may occur.
 
 See https://cloud.google.com/spanner/docs/getting-started/go/ for an introduction
 to Cloud Spanner and additional help on using this API.
+
+See https://godoc.org/cloud.google.com/go for authentication, timeouts,
+connection pooling and similar aspects of this package.
+
 
 Creating a Client
 
@@ -302,15 +306,23 @@ mutations, which will all be executed at the end of the transaction:
         return nil
     })
 
+
+DML and Partitioned DML
+
+Spanner supports DML statements like INSERT, UPDATE and DELETE. Use
+ReadWriteTransaction.Update to run DML statements. It returns the number of rows
+affected. (You can call use ReadWriteTransaction.Query with a DML statement. The first
+call to Next on the resulting RowIterator will return iterator.Done, and the RowCount
+field of the iterator will hold the number of affected rows.)
+
+For large databases, it may be more efficient to partition the DML statement. Use
+client.PartitionedUpdate to run a DML statement in this way. Not all DML statements
+can be partitioned.
+
 Tracing
 
 This client has been instrumented to use OpenCensus tracing (http://opencensus.io).
 To enable tracing, see "Enabling Tracing for a Program" at
 https://godoc.org/go.opencensus.io/trace. OpenCensus tracing requires Go 1.8 or higher.
-
-Authentication
-
-See examples of authorization and authentication at
-https://godoc.org/cloud.google.com/go#pkg-examples.
 */
 package spanner // import "cloud.google.com/go/spanner"

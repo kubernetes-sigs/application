@@ -17,21 +17,23 @@ limitations under the License.
 package main
 
 import (
+	"github.com/kubernetes-sigs/application/pkg/apis"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"log"
 	"os"
 	"path"
 	"testing"
 
+	"github.com/kubernetes-sigs/application/e2e/testutil"
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/gomega"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/kubernetes-sigs/application/e2e/testutil"
-	appcs "github.com/kubernetes-sigs/application/pkg/client/clientset/versioned"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
-	. "github.com/onsi/gomega"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestE2e(t *testing.T) {
@@ -44,7 +46,18 @@ func getClientConfig() (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", path.Join(os.Getenv("HOME"), ".kube/config"))
 }
 
+func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
+	c, err := client.New(config, client.Options{Scheme: s})
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
 var _ = Describe("Application CRD should install correctly", func() {
+	s := scheme.Scheme
+	apis.AddToScheme(s)
+
 	config, err := getClientConfig()
 	if err != nil {
 		log.Fatal("Unable to get client configuration", err)
@@ -55,28 +68,25 @@ var _ = Describe("Application CRD should install correctly", func() {
 		log.Fatal("Unable to construct extensions client", err)
 	}
 
-	appClient, err := appcs.NewForConfig(config)
-	if err != nil {
-		log.Fatal("Unable to construct applications client", err)
-	}
-
 	It("should create CRD", func() {
-		err = testutil.CreateCRD(extClient, "../hack/install.yaml")
+		err = testutil.CreateCRD(extClient, "../config/crds/app_v1beta1_application.yaml")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should register an application", func() {
-		err = testutil.CreateApplication(appClient, "default", "../hack/sample/application.yaml")
+		client := getKubeClientOrDie(config, s) //Make sure to create the client after CRD has been created.
+		err = testutil.CreateApplication(client, "default", "../config/samples/app_v1beta1_application.yaml")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should delete application", func() {
-		err = testutil.DeleteApplication(appClient, "default", "../hack/sample/application.yaml")
+		client := getKubeClientOrDie(config, s)
+		err = testutil.DeleteApplication(client, "default", "../config/samples/app_v1beta1_application.yaml")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should delete application CRD", func() {
-		err = testutil.DeleteCRD(extClient, "../hack/install.yaml")
+		err = testutil.DeleteCRD(extClient, "../config/crds/app_v1beta1_application.yaml")
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

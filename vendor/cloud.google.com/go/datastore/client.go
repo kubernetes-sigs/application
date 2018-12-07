@@ -1,4 +1,4 @@
-// Copyright 2017 Google Inc. All Rights Reserved.
+// Copyright 2017 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
 package datastore
 
 import (
+	"context"
 	"fmt"
-
-	gax "github.com/googleapis/gax-go"
 
 	"cloud.google.com/go/internal"
 	"cloud.google.com/go/internal/version"
-	"golang.org/x/net/context"
+	gax "github.com/googleapis/gax-go"
 	pb "google.golang.org/genproto/googleapis/datastore/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
