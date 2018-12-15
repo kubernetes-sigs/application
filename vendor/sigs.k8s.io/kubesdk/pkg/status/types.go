@@ -21,24 +21,19 @@ import (
 // Constants
 const (
 	// Ready => controller considers this resource Ready
-	ConditionReady = "Ready"
+	Ready = "Ready"
 	// TrafficReady => pod sees external traffic
-	ConditionTrafficReady = "TrafficReady"
+	TrafficReady = "TrafficReady"
 	// Qualified => functionally tested
-	ConditionQualified = "Qualified"
+	Qualified = "Qualified"
 	// Settled => observed generation == generation + settled means controller is done acting functionally tested
-	ConditionSettled = "Settled"
+	Settled = "Settled"
 	// Cleanup => it is set to track finalizer failures
-	ConditionCleanup = "Cleanup"
+	Cleanup = "Cleanup"
 	// Error => last recorded error
-	ConditionError = "Error"
+	Error = "Error"
 
-	// Condition status
-	ConditionTrue    = "True"
-	ConditionFalse   = "False"
-	ConditionUnknown = "Unknown"
-
-	ConditionInit = "Init"
+	ReasonInit = "Init"
 )
 
 // Statefulset is a generic status holder for stateful-set

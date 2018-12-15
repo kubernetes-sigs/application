@@ -33,9 +33,9 @@ var _ = Describe("Status", func() {
 		status.Meta
 	}
 	var condition1 status.ConditionType = "condition1"
-	var cstatusT corev1.ConditionStatus = status.ConditionTrue
-	var cstatusF corev1.ConditionStatus = status.ConditionFalse
-	var cstatusU corev1.ConditionStatus = status.ConditionUnknown
+	var cstatusT corev1.ConditionStatus = corev1.ConditionTrue
+	var cstatusF corev1.ConditionStatus = corev1.ConditionFalse
+	var cstatusU corev1.ConditionStatus = corev1.ConditionUnknown
 
 	var teststatus testStatus
 	resources := []metav1.Object{
@@ -127,7 +127,7 @@ var _ = Describe("Status", func() {
 		It("Setting new condition works", func(done Done) {
 			teststatus = testStatus{}
 			Expect(len(teststatus.Conditions)).To(Equal(0))
-			teststatus.SetCondition("condition1", status.ConditionTrue, "no reason", "nothing to see here")
+			teststatus.SetCondition("condition1", "no reason", "nothing to see here")
 			//fmt.Printf(">>>>>>%s\n", teststatus.Conditions[0].Type)
 			Expect(len(teststatus.Conditions)).To(Equal(1))
 			close(done)
@@ -142,7 +142,7 @@ var _ = Describe("Status", func() {
 		It("Changing status of existing condition changes transition time", func(done Done) {
 			c := teststatus.GetCondition("condition1")
 			ttime := c.LastTransitionTime
-			teststatus.SetCondition("condition1", status.ConditionFalse, "some reason", "something to see here")
+			teststatus.ClearCondition("condition1", "some reason", "something to see here")
 			c = teststatus.GetCondition("condition1")
 			Expect(c.Type).To(Equal(condition1))
 			Expect(c.Status).To(Equal(cstatusF))
@@ -153,7 +153,7 @@ var _ = Describe("Status", func() {
 		It("Changing reson of existing condition does not change transition time", func(done Done) {
 			c := teststatus.GetCondition("condition1")
 			ttime := c.LastTransitionTime
-			teststatus.SetCondition("condition1", status.ConditionFalse, "some new reason", "something else to see here")
+			teststatus.ClearCondition("condition1", "some new reason", "something else to see here")
 			c = teststatus.GetCondition("condition1")
 			Expect(c.Type).To(Equal(condition1))
 			Expect(c.Status).To(Equal(cstatusF))
@@ -168,9 +168,9 @@ var _ = Describe("Status", func() {
 		})
 		It("Ensure condition works", func(done Done) {
 			Expect(len(teststatus.Conditions)).To(Equal(0))
-			teststatus.EnsureCondition(status.ConditionTrafficReady)
+			teststatus.EnsureCondition(status.TrafficReady)
 			Expect(len(teststatus.Conditions)).To(Equal(1))
-			c := teststatus.GetCondition(status.ConditionTrafficReady)
+			c := teststatus.GetCondition(status.TrafficReady)
 			Expect(c.Status).To(Equal(cstatusU))
 			close(done)
 		})
@@ -178,31 +178,31 @@ var _ = Describe("Status", func() {
 			Expect(len(teststatus.Conditions)).To(Equal(1))
 			teststatus.EnsureStandardConditions()
 			Expect(len(teststatus.Conditions)).To(Equal(4))
-			c := teststatus.GetCondition(status.ConditionReady)
+			c := teststatus.GetCondition(status.Ready)
 			Expect(c.Status).To(Equal(cstatusU))
-			c = teststatus.GetCondition(status.ConditionSettled)
+			c = teststatus.GetCondition(status.Settled)
 			Expect(c.Status).To(Equal(cstatusU))
 			close(done)
 		})
 		It("Ready() sets Ready condition to true/False", func(done Done) {
-			c := teststatus.GetCondition(status.ConditionReady)
+			c := teststatus.GetCondition(status.Ready)
 			Expect(c.Status).To(Equal(cstatusU))
 			teststatus.Ready("", "")
-			c = teststatus.GetCondition(status.ConditionReady)
+			c = teststatus.GetCondition(status.Ready)
 			Expect(c.Status).To(Equal(cstatusT))
 			teststatus.NotReady("", "")
-			c = teststatus.GetCondition(status.ConditionReady)
+			c = teststatus.GetCondition(status.Ready)
 			Expect(c.Status).To(Equal(cstatusF))
 			close(done)
 		})
 		It("Settled() sets Settled condition to true/False", func(done Done) {
-			c := teststatus.GetCondition(status.ConditionSettled)
+			c := teststatus.GetCondition(status.Settled)
 			Expect(c.Status).To(Equal(cstatusU))
 			teststatus.Settled("", "")
-			c = teststatus.GetCondition(status.ConditionSettled)
+			c = teststatus.GetCondition(status.Settled)
 			Expect(c.Status).To(Equal(cstatusT))
 			teststatus.NotSettled("", "")
-			c = teststatus.GetCondition(status.ConditionSettled)
+			c = teststatus.GetCondition(status.Settled)
 			Expect(c.Status).To(Equal(cstatusF))
 			close(done)
 		})

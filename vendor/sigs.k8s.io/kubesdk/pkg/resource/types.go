@@ -22,7 +22,6 @@ import (
 const (
 	LifecycleManaged  = "managed"
 	LifecycleReferred = "referred"
-	LifecycleObserved = "observed" // internal
 )
 
 // ObjectBag abstracts dealing with group of objects

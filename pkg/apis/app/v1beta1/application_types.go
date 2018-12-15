@@ -131,7 +131,7 @@ type InfoItem struct {
 	ValueFrom *InfoItemSource `json:"valueFrom,omitempty"`
 }
 
-// InfoItemType is a string
+// InfoItemType is a string that describes the value of InfoItem
 type InfoItemType string
 
 // Constants
@@ -205,7 +205,7 @@ type IngressSelector struct {
 	Path string `json:"path,omitempty"`
 }
 
-// ApplicationAssemblyPhase is a string
+// ApplicationAssemblyPhase tracks the Application CRD phases: pending, succeded, failed
 type ApplicationAssemblyPhase string
 
 // Constants

@@ -110,6 +110,16 @@ func ObservablesFromObjects(scheme *runtime.Scheme, bag *ObjectBag, labels map[s
 	return observables
 }
 
+// ReferredObject returns a reffered object
+func ReferredObject(obj metav1.Object, name, namespace string) Object {
+	obj.SetName(name)
+	obj.SetNamespace(namespace)
+	return Object{
+		Lifecycle: LifecycleReferred,
+		Obj:       obj,
+	}
+}
+
 // Add adds to the Object bag
 func (b *ObjectBag) Add(objs ...Object) {
 	b.objects = append(b.objects, objs...)
@@ -121,7 +131,9 @@ func (b *ObjectBag) Items() []Object {
 }
 
 // Get returns an item which matched the kind and name
-func (b *ObjectBag) Get(inobj metav1.Object) metav1.Object {
+func (b *ObjectBag) Get(inobj metav1.Object, name, namespace string) metav1.Object {
+	inobj.SetName(name)
+	inobj.SetNamespace(namespace)
 	for _, obj := range b.Items() {
 		otype := reflect.TypeOf(obj.Obj).String()
 		intype := reflect.TypeOf(inobj).String()
@@ -130,6 +142,19 @@ func (b *ObjectBag) Get(inobj metav1.Object) metav1.Object {
 		}
 	}
 	return nil
+}
+
+// Delete returns an item which matched the kind and name
+func (b *ObjectBag) Delete(inobj metav1.Object) {
+	for i, obj := range b.objects {
+		otype := reflect.TypeOf(obj.Obj).String()
+		intype := reflect.TypeOf(inobj).String()
+		if otype == intype && obj.Obj.GetName() == inobj.GetName() && obj.Obj.GetNamespace() == inobj.GetNamespace() {
+			b.objects[i] = b.objects[len(b.objects)-1]
+			b.objects = b.objects[:len(b.objects)-1]
+			break
+		}
+	}
 }
 
 // Validate validates the LocalObjectReference

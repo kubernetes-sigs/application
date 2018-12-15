@@ -12,11 +12,11 @@ test: generate fmt vet manifests
 manager: generate fmt vet
 	go build -o bin/manager github.com/kubernetes-sigs/application/cmd/manager
 
-# Run against the configured Kubernetes cluster in ~/.kube/config
+# Run using the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
 	go run ./cmd/manager/main.go
 
-# Run against the configured Kubernetes cluster in ~/.kube/config
+# Debug using the configured Kubernetes cluster in ~/.kube/config
 debug: generate fmt vet
 	dlv debug cmd/manager/main.go
 

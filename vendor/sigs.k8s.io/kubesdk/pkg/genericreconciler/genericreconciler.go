@@ -162,21 +162,34 @@ func (gr *Reconciler) ReconcileCR(namespacedname types.NamespacedName, handle cr
 // ObserveAndMutate is a function that is called to observe and mutate expected resources
 func (gr *Reconciler) ObserveAndMutate(crname string, c component.Component, status interface{}, mutate bool, aggregated *resource.ObjectBag) (*resource.ObjectBag, *resource.ObjectBag, string, error) {
 	var err error
-	var expected, observed *resource.ObjectBag
+	var expected, observed, dependent *resource.ObjectBag
 
-	// Get Expected resources
-	stage := "gathering expected resources"
-	expected, err = c.ExpectedResources(c.CR, c.Labels(), aggregated)
-	if err == nil && expected != nil {
-		// Get observables
-		observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
-		// Observe observables
-		stage = "observing resources"
-		observed, err = gr.observe(observables...)
-		if mutate && err == nil {
-			// Mutate expected objects
-			stage = "mutating resources"
-			expected, err = c.Mutate(c.CR, status, expected, observed)
+	// Get dependenta objects
+	stage := "dependent resources"
+	dependent, err = gr.observe(resource.ObservablesFromObjects(gr.Scheme, c.DependantResources(c.CR), c.Labels())...)
+
+	if err == nil && dependent != nil {
+		// Get Expected resources
+		stage = "gathering expected resources"
+		expected, err = c.ExpectedResources(c.CR, c.Labels(), dependent, aggregated)
+		if err == nil && expected != nil {
+			// Get observables
+			observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
+			// Observe observables
+			stage = "observing resources"
+			observed, err = gr.observe(observables...)
+			if mutate && err == nil {
+				// Mutate expected objects
+				stage = "mutating resources"
+				expected, err = c.Mutate(c.CR, c.Labels(), status, expected, dependent, observed)
+				if err == nil && expected != nil {
+					// Get observables
+					observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
+					// Observe observables
+					stage = "observing resources after mutation"
+					observed, err = gr.observe(observables...)
+				}
+			}
 		}
 	}
 	if err != nil {

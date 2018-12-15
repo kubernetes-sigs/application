@@ -27,7 +27,7 @@ import (
 // Add creates a new Application Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	return kbc.CreateController("airflowcluster", mgr, &appv1beta1.Application{}, newReconciler(mgr))
+	return kbc.CreateController("application", mgr, &appv1beta1.Application{}, newReconciler(mgr))
 }
 
 // newReconciler returns a new reconcile.Reconciler

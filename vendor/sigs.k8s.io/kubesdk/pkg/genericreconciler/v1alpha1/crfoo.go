@@ -71,7 +71,7 @@ type FooStatus struct {
 }
 
 // ExpectedResources - returns resources
-func (s *FooSpec) ExpectedResources(rsrc interface{}, rsrclabels map[string]string, aggregate *resource.ObjectBag) (*resource.ObjectBag, error) {
+func (s *FooSpec) ExpectedResources(rsrc interface{}, rsrclabels map[string]string, dependent, aggregate *resource.ObjectBag) (*resource.ObjectBag, error) {
 	var resources *resource.ObjectBag = new(resource.ObjectBag)
 	r := rsrc.(*Foo)
 	n := r.ObjectMeta.Name
@@ -176,8 +176,13 @@ func (r *Foo) Components() []component.Component {
 	}
 }
 
+// DependantResources - return deps
+func (s *FooSpec) DependantResources(rsrc interface{}) *resource.ObjectBag {
+	return &resource.ObjectBag{}
+}
+
 // Mutate - mutate objects
-func (s *FooSpec) Mutate(rsrc interface{}, status interface{}, expected, observed *resource.ObjectBag) (*resource.ObjectBag, error) {
+func (s *FooSpec) Mutate(rsrc interface{}, labels map[string]string, status interface{}, expected, dependent, observed *resource.ObjectBag) (*resource.ObjectBag, error) {
 	return expected, nil
 }
 

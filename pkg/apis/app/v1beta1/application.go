@@ -29,7 +29,7 @@ import (
 )
 
 // Mutate - mutate expected
-func (a *Application) Mutate(rsrc interface{}, status interface{}, expected, observed *resource.ObjectBag) (*resource.ObjectBag, error) {
+func (a *Application) Mutate(rsrc interface{}, labels map[string]string, status interface{}, expected, dependent, observed *resource.ObjectBag) (*resource.ObjectBag, error) {
 	return observed, nil
 }
 
@@ -39,10 +39,15 @@ func (a *Application) Finalize(rsrc, sts interface{}, observed *resource.ObjectB
 	return nil
 }
 
+//DependantResources - returns dependent rsrc
+func (a *Application) DependantResources(rsrc interface{}) *resource.ObjectBag {
+	return &resource.ObjectBag{}
+}
+
 // ExpectedResources returns the list of resource/name for those resources created by
 // the operator for this spec and those resources referenced by this operator.
 // Mark resources as owned, referred
-func (a *Application) ExpectedResources(rsrc interface{}, rsrclabels map[string]string, aggregated *resource.ObjectBag) (*resource.ObjectBag, error) {
+func (a *Application) ExpectedResources(rsrc interface{}, rsrclabels map[string]string, dependent, aggregated *resource.ObjectBag) (*resource.ObjectBag, error) {
 	return &resource.ObjectBag{}, nil
 }
 
@@ -118,7 +123,7 @@ func (a *Application) UpdateRsrcStatus(status interface{}, err error) bool {
 	return true
 }
 
-// Validate the AirflowBase
+// Validate the Application
 func (a *Application) Validate() error {
 	return nil
 }
@@ -141,7 +146,7 @@ func (a *Application) OwnerRef() []metav1.OwnerReference {
 		*metav1.NewControllerRef(a, schema.GroupVersionKind{
 			Group:   SchemeGroupVersion.Group,
 			Version: SchemeGroupVersion.Version,
-			Kind:    "AirflowBase",
+			Kind:    "Application",
 		}),
 	}
 }
