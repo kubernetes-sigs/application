@@ -130,6 +130,15 @@ func (b *ObjectBag) Items() []Object {
 	return b.objects
 }
 
+// Objs get items from the Object bag
+func (b *ObjectBag) Objs() []metav1.Object {
+	var objs []metav1.Object
+	for _, o := range b.Items() {
+		objs = append(objs, o.Obj)
+	}
+	return objs
+}
+
 // Get returns an item which matched the kind and name
 func (b *ObjectBag) Get(inobj metav1.Object, name, namespace string) metav1.Object {
 	inobj.SetName(name)

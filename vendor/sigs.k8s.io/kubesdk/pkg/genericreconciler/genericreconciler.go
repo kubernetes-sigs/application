@@ -224,7 +224,7 @@ func (gr *Reconciler) FinalizeComponent(crname string, c component.Component, st
 // ReconcileComponent is a generic function that reconciles expected and observed resources
 func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, status interface{}, aggregated *resource.ObjectBag) error {
 	errs := []error{}
-	reconciled := []metav1.Object{}
+	var reconciled *resource.ObjectBag = new(resource.ObjectBag)
 
 	cname := crname + "(cmpnt:" + c.Name + ")"
 	log.Printf("%s  { reconciling component\n", cname)
@@ -281,7 +281,7 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 				} else {
 					log.Printf("%s   nochange: %s\n", cname, eRsrcInfo)
 				}
-				reconciled = append(reconciled, o.Obj)
+				reconciled.Add(o)
 				seen = true
 				break
 			}
@@ -293,7 +293,7 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 					errs = handleErrorArr("Create", cname, err, errs)
 				} else {
 					log.Printf("%s   +create: %s\n", cname, eRsrcInfo)
-					reconciled = append(reconciled, e.Obj)
+					reconciled.Add(e)
 				}
 			} else {
 				err := fmt.Errorf("missing resource not managed by %s: %s", cname, eRsrcInfo)

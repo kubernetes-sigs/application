@@ -96,10 +96,10 @@ func (a *Application) Differs(expected metav1.Object, observed metav1.Object) bo
 }
 
 // UpdateComponentStatus use reconciled objects to update component status
-func (a *Application) UpdateComponentStatus(rsrci, statusi interface{}, reconciled []metav1.Object, err error) {
+func (a *Application) UpdateComponentStatus(rsrci, statusi interface{}, reconciled *resource.ObjectBag, err error) {
 	if a != nil {
 		stts := statusi.(*ApplicationStatus)
-		stts.UpdateStatus(reconciled, err)
+		stts.UpdateStatus(reconciled.Objs(), err)
 	}
 }
 

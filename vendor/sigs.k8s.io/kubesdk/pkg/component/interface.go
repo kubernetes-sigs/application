@@ -26,6 +26,6 @@ type Handle interface {
 	Observables(scheme *runtime.Scheme, rsrc interface{}, labels map[string]string, expected *resource.ObjectBag) []resource.Observable
 	Mutate(rsrc interface{}, rsrclabels map[string]string, status interface{}, expected, dependent, observed *resource.ObjectBag) (*resource.ObjectBag, error)
 	Differs(expected metav1.Object, observed metav1.Object) bool
-	UpdateComponentStatus(rsrc, status interface{}, reconciled []metav1.Object, err error)
+	UpdateComponentStatus(rsrc, status interface{}, reconciled *resource.ObjectBag, err error)
 	Finalize(rsrc, status interface{}, observed *resource.ObjectBag) error
 }

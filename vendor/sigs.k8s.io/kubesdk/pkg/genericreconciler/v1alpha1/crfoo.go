@@ -128,7 +128,7 @@ func (s *FooSpec) Differs(expected metav1.Object, observed metav1.Object) bool {
 }
 
 // UpdateComponentStatus - update status block
-func (s *FooSpec) UpdateComponentStatus(rsrci, statusi interface{}, reconciled []metav1.Object, err error) {
+func (s *FooSpec) UpdateComponentStatus(rsrci, statusi interface{}, reconciled *resource.ObjectBag, err error) {
 	rsrcstatus := statusi.(*FooStatus)
 	rsrcstatus.Component = "base " + status.StatusReady
 }
