@@ -2,6 +2,8 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
+.PHONY: test manager run debug install deploy manifests fmt vet generate docker-build docker-push
+
 all: test manager
 
 # Run tests
