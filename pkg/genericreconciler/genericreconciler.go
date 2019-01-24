@@ -165,7 +165,7 @@ func (gr *Reconciler) ObserveAndMutate(crname string, c component.Component, sta
 
 	// Get dependenta objects
 	stage := "dependent resources"
-	dependent, err = gr.observe(resource.ObservablesFromObjects(gr.Scheme, c.DependantResources(c.CR), c.Labels())...)
+	dependent, err = gr.observe(resource.ObservablesFromObjects(gr.Scheme, c.DependentResources(c.CR), c.Labels())...)
 
 	if err == nil && dependent != nil {
 		// Get Expected resources

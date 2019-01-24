@@ -21,7 +21,7 @@ import (
 
 // Handle is an interface for operating on logical Components of a CR
 type Handle interface {
-	DependantResources(rsrc interface{}) *resource.ObjectBag
+	DependentResources(rsrc interface{}) *resource.ObjectBag
 	ExpectedResources(rsrc interface{}, labels map[string]string, dependent, aggregated *resource.ObjectBag) (*resource.ObjectBag, error)
 	Observables(scheme *runtime.Scheme, rsrc interface{}, labels map[string]string, expected *resource.ObjectBag) []resource.Observable
 	Mutate(rsrc interface{}, rsrclabels map[string]string, status interface{}, expected, dependent, observed *resource.ObjectBag) (*resource.ObjectBag, error)

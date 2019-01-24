@@ -39,8 +39,8 @@ func (a *Application) Finalize(rsrc, sts interface{}, observed *resource.ObjectB
 	return nil
 }
 
-//DependantResources - returns dependent rsrc
-func (a *Application) DependantResources(rsrc interface{}) *resource.ObjectBag {
+//DependentResources - returns dependent rsrc
+func (a *Application) DependentResources(rsrc interface{}) *resource.ObjectBag {
 	return &resource.ObjectBag{}
 }
 

@@ -176,8 +176,8 @@ func (r *Foo) Components() []component.Component {
 	}
 }
 
-// DependantResources - return deps
-func (s *FooSpec) DependantResources(rsrc interface{}) *resource.ObjectBag {
+// DependentResources - return deps
+func (s *FooSpec) DependentResources(rsrc interface{}) *resource.ObjectBag {
 	return &resource.ObjectBag{}
 }
 
