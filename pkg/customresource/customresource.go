@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Kubernetes Authors.
+Copyright 2018 Google LLC
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,16 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package application_test
+package customresource
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"testing"
+	component "github.com/kubernetes-sigs/application/pkg/component"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"reflect"
+	"strings"
 )
 
-// TestEventhandler exports tests
-func TestEventhandler(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "Application Suite", []Reporter{})
+// Labels return custom resource label
+func (hv *HandleValue) Labels() map[string]string {
+	c := hv.Handle.(metav1.Object)
+	return map[string]string{
+		component.LabelCR:          strings.Trim(reflect.TypeOf(c).String(), "*"),
+		component.LabelCRName:      c.GetName(),
+		component.LabelCRNamespace: c.GetNamespace(),
+	}
 }

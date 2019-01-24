@@ -21,6 +21,7 @@ import (
 	"time"
 
 	appv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	kbc "github.com/kubernetes-sigs/application/pkg/kbcontroller"
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
@@ -30,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	kbc "sigs.k8s.io/kubesdk/pkg/kbcontroller"
 )
 
 var c client.Client

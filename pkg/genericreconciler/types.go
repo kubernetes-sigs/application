@@ -14,11 +14,11 @@ limitations under the License.
 package genericreconciler
 
 import (
+	cr "github.com/kubernetes-sigs/application/pkg/customresource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	cr "sigs.k8s.io/kubesdk/pkg/customresource"
 )
 
 var _ reconcile.Reconciler = &Reconciler{}

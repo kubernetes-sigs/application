@@ -18,13 +18,13 @@ package status_test
 
 import (
 	//"fmt"
+	"github.com/kubernetes-sigs/application/pkg/status"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/kubesdk/pkg/status"
 )
 
 var _ = Describe("Status", func() {

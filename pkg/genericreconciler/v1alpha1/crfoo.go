@@ -18,6 +18,10 @@ package v1alpha1
 
 import (
 	app "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	"github.com/kubernetes-sigs/application/pkg/component"
+	cr "github.com/kubernetes-sigs/application/pkg/customresource"
+	"github.com/kubernetes-sigs/application/pkg/resource"
+	"github.com/kubernetes-sigs/application/pkg/status"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,10 +30,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"log"
 	crscheme "sigs.k8s.io/controller-runtime/pkg/runtime/scheme"
-	"sigs.k8s.io/kubesdk/pkg/component"
-	cr "sigs.k8s.io/kubesdk/pkg/customresource"
-	"sigs.k8s.io/kubesdk/pkg/resource"
-	"sigs.k8s.io/kubesdk/pkg/status"
 )
 
 var (

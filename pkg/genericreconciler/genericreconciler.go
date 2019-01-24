@@ -16,6 +16,9 @@ package genericreconciler
 import (
 	"context"
 	"fmt"
+	"github.com/kubernetes-sigs/application/pkg/component"
+	cr "github.com/kubernetes-sigs/application/pkg/customresource"
+	"github.com/kubernetes-sigs/application/pkg/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,10 +30,6 @@ import (
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	app "sigs.k8s.io/kubesdk/pkg/application"
-	"sigs.k8s.io/kubesdk/pkg/component"
-	cr "sigs.k8s.io/kubesdk/pkg/customresource"
-	"sigs.k8s.io/kubesdk/pkg/resource"
 )
 
 func handleErrorArr(info string, name string, e error, errs []error) []error {
@@ -348,6 +347,5 @@ var AddToSchemes runtime.SchemeBuilder
 func (gr *Reconciler) Init() {
 	gr.Client = gr.Manager.GetClient()
 	gr.Scheme = gr.Manager.GetScheme()
-	app.AddToScheme(&AddToSchemes)
 	AddToSchemes.AddToScheme(gr.Scheme)
 }

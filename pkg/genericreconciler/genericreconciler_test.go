@@ -18,6 +18,8 @@ package genericreconciler_test
 
 import (
 	"context"
+	reconciler "github.com/kubernetes-sigs/application/pkg/genericreconciler"
+	test "github.com/kubernetes-sigs/application/pkg/genericreconciler/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -26,8 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	reconciler "sigs.k8s.io/kubesdk/pkg/genericreconciler"
-	test "sigs.k8s.io/kubesdk/pkg/genericreconciler/v1alpha1"
 )
 
 var _ = Describe("Reconciler", func() {

@@ -17,9 +17,9 @@ limitations under the License.
 package v1beta1
 
 import (
+	"github.com/kubernetes-sigs/application/pkg/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/kubesdk/pkg/status"
 )
 
 // Descriptor defines the Metadata and informations about the Application.

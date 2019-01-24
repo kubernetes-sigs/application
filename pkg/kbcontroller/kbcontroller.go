@@ -14,13 +14,13 @@ limitations under the License.
 package kbcontroller
 
 import (
+	cr "github.com/kubernetes-sigs/application/pkg/customresource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	cr "sigs.k8s.io/kubesdk/pkg/customresource"
 )
 
 // CreateController creates a new Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller and Start it when the Manager is Started.

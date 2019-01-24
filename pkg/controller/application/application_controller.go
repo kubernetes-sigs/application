@@ -18,10 +18,10 @@ package application
 
 import (
 	appv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	reconciler "github.com/kubernetes-sigs/application/pkg/genericreconciler"
+	kbc "github.com/kubernetes-sigs/application/pkg/kbcontroller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	reconciler "sigs.k8s.io/kubesdk/pkg/genericreconciler"
-	kbc "sigs.k8s.io/kubesdk/pkg/kbcontroller"
 )
 
 // Add creates a new Application Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
