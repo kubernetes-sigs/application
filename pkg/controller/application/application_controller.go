@@ -24,6 +24,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+// Constants
+const (
+	NameLabelKey      = "app.kubernetes.io/name"
+	VersionLabelKey   = "app.kubernetes.io/version"
+	InstanceLabelKey  = "app.kubernetes.io/instance"
+	PartOfLabelKey    = "app.kubernetes.io/part-of"
+	ComponentLabelKey = "app.kubernetes.io/component"
+	ManagedByLabelKey = "app.kubernetes.io/managed-by"
+)
+
 // Add creates a new Application Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
