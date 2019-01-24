@@ -64,7 +64,7 @@ type ExtendedStatus struct {
 	// StatefulSet status
 	STS *Statefulset `json:"sts,omitempty"`
 	// PDB status
-	PDB *Pdb `json:"pdb,omitempty"`
+	PDB *Pdb `json:"poddisruptionbudget,omitempty"`
 }
 
 // ComponentMeta is a generic set of fields for component status objects

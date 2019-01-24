@@ -200,7 +200,7 @@ spec:
                     type: string
                   name:
                     type: string
-                  pdb:
+                  poddisruptionbudget:
                     properties:
                       currenthealthy:
                         format: int32
