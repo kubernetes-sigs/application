@@ -44,6 +44,7 @@ const (
 	PartOfLabelKey= "app.kubernetes.io/part-of"
 	ComponentLabelKey= "app.kubernetes.io/component"
 	ManagedByLabelKey= "app.kubernetes.io/managed-by"
+	ManagedBy = "K8s-Application-Operator"
 )
 
 /**
@@ -127,7 +128,14 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"deployment": instance.Name + "-deployment"},
+				MatchLabels: map[string]string{
+					"deployment": instance.Name + "-deployment",
+					ManagedByLabelKey: ManagedBy,
+					ComponentLabelKey: "Backend",
+					PartOfLabelKey: "Nginx application",
+					NameLabelKey: "nginx-01",
+					VersionLabelKey: "1.0.0",
+				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": instance.Name + "-deployment"}},
