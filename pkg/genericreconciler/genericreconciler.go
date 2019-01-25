@@ -1,5 +1,5 @@
 /*
-Copyright 2018 Google LLC
+Copyright 2018 The Kubernetes Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -49,7 +49,6 @@ func (gr *Reconciler) observe(observables ...resource.Observable) (*resource.Obj
 	for _, obs := range observables {
 		var resources []resource.Object
 		if obs.Labels != nil {
-			//log.Printf("   >>>list: %s labels:[%v]", reflect.TypeOf(obs.ObjList).String(), obs.Labels)
 			opts := client.MatchingLabels(obs.Labels)
 			opts.Raw = &metav1.ListOptions{TypeMeta: obs.Type}
 			err = gr.List(context.TODO(), opts, obs.ObjList.(runtime.Object))
@@ -60,17 +59,8 @@ func (gr *Reconciler) observe(observables ...resource.Observable) (*resource.Obj
 						resources = append(resources, resource.Object{Obj: item.(metav1.Object)})
 					}
 				}
-				/*
-					//items := reflect.Indirect(reflect.ValueOf(obs.ObjList)).FieldByName("Items")
-					for i := 0; i < items.Len(); i++ {
-						o := items.Index(i)
-						resources = append(resources, resource.Object{Obj: o.Addr().Interface().(metav1.Object)})
-					}
-				*/
 			}
 		} else {
-			// check typecasting ?
-			// TODO check obj := obs.Obj.(metav1.Object)
 			var obj metav1.Object = obs.Obj.(metav1.Object)
 			name := obj.GetName()
 			namespace := obj.GetNamespace()

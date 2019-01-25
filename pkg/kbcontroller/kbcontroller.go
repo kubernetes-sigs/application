@@ -1,5 +1,5 @@
 /*
-Copyright 2018 Google LLC
+Copyright 2018 The Kubernetes Authors
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -37,18 +37,6 @@ func CreateController(name string, mgr manager.Manager, handle cr.Handle, r reco
 	if err != nil {
 		return err
 	}
-
-	/*
-		// TODO(user): Modify this to be the types you create
-		// Uncomment watch a Deployment created by ESCluster - change this for objects you create
-		err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &elasticsearchv1alpha1.ESCluster{},
-		})
-		if err != nil {
-			return err
-		}
-	*/
 
 	return nil
 }

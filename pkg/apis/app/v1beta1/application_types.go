@@ -77,7 +77,7 @@ type ApplicationSpec struct {
 	AssemblyPhase ApplicationAssemblyPhase `json:"assemblyPhase,omitempty"`
 }
 
-// ApplicationStatus defines controllers the observed state of Application
+// ApplicationStatus defines controller's the observed state of Application
 type ApplicationStatus struct {
 	status.Meta `json:",inline"`
 }
@@ -134,9 +134,10 @@ type InfoItem struct {
 // InfoItemType is a string that describes the value of InfoItem
 type InfoItemType string
 
-// Constants
 const (
-	ValueInfoItemType     InfoItemType = "Value"
+	// ValueInfoItemType const string for value type
+	ValueInfoItemType InfoItemType = "Value"
+	// ReferenceInfoItemType const string for ref type
 	ReferenceInfoItemType InfoItemType = "Reference"
 )
 
