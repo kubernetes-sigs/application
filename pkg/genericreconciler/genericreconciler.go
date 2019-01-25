@@ -149,49 +149,50 @@ func (gr *Reconciler) ReconcileCR(namespacedname types.NamespacedName, handle cr
 }
 
 // ObserveAndMutate is a function that is called to observe and mutate expected resources
-func (gr *Reconciler) ObserveAndMutate(crname string, c component.Component, status interface{}, mutate bool, aggregated *resource.ObjectBag) (*resource.ObjectBag, *resource.ObjectBag, string, error) {
+func (gr *Reconciler) ObserveAndMutate(crname string, c component.Component, status interface{}, mutate bool, aggregated *resource.ObjectBag) (*resource.ObjectBag, *resource.ObjectBag, error) {
 	var err error
 	var expected, observed, dependent *resource.ObjectBag
+	emptybag := &resource.ObjectBag{}
 
 	// Get dependenta objects
-	stage := "dependent resources"
 	dependent, err = gr.observe(resource.ObservablesFromObjects(gr.Scheme, c.DependentResources(c.CR), c.Labels())...)
+	if err != nil {
+		return emptybag, emptybag, fmt.Errorf("Failed getting dependent resources: %s", err.Error())
+	}
 
-	if err == nil && dependent != nil {
-		// Get Expected resources
-		stage = "gathering expected resources"
-		expected, err = c.ExpectedResources(c.CR, c.Labels(), dependent, aggregated)
-		if err == nil && expected != nil {
-			// Get observables
-			observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
-			// Observe observables
-			stage = "observing resources"
-			observed, err = gr.observe(observables...)
-			if mutate && err == nil {
-				// Mutate expected objects
-				stage = "mutating resources"
-				expected, err = c.Mutate(c.CR, c.Labels(), status, expected, dependent, observed)
-				if err == nil && expected != nil {
-					// Get observables
-					observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
-					// Observe observables
-					stage = "observing resources after mutation"
-					observed, err = gr.observe(observables...)
-				}
-			}
+	// Get Expected resources
+	expected, err = c.ExpectedResources(c.CR, c.Labels(), dependent, aggregated)
+	if err != nil {
+		return emptybag, emptybag, fmt.Errorf("Failed gathering expected resources: %s", err.Error())
+	}
+
+	// Get observables
+	observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
+
+	// Observe observables
+	observed, err = gr.observe(observables...)
+	if err != nil {
+		return emptybag, emptybag, fmt.Errorf("Failed observing resources: %s", err.Error())
+	}
+
+	// Mutate expected objects
+	if mutate {
+		expected, err = c.Mutate(c.CR, c.Labels(), status, expected, dependent, observed)
+		if err != nil {
+			return emptybag, emptybag, fmt.Errorf("Failed mutating resources: %s", err.Error())
+		}
+
+		// Get observables
+		observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
+
+		// Observe observables
+		observed, err = gr.observe(observables...)
+		if err != nil {
+			return emptybag, emptybag, fmt.Errorf("Failed observing resources after mutation: %s", err.Error())
 		}
 	}
-	if err != nil {
-		observed = &resource.ObjectBag{}
-		expected = &resource.ObjectBag{}
-	}
-	if expected == nil {
-		expected = &resource.ObjectBag{}
-	}
-	if observed == nil {
-		observed = &resource.ObjectBag{}
-	}
-	return expected, observed, stage, err
+
+	return expected, observed, err
 }
 
 // FinalizeComponent is a function that finalizes component
@@ -200,10 +201,10 @@ func (gr *Reconciler) FinalizeComponent(crname string, c component.Component, st
 	log.Printf("%s  { finalizing component\n", cname)
 	defer log.Printf("%s  } finalizing component\n", cname)
 
-	expected, observed, stage, err := gr.ObserveAndMutate(crname, c, status, false, aggregated)
+	expected, observed, err := gr.ObserveAndMutate(crname, c, status, false, aggregated)
 
 	if err != nil {
-		HandleError(stage, crname, err)
+		HandleError("", crname, err)
 	}
 	aggregated.Add(expected.Items()...)
 	err = c.Finalize(c.CR, status, observed)
@@ -219,7 +220,7 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 	log.Printf("%s  { reconciling component\n", cname)
 	defer log.Printf("%s  } reconciling component\n", cname)
 
-	expected, observed, stage, err := gr.ObserveAndMutate(crname, c, status, true, aggregated)
+	expected, observed, err := gr.ObserveAndMutate(crname, c, status, true, aggregated)
 
 	// Reconciliation logic is straight-forward:
 	// This method gets the list of expected resources and observed resources
@@ -234,7 +235,7 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 	//
 
 	if err != nil {
-		errs = handleErrorArr(stage, crname, err, errs)
+		errs = handleErrorArr("", crname, err, errs)
 	} else {
 		aggregated.Add(expected.Items()...)
 		log.Printf("%s  Expected Resources:\n", cname)
