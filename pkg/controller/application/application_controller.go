@@ -129,11 +129,11 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"deployment": instance.Name + "-deployment",
 					ManagedByLabelKey: ManagedBy,
 					ComponentLabelKey: "Backend",
 					PartOfLabelKey: "Nginx application",
-					NameLabelKey: "nginx-01",
+					NameLabelKey: "nginx",
+					InstanceLabelKey: "01",
 					VersionLabelKey: "1.0.0",
 				},
 			},
