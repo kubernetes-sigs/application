@@ -257,24 +257,24 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 		eKind := reflect.TypeOf(e.Obj).String()
 		eRsrcInfo := eNamespace + "/" + eKind + "/" + eName
 		for _, o := range observed.Items() {
-			if (eName == o.Obj.GetName()) &&
-				(eNamespace == o.Obj.GetNamespace()) &&
-				(eKind == reflect.TypeOf(o.Obj).String()) {
-				// rsrc is seen in both expected and observed, update it if needed
-				e.Obj.SetResourceVersion(o.Obj.GetResourceVersion())
-				if e.Lifecycle == resource.LifecycleManaged && specDiffers(e.Obj, o.Obj) && c.Differs(e.Obj, o.Obj) {
-					if err := gr.Update(context.TODO(), e.Obj.(runtime.Object).DeepCopyObject()); err != nil {
-						errs = handleErrorArr("update", eRsrcInfo, err, errs)
-					} else {
-						log.Printf("%s   update: %s\n", cname, eRsrcInfo)
-					}
-				} else {
-					log.Printf("%s   nochange: %s\n", cname, eRsrcInfo)
-				}
-				reconciled.Add(o)
-				seen = true
-				break
+			if (eName != o.Obj.GetName()) || (eNamespace != o.Obj.GetNamespace()) ||
+				(eKind != reflect.TypeOf(o.Obj).String()) {
+				continue
 			}
+			// rsrc is seen in both expected and observed, update it if needed
+			e.Obj.SetResourceVersion(o.Obj.GetResourceVersion())
+			if e.Lifecycle == resource.LifecycleManaged && specDiffers(e.Obj, o.Obj) && c.Differs(e.Obj, o.Obj) {
+				if err := gr.Update(context.TODO(), e.Obj.(runtime.Object).DeepCopyObject()); err != nil {
+					errs = handleErrorArr("update", eRsrcInfo, err, errs)
+				} else {
+					log.Printf("%s   update: %s\n", cname, eRsrcInfo)
+				}
+			} else {
+				log.Printf("%s   nochange: %s\n", cname, eRsrcInfo)
+			}
+			reconciled.Add(o)
+			seen = true
+			break
 		}
 		// rsrc is in expected but not in observed - create
 		if !seen {

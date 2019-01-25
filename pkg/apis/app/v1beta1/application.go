@@ -92,7 +92,7 @@ func (a *Application) Observables(scheme *runtime.Scheme, rsrc interface{}, rsrc
 
 // Differs returns true if the resource needs to be updated
 func (a *Application) Differs(expected metav1.Object, observed metav1.Object) bool {
-	return true
+	return false
 }
 
 // UpdateComponentStatus use reconciled objects to update component status
