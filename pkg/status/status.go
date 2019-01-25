@@ -28,16 +28,6 @@ const (
 	StatusDisabled   = "Disabled"
 )
 
-func (s *Statefulset) update(rsrc *appsv1.StatefulSet) string {
-	s.Replicas = rsrc.Status.Replicas
-	s.ReadyReplicas = rsrc.Status.ReadyReplicas
-	s.CurrentReplicas = rsrc.Status.CurrentReplicas
-	if rsrc.Status.ReadyReplicas == *rsrc.Spec.Replicas && rsrc.Status.CurrentReplicas == *rsrc.Spec.Replicas {
-		return StatusReady
-	}
-	return StatusInProgress
-}
-
 func (s *ObjectStatus) update(rsrc metav1.Object) {
 	ro := rsrc.(runtime.Object)
 	gvk := ro.GetObjectKind().GroupVersionKind()
@@ -46,16 +36,6 @@ func (s *ObjectStatus) update(rsrc metav1.Object) {
 	s.Group = gvk.GroupVersion().String()
 	s.Kind = gvk.GroupKind().Kind
 	s.Status = StatusReady
-}
-
-// Pdb is a generic status holder for pdb
-func (s *Pdb) update(rsrc *policyv1.PodDisruptionBudget) string {
-	s.CurrentHealthy = rsrc.Status.CurrentHealthy
-	s.DesiredHealthy = rsrc.Status.DesiredHealthy
-	if s.CurrentHealthy >= s.DesiredHealthy {
-		return StatusReady
-	}
-	return StatusInProgress
 }
 
 // ResetComponentList - reset component list objects
@@ -71,11 +51,9 @@ func (m *Meta) UpdateStatus(rsrcs []metav1.Object, err error) {
 		os.update(r)
 		switch r.(type) {
 		case *appsv1.StatefulSet:
-			os.ExtendedStatus.STS = &Statefulset{}
-			os.Status = os.ExtendedStatus.STS.update(r.(*appsv1.StatefulSet))
+			os.Status = stsStatus(r.(*appsv1.StatefulSet))
 		case *policyv1.PodDisruptionBudget:
-			os.ExtendedStatus.PDB = &Pdb{}
-			os.Status = os.ExtendedStatus.PDB.update(r.(*policyv1.PodDisruptionBudget))
+			os.Status = pdbStatus(r.(*policyv1.PodDisruptionBudget))
 		}
 		m.ComponentList.Objects = append(m.ComponentList.Objects, os)
 	}
@@ -93,4 +71,22 @@ func (m *Meta) UpdateStatus(rsrcs []metav1.Object, err error) {
 	if err != nil {
 		m.SetCondition(Error, "ErrorSeen", err.Error())
 	}
+}
+
+// Resource specific logic -----------------------------------
+
+// Statefulset
+func stsStatus(rsrc *appsv1.StatefulSet) string {
+	if rsrc.Status.ReadyReplicas == *rsrc.Spec.Replicas && rsrc.Status.CurrentReplicas == *rsrc.Spec.Replicas {
+		return StatusReady
+	}
+	return StatusInProgress
+}
+
+// PodDisruptionBudget
+func pdbStatus(rsrc *policyv1.PodDisruptionBudget) string {
+	if rsrc.Status.CurrentHealthy >= rsrc.Status.DesiredHealthy {
+		return StatusReady
+	}
+	return StatusInProgress
 }

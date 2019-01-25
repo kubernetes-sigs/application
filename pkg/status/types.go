@@ -36,37 +36,6 @@ const (
 	ReasonInit = "Init"
 )
 
-// Statefulset is a generic status holder for stateful-set
-// +k8s:deepcopy-gen=true
-type Statefulset struct {
-	// Replicas defines the no of MySQL instances desired
-	Replicas int32 `json:"replicas"`
-	// ReadyReplicas defines the no of MySQL instances that are ready
-	ReadyReplicas int32 `json:"readycount"`
-	// CurrentReplicas defines the no of MySQL instances that are created
-	CurrentReplicas int32 `json:"currentcount"`
-	// progress is a fuzzy indicator. Interpret as a percentage (0-100)
-	// eg: for statefulsets, progress = 100*readyreplicas/replicas
-	Progress int32 `json:"progress"`
-}
-
-// Pdb is a generic status holder for pdb
-type Pdb struct {
-	// currentHealthy
-	CurrentHealthy int32 `json:"currenthealthy"`
-	// desiredHealthy
-	DesiredHealthy int32 `json:"desiredhealthy"`
-}
-
-// ExtendedStatus is a holder of additional status for well known types
-// +k8s:deepcopy-gen=true
-type ExtendedStatus struct {
-	// StatefulSet status
-	STS *Statefulset `json:"sts,omitempty"`
-	// PDB status
-	PDB *Pdb `json:"poddisruptionbudget,omitempty"`
-}
-
 // ComponentMeta is a generic set of fields for component status objects
 // +k8s:deepcopy-gen=true
 type ComponentMeta struct {
@@ -112,8 +81,6 @@ type ObjectStatus struct {
 	Group string `json:"group,omitempty"`
 	// Status. Values: InProgress, Ready, Unknown
 	Status string `json:"status,omitempty"`
-	// ExtendedStatus adds Kind specific status information for well known types
-	ExtendedStatus `json:",inline,omitempty"`
 }
 
 // ConditionType encodes information on the condition

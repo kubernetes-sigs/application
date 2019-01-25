@@ -200,40 +200,8 @@ spec:
                     type: string
                   name:
                     type: string
-                  poddisruptionbudget:
-                    properties:
-                      currenthealthy:
-                        format: int32
-                        type: integer
-                      desiredhealthy:
-                        format: int32
-                        type: integer
-                    required:
-                    - currenthealthy
-                    - desiredhealthy
-                    type: object
                   status:
                     type: string
-                  sts:
-                    properties:
-                      currentcount:
-                        format: int32
-                        type: integer
-                      progress:
-                        format: int32
-                        type: integer
-                      readycount:
-                        format: int32
-                        type: integer
-                      replicas:
-                        format: int32
-                        type: integer
-                    required:
-                    - replicas
-                    - readycount
-                    - currentcount
-                    - progress
-                    type: object
                 type: object
               type: array
             conditions:
