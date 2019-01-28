@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package status
+package v1beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (m *Meta) addCondition(ctype ConditionType, status corev1.ConditionStatus, reason, message string) {
+func (m *ApplicationStatus) addCondition(ctype ConditionType, status corev1.ConditionStatus, reason, message string) {
 	now := metav1.Now()
 	c := &Condition{
 		Type:               ctype,
@@ -32,7 +32,7 @@ func (m *Meta) addCondition(ctype ConditionType, status corev1.ConditionStatus, 
 }
 
 // setConditionValue updates or creates a new condition
-func (m *Meta) setConditionValue(ctype ConditionType, status corev1.ConditionStatus, reason, message string) {
+func (m *ApplicationStatus) setConditionValue(ctype ConditionType, status corev1.ConditionStatus, reason, message string) {
 	var c *Condition
 	for i := range m.Conditions {
 		if m.Conditions[i].Type == ctype {
@@ -58,7 +58,7 @@ func (m *Meta) setConditionValue(ctype ConditionType, status corev1.ConditionSta
 }
 
 // RemoveCondition removes the condition with the provided type.
-func (m *Meta) RemoveCondition(ctype ConditionType) {
+func (m *ApplicationStatus) RemoveCondition(ctype ConditionType) {
 	for i, c := range m.Conditions {
 		if c.Type == ctype {
 			m.Conditions[i] = m.Conditions[len(m.Conditions)-1]
@@ -69,7 +69,7 @@ func (m *Meta) RemoveCondition(ctype ConditionType) {
 }
 
 // GetCondition get existing condition
-func (m *Meta) GetCondition(ctype ConditionType) *Condition {
+func (m *ApplicationStatus) GetCondition(ctype ConditionType) *Condition {
 	for i := range m.Conditions {
 		if m.Conditions[i].Type == ctype {
 			return &m.Conditions[i]
@@ -79,7 +79,7 @@ func (m *Meta) GetCondition(ctype ConditionType) *Condition {
 }
 
 // IsConditionTrue - if condition is true
-func (m *Meta) IsConditionTrue(ctype ConditionType) bool {
+func (m *ApplicationStatus) IsConditionTrue(ctype ConditionType) bool {
 	if c := m.GetCondition(ctype); c != nil {
 		return c.Status == corev1.ConditionTrue
 	}
@@ -87,13 +87,13 @@ func (m *Meta) IsConditionTrue(ctype ConditionType) bool {
 }
 
 // IsReady returns true if ready condition is set
-func (m *Meta) IsReady() bool { return m.IsConditionTrue(Ready) }
+func (m *ApplicationStatus) IsReady() bool { return m.IsConditionTrue(Ready) }
 
 // IsNotReady returns true if ready condition is set
-func (m *Meta) IsNotReady() bool { return !m.IsConditionTrue(Ready) }
+func (m *ApplicationStatus) IsNotReady() bool { return !m.IsConditionTrue(Ready) }
 
 // ConditionReason - return condition reason
-func (m *Meta) ConditionReason(ctype ConditionType) string {
+func (m *ApplicationStatus) ConditionReason(ctype ConditionType) string {
 	if c := m.GetCondition(ctype); c != nil {
 		return c.Reason
 	}
@@ -101,37 +101,37 @@ func (m *Meta) ConditionReason(ctype ConditionType) string {
 }
 
 // Ready - shortcut to set ready contition to true
-func (m *Meta) Ready(reason, message string) {
+func (m *ApplicationStatus) Ready(reason, message string) {
 	m.SetCondition(Ready, reason, message)
 }
 
 // NotReady - shortcut to set ready contition to false
-func (m *Meta) NotReady(reason, message string) {
+func (m *ApplicationStatus) NotReady(reason, message string) {
 	m.ClearCondition(Ready, reason, message)
 }
 
 // SetError - shortcut to set error condition
-func (m *Meta) SetError(reason, message string) {
+func (m *ApplicationStatus) SetError(reason, message string) {
 	m.SetCondition(Error, reason, message)
 }
 
 // ClearError - shortcut to set error condition
-func (m *Meta) ClearError() {
+func (m *ApplicationStatus) ClearError() {
 	m.ClearCondition(Error, "NoError", "No error seen")
 }
 
 // Settled - shortcut to set Settled contition to true
-func (m *Meta) Settled(reason, message string) {
+func (m *ApplicationStatus) Settled(reason, message string) {
 	m.SetCondition(Settled, reason, message)
 }
 
 // NotSettled - shortcut to set Settled contition to false
-func (m *Meta) NotSettled(reason, message string) {
+func (m *ApplicationStatus) NotSettled(reason, message string) {
 	m.ClearCondition(Settled, reason, message)
 }
 
 // EnsureCondition useful for adding default conditions
-func (m *Meta) EnsureCondition(ctype ConditionType) {
+func (m *ApplicationStatus) EnsureCondition(ctype ConditionType) {
 	if c := m.GetCondition(ctype); c != nil {
 		return
 	}
@@ -139,29 +139,29 @@ func (m *Meta) EnsureCondition(ctype ConditionType) {
 }
 
 // EnsureStandardConditions - helper to inject standard conditions
-func (m *Meta) EnsureStandardConditions() {
+func (m *ApplicationStatus) EnsureStandardConditions() {
 	m.EnsureCondition(Ready)
 	m.EnsureCondition(Settled)
 	m.EnsureCondition(Error)
 }
 
 // ClearCondition updates or creates a new condition
-func (m *Meta) ClearCondition(ctype ConditionType, reason, message string) {
+func (m *ApplicationStatus) ClearCondition(ctype ConditionType, reason, message string) {
 	m.setConditionValue(ctype, corev1.ConditionFalse, reason, message)
 }
 
 // SetCondition updates or creates a new condition
-func (m *Meta) SetCondition(ctype ConditionType, reason, message string) {
+func (m *ApplicationStatus) SetCondition(ctype ConditionType, reason, message string) {
 	m.setConditionValue(ctype, corev1.ConditionTrue, reason, message)
 }
 
 // RemoveAllConditions updates or creates a new condition
-func (m *Meta) RemoveAllConditions() {
+func (m *ApplicationStatus) RemoveAllConditions() {
 	m.Conditions = []Condition{}
 }
 
 // ClearAllConditions updates or creates a new condition
-func (m *Meta) ClearAllConditions() {
+func (m *ApplicationStatus) ClearAllConditions() {
 	for i := range m.Conditions {
 		m.Conditions[i].Status = corev1.ConditionFalse
 	}

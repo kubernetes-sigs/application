@@ -17,9 +17,24 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// Constants for condition
+const (
+	// Ready => controller considers this resource Ready
+	Ready = "Ready"
+	// Qualified => functionally tested
+	Qualified = "Qualified"
+	// Settled => observed generation == generation + settled means controller is done acting functionally tested
+	Settled = "Settled"
+	// Cleanup => it is set to track finalizer failures
+	Cleanup = "Cleanup"
+	// Error => last recorded error
+	Error = "Error"
+
+	ReasonInit = "Init"
 )
 
 // Descriptor defines the Metadata and informations about the Application.
@@ -77,9 +92,66 @@ type ApplicationSpec struct {
 	AssemblyPhase ApplicationAssemblyPhase `json:"assemblyPhase,omitempty"`
 }
 
+// ComponentList is a generic status holder for the top level resource
+// +k8s:deepcopy-gen=true
+type ComponentList struct {
+	// Object status array for all matching objects
+	Objects []ObjectStatus `json:"components,omitempty"`
+}
+
+// ObjectStatus is a generic status holder for objects
+// +k8s:deepcopy-gen=true
+type ObjectStatus struct {
+	// Link to object
+	Link string `json:"link,omitempty"`
+	// Name of object
+	Name string `json:"name,omitempty"`
+	// Kind of object
+	Kind string `json:"kind,omitempty"`
+	// Object group
+	Group string `json:"group,omitempty"`
+	// Status. Values: InProgress, Ready, Unknown
+	Status string `json:"status,omitempty"`
+}
+
+// ConditionType encodes information on the condition
+type ConditionType string
+
+// Condition describes the state of an object at a certain point.
+// +k8s:deepcopy-gen=true
+type Condition struct {
+	// Type of condition.
+	Type ConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=StatefulSetConditionType"`
+	// Status of the condition, one of True, False, Unknown.
+	Status corev1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
+	// The reason for the condition's last transition.
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,4,opt,name=reason"`
+	// A human readable message indicating details about the transition.
+	// +optional
+	Message string `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
+	// Last time the condition was probed
+	// +optional
+	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty" protobuf:"bytes,3,opt,name=lastProbeTime"`
+	// Last time the condition transitioned from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,3,opt,name=lastTransitionTime"`
+}
+
 // ApplicationStatus defines controller's the observed state of Application
 type ApplicationStatus struct {
-	status.Meta `json:",inline"`
+	// ObservedGeneration is the most recent generation observed. It corresponds to the
+	// Object's generation, which is updated on mutation by the API Server.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty" protobuf:"varint,1,opt,name=observedGeneration"`
+	// Conditions represents the latest state of the object
+	// +optional
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	Conditions []Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,10,rep,name=conditions"`
+	// Resources embeds a list of object statuses
+	// +optional
+	ComponentList `json:",inline,omitempty"`
 }
 
 // ImageSpec contains information about an image used as an icon.

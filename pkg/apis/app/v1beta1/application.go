@@ -21,7 +21,6 @@ import (
 	cr "github.com/kubernetes-sigs/application/pkg/customresource"
 	"github.com/kubernetes-sigs/application/pkg/finalizer"
 	"github.com/kubernetes-sigs/application/pkg/resource"
-	"github.com/kubernetes-sigs/application/pkg/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -159,7 +158,7 @@ func (a *Application) NewRsrc() cr.Handle {
 // NewStatus - return a  resource status object
 func (a *Application) NewStatus() interface{} {
 	s := a.Status.DeepCopy()
-	s.ComponentList = status.ComponentList{}
+	s.ComponentList = ComponentList{}
 	return s
 }
 

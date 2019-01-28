@@ -11,10 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package status
+package v1beta1
 
 import (
-	//"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	policyv1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,12 +38,12 @@ func (s *ObjectStatus) update(rsrc metav1.Object) {
 }
 
 // ResetComponentList - reset component list objects
-func (m *Meta) ResetComponentList() {
+func (m *ApplicationStatus) ResetComponentList() {
 	m.ComponentList.Objects = []ObjectStatus{}
 }
 
 // UpdateStatus the component status
-func (m *Meta) UpdateStatus(rsrcs []metav1.Object, err error) {
+func (m *ApplicationStatus) UpdateStatus(rsrcs []metav1.Object, err error) {
 	var ready = true
 	for _, r := range rsrcs {
 		os := ObjectStatus{}
