@@ -132,8 +132,7 @@ func (gr *Reconciler) ReconcileCR(namespacedname types.NamespacedName, handle cr
 	} else {
 		if errors.IsNotFound(err) {
 			urt.HandleError(fmt.Errorf("not found %s. %s", name, err.Error()))
-			// TODO check if we need to return err for not found err
-			return err
+			return nil
 		}
 	}
 	update = rsrc.UpdateRsrcStatus(status, err)
