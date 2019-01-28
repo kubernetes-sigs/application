@@ -42,7 +42,11 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
+
+	// Meaningful default.
+	// Alternative is to setup dynamic watchers for all types in all application objects which may quickly escalate to all possible API objects !!
 	syncperiod := time.Minute * 2
+
 	log.Info("setting up manager")
 	mgr, err := manager.New(cfg, manager.Options{SyncPeriod: &syncperiod})
 	if err != nil {
