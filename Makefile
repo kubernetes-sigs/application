@@ -2,6 +2,8 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
+.PHONY: test manager run debug install deploy manifests fmt vet generate docker-build docker-push
+
 all: test manager
 
 # Run tests
@@ -12,9 +14,13 @@ test: generate fmt vet manifests
 manager: generate fmt vet
 	go build -o bin/manager github.com/kubernetes-sigs/application/cmd/manager
 
-# Run against the configured Kubernetes cluster in ~/.kube/config
+# Run using the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
 	go run ./cmd/manager/main.go
+
+# Debug using the configured Kubernetes cluster in ~/.kube/config
+debug: generate fmt vet
+	dlv debug cmd/manager/main.go
 
 # Install CRDs into a cluster
 install: manifests

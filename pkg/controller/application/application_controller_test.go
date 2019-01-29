@@ -21,6 +21,7 @@ import (
 	"time"
 
 	appv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	kbc "github.com/kubernetes-sigs/application/pkg/kbcontroller"
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
@@ -50,7 +51,7 @@ func TestReconcile(t *testing.T) {
 	c = mgr.GetClient()
 
 	recFn, requests := SetupTestReconcile(newReconciler(mgr))
-	g.Expect(add(mgr, recFn)).NotTo(gomega.HaveOccurred())
+	g.Expect(kbc.CreateController("app", mgr, &appv1beta1.Application{}, recFn)).NotTo(gomega.HaveOccurred())
 
 	stopMgr, mgrStopped := StartTestManager(mgr, g)
 
