@@ -29,7 +29,12 @@ import (
 
 // Mutate - mutate expected
 func (a *Application) Mutate(rsrc interface{}, labels map[string]string, status interface{}, expected, dependent, observed *resource.ObjectBag) (*resource.ObjectBag, error) {
-	return observed, nil
+	exp := resource.ObjectBag{}
+	for _, o := range observed.Items() {
+		o.Lifecycle = resource.LifecycleManaged
+		exp.Add(o)
+	}
+	return &exp, nil
 }
 
 // Finalize - execute finalizers
@@ -140,14 +145,20 @@ func (a *Application) Components() []component.Component {
 }
 
 // OwnerRef returns owner ref object with the component's resource as owner
-func (a *Application) OwnerRef() []metav1.OwnerReference {
-	return []metav1.OwnerReference{
-		*metav1.NewControllerRef(a, schema.GroupVersionKind{
-			Group:   SchemeGroupVersion.Group,
-			Version: SchemeGroupVersion.Version,
-			Kind:    "Application",
-		}),
+func (a *Application) OwnerRef() *metav1.OwnerReference {
+	if !a.Spec.Adopt {
+		return nil
 	}
+
+	isController := false
+	gvk := schema.GroupVersionKind{
+		Group:   SchemeGroupVersion.Group,
+		Version: SchemeGroupVersion.Version,
+		Kind:    "Application",
+	}
+	ref := metav1.NewControllerRef(a, gvk)
+	ref.Controller = &isController
+	return ref
 }
 
 // NewRsrc - return a new resource object

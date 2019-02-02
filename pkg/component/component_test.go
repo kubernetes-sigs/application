@@ -66,10 +66,9 @@ var FilerObject = Filer{
 
 var _ = Describe("Resource", func() {
 	var c = component.Component{
-		Handle:   nil,
-		Name:     "base",
-		CR:       &FilerObject,
-		OwnerRef: nil,
+		Handle: nil,
+		Name:   "base",
+		CR:     &FilerObject,
 	}
 
 	BeforeEach(func() {

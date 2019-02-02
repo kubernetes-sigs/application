@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	urt "k8s.io/apimachinery/pkg/util/runtime"
@@ -96,11 +97,39 @@ func specDiffers(o1, o2 metav1.Object) bool {
 		e = reflect.Indirect(reflect.ValueOf(o1)).FieldByName("Data")
 		o = reflect.Indirect(reflect.ValueOf(o2)).FieldByName("Data")
 	}
+
 	if e.IsValid() && o.IsValid() {
 		if reflect.DeepEqual(e.Interface(), o.Interface()) {
 			return false
 		}
 	}
+	return true
+}
+
+func isReferringSameObject(a, b metav1.OwnerReference) bool {
+	aGV, err := schema.ParseGroupVersion(a.APIVersion)
+	if err != nil {
+		return false
+	}
+	bGV, err := schema.ParseGroupVersion(b.APIVersion)
+	if err != nil {
+		return false
+	}
+	return aGV == bGV && a.Kind == b.Kind && a.Name == b.Name
+}
+
+func injectOwnerRefs(o metav1.Object, ref *metav1.OwnerReference) bool {
+	if ref == nil {
+		return false
+	}
+	objRefs := o.GetOwnerReferences()
+	for _, r := range objRefs {
+		if isReferringSameObject(*ref, r) {
+			return false
+		}
+	}
+	objRefs = append(objRefs, *ref)
+	o.SetOwnerReferences(objRefs)
 	return true
 }
 
@@ -239,7 +268,6 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 		aggregated.Add(expected.Items()...)
 		log.Printf("%s  Expected Resources:\n", cname)
 		for _, e := range expected.Items() {
-			e.Obj.SetOwnerReferences(c.OwnerRef)
 			log.Printf("%s   exp: %s/%s/%s\n", cname, e.Obj.GetNamespace(), reflect.TypeOf(e.Obj).String(), e.Obj.GetName())
 		}
 		log.Printf("%s  Observed Resources:\n", cname)
@@ -262,7 +290,8 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 			}
 			// rsrc is seen in both expected and observed, update it if needed
 			e.Obj.SetResourceVersion(o.Obj.GetResourceVersion())
-			if e.Lifecycle == resource.LifecycleManaged && specDiffers(e.Obj, o.Obj) && c.Differs(e.Obj, o.Obj) {
+			e.Obj.SetOwnerReferences(o.Obj.GetOwnerReferences())
+			if e.Lifecycle == resource.LifecycleManaged && (specDiffers(e.Obj, o.Obj) && c.Differs(e.Obj, o.Obj) || injectOwnerRefs(e.Obj, c.OwnerRef)) {
 				if err := gr.Update(context.TODO(), e.Obj.(runtime.Object).DeepCopyObject()); err != nil {
 					errs = handleErrorArr("update", eRsrcInfo, err, errs)
 				} else {
@@ -278,6 +307,7 @@ func (gr *Reconciler) ReconcileComponent(crname string, c component.Component, s
 		// rsrc is in expected but not in observed - create
 		if !seen {
 			if e.Lifecycle == resource.LifecycleManaged {
+				injectOwnerRefs(e.Obj, c.OwnerRef)
 				if err := gr.Create(context.TODO(), e.Obj.(runtime.Object)); err != nil {
 					errs = handleErrorArr("Create", cname, err, errs)
 				} else {

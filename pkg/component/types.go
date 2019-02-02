@@ -28,7 +28,7 @@ type Component struct {
 	Handle
 	Name     string
 	CR       metav1.Object
-	OwnerRef []metav1.OwnerReference
+	OwnerRef *metav1.OwnerReference
 }
 
 // KVMap is a map[string]string
