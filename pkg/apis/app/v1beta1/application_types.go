@@ -84,8 +84,8 @@ type ApplicationSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
-	// Adopt objects - flag to indicate if we need to add OwnerRefs to matching objects
-	Adopt bool `json:"adopt,omitempty"`
+	// AddOwnerRef objects - flag to indicate if we need to add OwnerRefs to matching objects
+	AddOwnerRef bool `json:"addOwnerRef,omitempty"`
 
 	// Info contains human readable key,value pairs for the Application.
 	Info []InfoItem `json:"info,omitempty"`

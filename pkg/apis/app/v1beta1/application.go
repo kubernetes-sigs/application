@@ -146,7 +146,7 @@ func (a *Application) Components() []component.Component {
 
 // OwnerRef returns owner ref object with the component's resource as owner
 func (a *Application) OwnerRef() *metav1.OwnerReference {
-	if !a.Spec.Adopt {
+	if !a.Spec.AddOwnerRef {
 		return nil
 	}
 
