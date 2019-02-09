@@ -30,7 +30,7 @@ Some standard files that can be considered in future are:
 #### Standard Conditions
 These conditions should be added to `.status.conditions` for Application CRD and subsequently to other resources:
 ##### `Ready`
-Readiness as perceived by the resource controller. This means the controller deems the underlying resources to be ready for consumption to the best of its knowledge. It coule be implemented as a low pass filter to filter out transient or persistent failures such as restarts of underlying pods.
+Readiness as perceived by the resource controller. This means the controller deems the underlying resources to be ready for consumption to the best of its knowledge. It could be implemented as a low pass filter to filter out transient or persistent failures such as restarts of underlying pods.
 
 ##### `Settled`
 Would indicate whether controller acted on latest revision of `.spec` and the underlying resources conform to the latest revision of the `.spec`
