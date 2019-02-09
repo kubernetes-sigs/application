@@ -17,6 +17,12 @@ The proposal is to add a reconciler to the Application CRD controller, that crea
 
 ### Fields
 Fields are a structured way to capture the status of resources. As part of this proposal, no standardized fields are proposed. The authors opinion is it does not provide additional information than what conditions provide. If the community strongly feels about standardizing some fields for in-tree and custom resources, it can be considered. 
+Some standard files that can be considered in future are:
+
+```yaml
+.status.ready
+.status.available
+```
 
 ### Conditions
 [Conditions](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#typical-status-properties) are used to describe the status of resources in an extensible way. Out of tree controllers support a variety of conditions. There is no consistent usage across the core controller. This is exacerbated with custom controllers. To tackle this diversity and its impact in status computation for Application CRD, we need a short term and a long term solution. Short term solution is to do aggregation of diverse core resources in the Application CRD controller. Long term is to identify best practices and standardize conditions and propagate them to the core controllers thereby making Application CRD aggregation simpler.
@@ -35,9 +41,6 @@ Would capture Errors seen in last reconcilation loop.
 #### Other Conditions from core controllers
 These are not as universal for all kubernetes objects as `Ready`, `Settled`, `Error` and provide yet another dimension of `Ready` and `Settled` condition. 
 
-##### `Progressing`
-Deployment uses this to indicate there is an update to the underlying ReplicaSet that is being acted upon. This is a inversion of the `Settled` condition.
-
 ##### `Available`
 Deployment uses this to indicate that underlying pods have been `Ready` for a preconfigured amount of time. This is not a strong heuristic for actual availability but rather a low pass filter that fails when pods are restarting continiously.
 
@@ -46,6 +49,7 @@ Deployment uses this to indicate that underlying pods have been `Ready` for a pr
 `Disruption` is a special case of `Error` where we may know what caused the error when `Ready` is false. It is useful for some resources and could be standardized as an optional condition. 
 
 ### Aggregating status
+
 #### Custom Resources
 For custom resources, look for `Ready`, `Error` and `Settled`. If the object does not have the necessary conditions mark that objects status as "Unknown" and would not be used for computing the aggregate status. This would cover the case for nested Applciation CRDs as well. Based on feedback from users and reviewers this stance could be updated.
 
@@ -62,10 +66,9 @@ The computed status conditions are injected as conditions in application's `stat
 Application CRD's `.status.conditions.[Ready]` is derived by a simple ANDing of the matching object status `status.conditions.[Ready]` computed under `.status.components`. `Settled` is implemented by just the Application CRD controller and is not a aggregated value. `Error` condition aggregates errors from underlying components.
 
 ## API
-### Conditions API
-```go
-package status
 
+### Conditions
+```go
 // Constants
 const (
 	// Ready => Resource's controller considers this resource Ready
@@ -98,7 +101,6 @@ const (
 type ConditionType string
 
 // Condition describes the state of an object at a certain point.
-// +k8s:deepcopy-gen=true
 type Condition struct {
 	// Type of condition.
 	Type ConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=StatefulSetConditionType"`
@@ -123,17 +125,13 @@ type Condition struct {
 Matching objects' status would be recorded in `.status.components`.  The motivation behind this is to provide individual component status for clients that need more than just the aggregate status. Well known object types can be aggregated to a higher degree of fidelity. For other types and custom resources we can propose using standardized conditions.
 
 ```go
-package status
-
 // ComponentList is a generic status holder for the top level resource
-// +k8s:deepcopy-gen=true
 type ComponentList struct {
 	// Object status array for all matching objects
 	Objects []ObjectStatus `json:"components,omitempty"`
 }
 
 // ObjectStatus is a generic status holder for objects
-// +k8s:deepcopy-gen=true
 type ObjectStatus struct {
 	// Link to object
 	Link string `json:"link,omitempty"`
@@ -144,55 +142,15 @@ type ObjectStatus struct {
 	// Object group
 	Group string `json:"group,omitempty"`
         // Conditions represents the latest state of the object
-	// +optional
-	// +patchMergeKey=type
-	// +patchStrategy=merge
-	Conditions []Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
-	// ExtendedStatus adds Kind specific status information for well known types
-	ExtendedStatus `json:",inline,omitempty"`
-}
-
-// ExtendedStatus is a holder of additional status for well known types
-// +k8s:deepcopy-gen=true
-type ExtendedStatus struct {
-	// StatefulSet status
-	STS *Statefulset `json:"sts,omitempty"`
-	// PDB status
-	PDB *Pdb `json:"pdb,omitempty"`
-}
-
-// Statefulset is a generic status holder for stateful-set
-// +k8s:deepcopy-gen=true
-type Statefulset struct {
-	// Replicas defines the no of MySQL instances desired
-	Replicas int32 `json:"replicas"`
-	// ReadyReplicas defines the no of MySQL instances that are ready
-	ReadyReplicas int32 `json:"readycount"`
-	// CurrentReplicas defines the no of MySQL instances that are created
-	CurrentReplicas int32 `json:"currentcount"`
-	// progress is a fuzzy indicator. Interpret as a percentage (0-100)
-	// eg: for statefulsets, progress = 100*readyreplicas/replicas
-	Progress int32 `json:"progress"`
-}
-
-// Pdb is a generic status holder for pdb
-type Pdb struct {
-	// currentHealthy
-	CurrentHealthy int32 `json:"currenthealthy"`
-	// desiredHealthy
-	DesiredHealthy int32 `json:"desiredhealthy"`
+	// Conditions []Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 ``` 
 
-### API Status meta
-Meta is an aggregate of the common status fields that should be inlined in the resource status struct.
-
+### API Application status
 ```go
-package status
-
-// Meta is a generic set of fields for status objects
-// +k8s:deepcopy-gen=true
-type Meta struct {
+package application
+// ApplicationStatus defines controllers the observed state of Application
+type ApplicationStatus struct {
 	// ObservedGeneration is the most recent generation observed. It corresponds to the
 	// Object's generation, which is updated on mutation by the API Server.
 	// +optional
@@ -206,15 +164,6 @@ type Meta struct {
 	// +optional
 	ComponentList `json:",inline,omitempty"`
 }
-``` 
-
-### API Application status
-```go
-package application
-// ApplicationStatus defines controllers the observed state of Application
-type ApplicationStatus struct {
-	status.Meta `json:",inline"`	
-}
 ```
 
 
@@ -225,11 +174,6 @@ status:
   - link: /apis/apps/v1/namespaces/default/statefulsets/basic-di
     name: basic-di
     status: Ready
-    sts:
-      currentcount: 3
-      progress: 0
-      readycount: 3
-      replicas: 3
   - link: /api/v1/namespaces/default/services/basic-di
     name: basic-di
     status: Ready
@@ -239,11 +183,6 @@ status:
   - link: /apis/apps/v1/namespaces/default/statefulsets/basic-m
     name: basic-m
     status: Ready
-    sts:
-      currentcount: 3
-      progress: 0
-      readycount: 3
-      replicas: 3
   - link: /api/v1/namespaces/default/services/basic-m
     name: basic-m
     status: Ready
@@ -268,11 +207,6 @@ status:
   - link: /apis/apps/v1/namespaces/default/statefulsets/basic-metrics
     name: basic-metrics
     status: Ready
-    sts:
-      currentcount: 1
-      progress: 0
-      readycount: 1
-      replicas: 1
   - link: /apis/app.k8s.io/v1beta1/namespaces/default/applications/basic
     name: basic
     status: Ready
