@@ -106,6 +106,9 @@ func specDiffers(o1, o2 metav1.Object) bool {
 	return true
 }
 
+// If both ownerRefs have the same group/kind/name but different uid, that means at least one of them doesn't exist anymore.
+// If we compare `uid` in this function, we'd set both as owners which is not what we want
+// Because in the case that the original owner is already gone, we want its dependent to be garbage collected with it.
 func isReferringSameObject(a, b metav1.OwnerReference) bool {
 	aGV, err := schema.ParseGroupVersion(a.APIVersion)
 	if err != nil {
