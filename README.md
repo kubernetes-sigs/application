@@ -71,6 +71,13 @@ aggregation and display of all the components in the Application.
         matches.</td>
     </tr>
     <tr>
+        <td>spec.addOwnerRef</td>
+        <td>bool</td>
+        <td>Flag controlling if the matched resources need to be adopted by the Application object. When adopting, an <a href=https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/#owners-and-dependents>OwnerRef</a> to the Application object is inserted into the matched objects <i>.metadata.[]OwnerRefs</i>.
+	The injected OwnerRef has <i>blockOwnerDeletion</i> set to True and <i>controller</i> set to False.
+        </td>
+    </tr>
+    <tr>
         <td>spec.descriptor.version</td>
         <td>string</a></td>
         <td>A version indicator for the application (e.g. 5.7 for MySQL version 5.7).</td>
