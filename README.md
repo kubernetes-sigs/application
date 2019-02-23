@@ -50,7 +50,7 @@ aggregation and display of all the components in the Application.
         <td>spec.descriptor.type</td>
         <td>string</td>
         <td>The type of the application (e.g. WordPress, MySQL, Cassandra). You can have many applications of different
-        names in the same namespace. They type field is used to indicate that they are all the same type of application.
+        names in the same namespace. The type field is used to indicate that they are all the same type of application.
         </td>
     </tr>
     <tr>
