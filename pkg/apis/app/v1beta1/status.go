@@ -135,6 +135,7 @@ func replicasetStatus(rsrc *appsv1.ReplicaSet) string {
 		case appsv1.ReplicaSetReplicaFailure:
 			if c.Status == corev1.ConditionTrue {
 				failure = true
+				break
 			}
 		}
 	}
@@ -166,10 +167,7 @@ func pvcStatus(rsrc *corev1.PersistentVolumeClaim) string {
 
 // Service
 func serviceStatus(rsrc *corev1.Service) string {
-	status := StatusInProgress
-	if len(rsrc.Status.LoadBalancer.Ingress) != 0 {
-		status = StatusReady
-	}
+	status := StatusReady
 	return status
 }
 
@@ -177,15 +175,11 @@ func serviceStatus(rsrc *corev1.Service) string {
 func podStatus(rsrc *corev1.Pod) string {
 	status := StatusInProgress
 	for i := range rsrc.Status.Conditions {
-		if rsrc.Status.Conditions[i].Type != corev1.PodReady {
-			continue
+		if rsrc.Status.Conditions[i].Type == corev1.PodReady &&
+			rsrc.Status.Conditions[i].Status == corev1.ConditionTrue {
+			status = StatusReady
+			break
 		}
-
-		if rsrc.Status.Conditions[i].Status != corev1.ConditionTrue {
-			continue
-		}
-		status = StatusReady
-		break
 	}
 	return status
 }
