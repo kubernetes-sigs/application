@@ -1,3 +1,5 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 # Adds namespace to all resources.
 namespace: application-system
 
@@ -18,10 +20,10 @@ namePrefix: application-
 # YAML string, with resources separated by document
 # markers ("---").
 resources:
-- ../rbac/rbac_role.yaml
-- ../rbac/rbac_role_binding.yaml
-- ../manager/manager.yaml
+- ./rbac/rbac_role.yaml
+- ./rbac/rbac_role_binding.yaml
+- ./manager/manager.yaml
 
-patches:
-- manager_image_patch.yaml
+patchesStrategicMerge:
+- ./default/manager_image_patch.yaml
 
