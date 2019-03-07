@@ -5,6 +5,16 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - update
+  - patch
+  - watch
+- apiGroups:
   - app.k8s.io
   resources:
   - '*'
