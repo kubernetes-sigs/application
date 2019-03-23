@@ -55,4 +55,10 @@ func TestStorageApplication(t *testing.T) {
 	// Test Delete
 	g.Expect(c.Delete(context.TODO(), fetched)).NotTo(gomega.HaveOccurred())
 	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
+
+	// Test stripVersion()
+	g.Expect(stripVersion("")).To(gomega.Equal(""))
+	g.Expect(stripVersion("v1beta1")).To(gomega.Equal(""))
+	g.Expect(stripVersion("apps/v1")).To(gomega.Equal("apps"))
+	g.Expect(stripVersion("apps/v1alpha2")).To(gomega.Equal("apps"))
 }
