@@ -31,6 +31,11 @@ deploy: manifests
 	kubectl apply -f config/crds
 	kustomize build config/default | kubectl apply -f -
 
+
+# unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
+undeploy: manifests
+	kustomize build config/default | kubectl delete -f -
+
 # Generate manifests e.g. CRD, RBAC etc.
 manifests:
 	go run vendor/sigs.k8s.io/controller-tools/cmd/controller-gen/main.go all
