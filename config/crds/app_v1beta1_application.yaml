@@ -10,6 +10,8 @@ spec:
   names:
     kind: Application
     plural: applications
+  subresources:
+    status: {}
   scope: Namespaced
   validation:
     openAPIV3Schema:
