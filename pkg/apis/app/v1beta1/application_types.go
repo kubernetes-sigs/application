@@ -304,6 +304,7 @@ const (
 
 // Application is the Schema for the applications API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

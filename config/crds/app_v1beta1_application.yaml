@@ -11,6 +11,8 @@ spec:
     kind: Application
     plural: applications
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -22,6 +24,8 @@ spec:
           type: object
         spec:
           properties:
+            addOwnerRef:
+              type: boolean
             assemblyPhase:
               type: string
             componentKinds:
