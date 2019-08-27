@@ -22,6 +22,8 @@ spec:
           type: object
         spec:
           properties:
+            addOwnerRef:
+              type: boolean
             assemblyPhase:
               type: string
             componentKinds:

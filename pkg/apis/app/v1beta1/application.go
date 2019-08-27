@@ -24,6 +24,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"log"
+	"regexp"
 	"strings"
 )
 
@@ -55,10 +57,25 @@ func (a *Application) ExpectedResources(rsrc interface{}, rsrclabels map[string]
 	return &resource.ObjectBag{}, nil
 }
 
+// Strip the version part of gv
+func stripVersion(gv string) string {
+	if gv == "" {
+		return gv
+	}
+
+	re := regexp.MustCompile(`^[vV][0-9].*`)
+	// If it begins with only version, (group is nil), return empty string which maps to core group
+	if re.MatchString(gv) {
+		return ""
+	}
+
+	return strings.Split(gv, "/")[0]
+}
+
 // GKVersions returns the gvks for the given gk
 func GKVersions(s *runtime.Scheme, mgk metav1.GroupKind) []schema.GroupVersionKind {
 	gvks := []schema.GroupVersionKind{}
-	gk := schema.GroupKind{Group: mgk.Group, Kind: mgk.Kind}
+	gk := schema.GroupKind{Group: stripVersion(mgk.Group), Kind: mgk.Kind}
 	for gvk := range s.AllKnownTypes() {
 		if gk != gvk.GroupKind() {
 			continue
@@ -74,12 +91,14 @@ func (a *Application) Observables(scheme *runtime.Scheme, rsrc interface{}, rsrc
 	if a.Spec.Selector == nil || a.Spec.Selector.MatchLabels == nil {
 		return observables
 	}
+	log.Printf("Matching labels:  %v", a.Spec.Selector.MatchLabels)
 	for _, gk := range a.Spec.ComponentGroupKinds {
 		listGK := gk
 		if !strings.HasSuffix(listGK.Kind, "List") {
 			listGK.Kind = listGK.Kind + "List"
 		}
 		for _, gvk := range GKVersions(scheme, listGK) {
+			log.Printf("Requested %s, Registered: %s", gk.String(), gvk.String())
 			ol, err := scheme.New(gvk)
 			if err == nil {
 				observable := resource.Observable{
@@ -87,9 +106,10 @@ func (a *Application) Observables(scheme *runtime.Scheme, rsrc interface{}, rsrc
 					Labels:  a.Spec.Selector.MatchLabels,
 				}
 				observables = append(observables, observable)
+			} else {
+				log.Printf("Error creating object for gvk: %s , %s", gvk.String(), err.Error())
 			}
 		}
-
 	}
 	return observables
 }
