@@ -60,6 +60,13 @@ func (gr *Reconciler) observe(observables ...resource.Observable) (*resource.Obj
 						resources = append(resources, resource.Object{Obj: item.(metav1.Object)})
 					}
 				}
+			} else {
+				// Ignore KindMatchError - user input error
+				if kindMatchErr, ok := err.(*meta.NoKindMatchError); ok {
+					// Record it and make it less fatal
+					log.Printf("   >>>ERR listing: %s, %s", kindMatchErr.GroupKind, err.Error())
+					err = nil
+				}
 			}
 		} else {
 			var obj metav1.Object = obs.Obj.(metav1.Object)
