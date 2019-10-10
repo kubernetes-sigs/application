@@ -219,15 +219,6 @@ func (gr *Reconciler) ObserveAndMutate(crname string, c component.Component, sta
 		if err != nil {
 			return emptybag, emptybag, fmt.Errorf("Failed mutating resources: %s", err.Error())
 		}
-
-		// Get observables
-		observables := c.Observables(gr.Scheme, c.CR, c.Labels(), expected)
-
-		// Observe observables
-		observed, err = gr.observe(observables...)
-		if err != nil {
-			return emptybag, emptybag, fmt.Errorf("Failed observing resources after mutation: %s", err.Error())
-		}
 	}
 
 	return expected, observed, err
