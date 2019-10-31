@@ -201,8 +201,6 @@ spec:
     - group: core
       kind: Service
     - group: apps
-      kind: Deployment
-    - group: apps
       kind: StatefulSet
   assemblyPhase: "Pending"
   descriptor:
