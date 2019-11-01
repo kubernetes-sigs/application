@@ -19,6 +19,7 @@ import (
 	policyv1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sort"
 )
 
 // Constants defining labels
@@ -73,11 +74,25 @@ func (m *ApplicationStatus) UpdateStatus(rsrcs []metav1.Object, err error) {
 		}
 		m.ComponentList.Objects = append(m.ComponentList.Objects, os)
 	}
+
 	for _, os := range m.ComponentList.Objects {
 		if os.Status != StatusReady {
 			ready = false
 		}
 	}
+
+	sort.SliceStable(m.ComponentList.Objects, func(i, j int) bool {
+		if m.ComponentList.Objects[i].Group < m.ComponentList.Objects[j].Group {
+			return true
+		}
+		if m.ComponentList.Objects[i].Kind < m.ComponentList.Objects[j].Kind {
+			return true
+		}
+		if m.ComponentList.Objects[i].Name < m.ComponentList.Objects[j].Name {
+			return true
+		}
+		return false
+	})
 
 	if ready {
 		m.Ready("ComponentsReady", "all components ready")
