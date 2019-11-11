@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+        "flag"
 	"os"
 
 	"github.com/kubernetes-sigs/application/pkg/apis"
@@ -29,6 +30,10 @@ import (
 	"time"
 )
 
+var (
+	namespace = flag.String("namespace", "kubeflow",
+		"Namespace within which CRD controller is running.")
+)
 func main() {
 	logf.SetLogger(logf.ZapLogger(false))
 	log := logf.Log.WithName("entrypoint")
@@ -48,7 +53,12 @@ func main() {
 	syncperiod := time.Minute * 2
 
 	log.Info("setting up manager")
-	mgr, err := manager.New(cfg, manager.Options{SyncPeriod: &syncperiod})
+       	var mgr manager.Manager
+        if *namespace == "" {
+            mgr, err = manager.New(cfg, manager.Options{SyncPeriod: &syncperiod})
+	} else {
+	    mgr, err = manager.New(cfg, manager.Options{SyncPeriod: &syncperiod, Namespace: *namespace})
+        }
 	if err != nil {
 		log.Error(err, "unable to set up overall controller manager")
 		os.Exit(1)

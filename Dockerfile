@@ -14,4 +14,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kube
 FROM ubuntu:latest
 WORKDIR /root/
 COPY --from=builder /go/src/github.com/kubernetes-sigs/application/manager .
-ENTRYPOINT ["./manager"]
+
+# What namespace the manager controller will scan. By default it will scan all namesapces.
+# Specify a certain namespace if the controller run using a Role instead of a ClusterRole.
+ENV NAMESPACE ""
+ENTRYPOINT ["./manager", "--namespace=${NAMESPACE}"]
