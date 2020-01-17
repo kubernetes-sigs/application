@@ -19,9 +19,9 @@ package main
 import (
 	"os"
 
-	"github.com/kubernetes-sigs/application/pkg/apis"
-	"github.com/kubernetes-sigs/application/pkg/controller"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/application/pkg/apis"
+	"sigs.k8s.io/application/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"

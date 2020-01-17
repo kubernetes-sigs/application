@@ -17,11 +17,11 @@ limitations under the License.
 package finalizer_test
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/finalizer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/application/pkg/finalizer"
 )
 
 var _ = Describe("Finalizer", func() {

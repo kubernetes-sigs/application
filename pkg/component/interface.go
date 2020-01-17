@@ -14,9 +14,9 @@ limitations under the License.
 package component
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/application/pkg/resource"
 )
 
 // Handle is an interface for operating on logical Components of a CR

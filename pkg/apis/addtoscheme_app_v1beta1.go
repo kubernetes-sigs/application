@@ -17,7 +17,7 @@ limitations under the License.
 package apis
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	"sigs.k8s.io/application/pkg/apis/app/v1beta1"
 )
 
 func init() {

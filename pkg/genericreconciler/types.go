@@ -14,8 +14,8 @@ limitations under the License.
 package genericreconciler
 
 import (
-	cr "github.com/kubernetes-sigs/application/pkg/customresource"
 	"k8s.io/apimachinery/pkg/runtime"
+	cr "sigs.k8s.io/application/pkg/customresource"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"

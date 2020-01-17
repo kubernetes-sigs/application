@@ -22,7 +22,7 @@ import (
 	"io"
 	"os"
 
-	applicationsv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	applicationsv1beta1 "sigs.k8s.io/application/pkg/apis/app/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"

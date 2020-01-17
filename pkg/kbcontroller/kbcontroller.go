@@ -14,8 +14,8 @@ limitations under the License.
 package kbcontroller
 
 import (
-	cr "github.com/kubernetes-sigs/application/pkg/customresource"
 	"k8s.io/apimachinery/pkg/runtime"
+	cr "sigs.k8s.io/application/pkg/customresource"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"

@@ -17,15 +17,15 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/component"
-	cr "github.com/kubernetes-sigs/application/pkg/customresource"
-	"github.com/kubernetes-sigs/application/pkg/finalizer"
-	"github.com/kubernetes-sigs/application/pkg/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"log"
 	"regexp"
+	"sigs.k8s.io/application/pkg/component"
+	cr "sigs.k8s.io/application/pkg/customresource"
+	"sigs.k8s.io/application/pkg/finalizer"
+	"sigs.k8s.io/application/pkg/resource"
 	"strings"
 )
 

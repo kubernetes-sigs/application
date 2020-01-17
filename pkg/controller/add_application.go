@@ -17,7 +17,7 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/controller/application"
+	"sigs.k8s.io/application/pkg/controller/application"
 )
 
 func init() {

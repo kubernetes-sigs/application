@@ -16,9 +16,6 @@ package genericreconciler
 import (
 	"context"
 	"fmt"
-	"github.com/kubernetes-sigs/application/pkg/component"
-	cr "github.com/kubernetes-sigs/application/pkg/customresource"
-	"github.com/kubernetes-sigs/application/pkg/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,6 +26,9 @@ import (
 	urt "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"reflect"
+	"sigs.k8s.io/application/pkg/component"
+	cr "sigs.k8s.io/application/pkg/customresource"
+	"sigs.k8s.io/application/pkg/resource"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -50,9 +50,8 @@ func (gr *Reconciler) observe(observables ...resource.Observable) (*resource.Obj
 	for _, obs := range observables {
 		var resources []resource.Object
 		if obs.Labels != nil {
-			opts := client.MatchingLabels(obs.Labels)
-			opts.Raw = &metav1.ListOptions{TypeMeta: obs.Type}
-			err = gr.List(context.TODO(), opts, obs.ObjList.(runtime.Object))
+			opts := client.ListOptions{Raw: &metav1.ListOptions{TypeMeta: obs.Type}}
+			err = gr.List(context.TODO(), obs.ObjList.(runtime.Object), client.MatchingLabels(obs.Labels), &opts)
 			if err == nil {
 				items, err := meta.ExtractList(obs.ObjList.(runtime.Object))
 				if err == nil {
