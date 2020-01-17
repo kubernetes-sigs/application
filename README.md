@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/kubernetes-sigs/application.svg?branch=master)](https://travis-ci.org/kubernetes-sigs/application "Travis")
+[![Go Report Card](https://goreportcard.com/badge/sigs.k8s.io/application)](https://goreportcard.com/report/sigs.k8s.io/application)
+
 # Kubernetes Applications
 
 > Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
