@@ -17,13 +17,15 @@ limitations under the License.
 package main
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/apis"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"log"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/kubernetes-sigs/application/pkg/apis"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/kubernetes-sigs/application/e2e/testutil"
 	. "github.com/onsi/ginkgo"
@@ -54,9 +56,19 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 	return c
 }
 
+const (
+	crdPath         = "../config/crds/app_v1beta1_application.yaml"
+	applicationPath = "../config/samples/app_v1beta1_application.yaml"
+)
+
 var _ = Describe("Application CRD should install correctly", func() {
 	s := scheme.Scheme
 	apis.AddToScheme(s)
+
+	crd, err := testutil.ParseCRDYaml(crdPath)
+	if err != nil {
+		log.Fatal("Unable to parse CRD YAML", err)
+	}
 
 	config, err := getClientConfig()
 	if err != nil {
@@ -69,24 +81,26 @@ var _ = Describe("Application CRD should install correctly", func() {
 	}
 
 	It("should create CRD", func() {
-		err = testutil.CreateCRD(extClient, "../config/crds/app_v1beta1_application.yaml")
+		err = testutil.CreateCRD(extClient, crd)
+		Expect(err).NotTo(HaveOccurred())
+		err = testutil.WaitForCRDOrDie(extClient, crd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should register an application", func() {
 		client := getKubeClientOrDie(config, s) //Make sure to create the client after CRD has been created.
-		err = testutil.CreateApplication(client, "default", "../config/samples/app_v1beta1_application.yaml")
+		err = testutil.CreateApplication(client, "default", applicationPath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should delete application", func() {
 		client := getKubeClientOrDie(config, s)
-		err = testutil.DeleteApplication(client, "default", "../config/samples/app_v1beta1_application.yaml")
+		err = testutil.DeleteApplication(client, "default", applicationPath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should delete application CRD", func() {
-		err = testutil.DeleteCRD(extClient, "../config/crds/app_v1beta1_application.yaml")
+		err = testutil.DeleteCRD(extClient, crd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
