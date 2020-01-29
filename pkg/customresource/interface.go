@@ -14,7 +14,7 @@ limitations under the License.
 package customresource
 
 import (
-	"github.com/kubernetes-sigs/application/pkg/component"
+	"sigs.k8s.io/application/pkg/component"
 )
 
 // Handle is an interface for operating on CRs

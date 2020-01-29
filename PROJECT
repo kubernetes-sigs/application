@@ -1,3 +1,3 @@
 version: "1"
 domain: k8s.io
-repo: github.com/kubernetes-sigs/application
+repo: sigs.k8s.io/application

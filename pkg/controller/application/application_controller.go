@@ -17,9 +17,9 @@ limitations under the License.
 package application
 
 import (
-	appv1beta1 "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
-	reconciler "github.com/kubernetes-sigs/application/pkg/genericreconciler"
-	kbc "github.com/kubernetes-sigs/application/pkg/kbcontroller"
+	appv1beta1 "sigs.k8s.io/application/pkg/apis/app/v1beta1"
+	reconciler "sigs.k8s.io/application/pkg/genericreconciler"
+	kbc "sigs.k8s.io/application/pkg/kbcontroller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )

@@ -2,16 +2,16 @@
 FROM golang:1.10.3 as builder
 
 # Copy in the go src
-WORKDIR /go/src/github.com/kubernetes-sigs/application
+WORKDIR /go/src/sigs.k8s.io/application
 COPY pkg/    pkg/
 COPY cmd/    cmd/
 COPY vendor/ vendor/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kubernetes-sigs/application/cmd/manager
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager sigs.k8s.io/application/cmd/manager
 
 # Copy the controller-manager into a thin image
 FROM ubuntu:latest
 WORKDIR /root/
-COPY --from=builder /go/src/github.com/kubernetes-sigs/application/manager .
+COPY --from=builder /go/src/sigs.k8s.io/application/manager .
 ENTRYPOINT ["./manager"]

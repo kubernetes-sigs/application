@@ -22,19 +22,17 @@ import (
 	"path"
 	"testing"
 
-	"github.com/kubernetes-sigs/application/pkg/apis"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/kubernetes-sigs/application/e2e/testutil"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/application/e2e/testutil"
+	"sigs.k8s.io/application/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
