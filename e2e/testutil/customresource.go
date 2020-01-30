@@ -54,13 +54,22 @@ func CreateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceD
 
 func WaitForCRDOrDie(kubeClient apiextcs.Interface, name string) error {
 	err := wait.PollImmediate(2*time.Second, 20*time.Second, func() (bool, error) {
-		_, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
+		crd, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
-		return true, nil
+		return establishedCondition(crd.Status.Conditions), nil
 	})
 	return err
+}
+
+func establishedCondition(conditions []apiextensions.CustomResourceDefinitionCondition) bool {
+	for _, condition := range conditions {
+		if condition.Type == apiextensions.Established && condition.Status == apiextensions.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }
 
 func DeleteCRD(kubeClient apiextcs.Interface, crdName string) error {
