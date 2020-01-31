@@ -182,7 +182,7 @@ The application CRD can be used both via manifests and programmatically.
 
 ### Manifests
 
-The docs directory contains a [manifest](docs/example.yaml) that shows how to you can integrate the Application CRD
+The docs directory contains a [manifest](docs/examples/example.yaml) that shows how to you can integrate the Application CRD
 with a WordPress deployment.
 
 The Application object shown below declares that the Application is a WordPress installation that uses StatefulSets

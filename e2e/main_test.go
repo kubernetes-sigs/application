@@ -31,8 +31,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	appv1beta1 "sigs.k8s.io/application/api/v1beta1"
 	"sigs.k8s.io/application/e2e/testutil"
-	"sigs.k8s.io/application/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -55,13 +55,13 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 }
 
 const (
-	crdPath         = "../config/crds/app.k8s.io_applications.yaml"
+	crdPath         = "../config/crd/bases/app.k8s.io_applications.yaml"
 	applicationPath = "../config/samples/app_v1beta1_application.yaml"
 )
 
 var _ = Describe("Application CRD should install correctly", func() {
 	s := scheme.Scheme
-	apis.AddToScheme(s)
+	appv1beta1.AddToScheme(s)
 
 	crd, err := testutil.ParseCRDYaml(crdPath)
 	if err != nil {

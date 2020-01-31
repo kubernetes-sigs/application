@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Build the manager binary on golang image
-FROM registry.hub.docker.com/library/golang:1.12.9 as builder
+# Build the manager binary
+FROM golang:1.13 as builder
+# Copy in the go src
 WORKDIR /workspace
 
 # Run this with docker build --build_arg $(go env GOPROXY) to override the goproxy
@@ -27,17 +28,19 @@ COPY go.sum go.sum
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-# Copy the sources
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+# Copy the go source
+COPY main.go main.go
+COPY api/ api/
+COPY controllers/ controllers/
 
 # Build
 ARG ARCH
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} GO111MODULE=on \
     go build -a -ldflags '-extldflags "-static"' \
-    -o manager ./cmd/manager/main.go
+    -o manager main.go
 
-# Copy the controller-manager into a thin image
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY --from=builder /workspace/manager .

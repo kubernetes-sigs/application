@@ -1,0 +1,20 @@
+# permissions to do viewer applications.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: application-viewer-role
+rules:
+- apiGroups:
+  - app.k8s.io
+  resources:
+  - applications
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - app.k8s.io
+  resources:
+  - applications/status
+  verbs:
+  - get
