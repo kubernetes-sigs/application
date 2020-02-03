@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/go-logr/logr v0.1.0
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff // indirect
+	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1

@@ -17,8 +17,6 @@ limitations under the License.
 package v1beta1
 
 import (
-	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -59,23 +57,8 @@ func TestStorageApplication(t *testing.T) {
 	g.Expect(c.Get(context.TODO(), key, fetched)).To(gomega.HaveOccurred())
 
 	// Test stripVersion()
-	g.Expect(stripVersion("")).To(gomega.Equal(""))
-	g.Expect(stripVersion("v1beta1")).To(gomega.Equal(""))
-	g.Expect(stripVersion("apps/v1")).To(gomega.Equal("apps"))
-	g.Expect(stripVersion("apps/v1alpha2")).To(gomega.Equal("apps"))
-}
-
-// Strip the version part of gv
-func stripVersion(gv string) string {
-	if gv == "" {
-		return gv
-	}
-
-	re := regexp.MustCompile(`^[vV][0-9].*`)
-	// If it begins with only version, (group is nil), return empty string which maps to core group
-	if re.MatchString(gv) {
-		return ""
-	}
-
-	return strings.Split(gv, "/")[0]
+	g.Expect(StripVersion("")).To(gomega.Equal(""))
+	g.Expect(StripVersion("v1beta1")).To(gomega.Equal(""))
+	g.Expect(StripVersion("apps/v1")).To(gomega.Equal("apps"))
+	g.Expect(StripVersion("apps/v1alpha2")).To(gomega.Equal("apps"))
 }

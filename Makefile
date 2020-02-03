@@ -107,6 +107,7 @@ uninstall: $(KUSTOMIZE)
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: $(KUSTOMIZE)
+	cd config/manager && ../../$(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -133,8 +134,8 @@ undeploy-wordpress: $(KUSTOMIZE)
 .PHONY: manifests
 manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
-	  $(CRD_OPTIONS) \
-	  rbac:roleName=manager-role \
+		$(CRD_OPTIONS) \
+		rbac:roleName=manager-role \
 		paths=./... \
 		output:crd:artifacts:config=$(CRD_ROOT) \
 		output:crd:dir=$(CRD_ROOT) \
@@ -158,10 +159,10 @@ generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) $(KUBEBUILDER) $(KUS
 ## --------------------------------------
 
 .PHONY: docker-build
-docker-build: test ## Build the docker image for controller-manager
+docker-build: test $(KUSTOMIZE) ## Build the docker image for controller-manager
 	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${CONTROLLER_IMG}-$(ARCH):$(TAG)"'@' ./config/manager/manager.yaml
+	cd config/manager && ../../$(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image

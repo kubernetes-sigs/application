@@ -17,6 +17,9 @@ limitations under the License.
 package v1beta1
 
 import (
+	"regexp"
+	"strings"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -320,4 +323,19 @@ type ApplicationList struct {
 
 func init() {
 	SchemeBuilder.Register(&Application{}, &ApplicationList{})
+}
+
+// Strip the version part of gv
+func StripVersion(gv string) string {
+	if gv == "" {
+		return gv
+	}
+
+	re := regexp.MustCompile(`^[vV][0-9].*`)
+	// If it begins with only version, (group is nil), return empty string which maps to core group
+	if re.MatchString(gv) {
+		return ""
+	}
+
+	return strings.Split(gv, "/")[0]
 }

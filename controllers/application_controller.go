@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -59,10 +58,7 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	var app appv1beta1.Application
 	err := r.Get(ctx, req.NamespacedName, &app)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-		return ctrl.Result{Requeue: true}, err
+		return ctrl.Result{}, err
 	}
 
 	// Application is in the process of being deleted, so no need to do anything.
@@ -70,17 +66,16 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, nil
 	}
 
-	newApplicationStatus := r.getNewApplicationStatus(ctx, &app)
+	resources, err := r.updateComponents(ctx, &app)
+	newApplicationStatus := r.getNewApplicationStatus(ctx, &app, resources, err)
 
 	if equality.Semantic.DeepEqual(newApplicationStatus, &app.Status) {
 		return ctrl.Result{}, nil
 	}
 
 	newApplicationStatus.ObservedGeneration = app.Generation
-	if err = r.updateApplicationStatus(ctx, req.NamespacedName, newApplicationStatus); err != nil {
-		return ctrl.Result{Requeue: true}, err
-	}
-	return ctrl.Result{}, nil
+	err = r.updateApplicationStatus(ctx, req.NamespacedName, newApplicationStatus)
+	return ctrl.Result{}, err
 }
 
 func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1beta1.Application) ([]*unstructured.Unstructured, error) {
@@ -99,10 +94,7 @@ func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1
 	return resources, nil
 }
 
-func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app *appv1beta1.Application) *appv1beta1.ApplicationStatus {
-
-	resources, err := r.updateComponents(ctx, app)
-
+func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app *appv1beta1.Application, resources []*unstructured.Unstructured, err error) *appv1beta1.ApplicationStatus {
 	objectStatuses := r.objectStatuses(ctx, resources)
 	aggReady := aggregateReady(objectStatuses)
 
@@ -132,7 +124,7 @@ func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context,
 	var resources []*unstructured.Unstructured
 	for _, gk := range groupKinds {
 		mapping, err := r.Mapper.RESTMapping(schema.GroupKind{
-			Group: gk.Group,
+			Group: appv1beta1.StripVersion(gk.Group),
 			Kind:  gk.Kind,
 		})
 		if err != nil {
