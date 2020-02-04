@@ -42,9 +42,9 @@ spec:
     spec:
       containers:
       - command:
-        - /root/manager
+        - /manager
         image: controller:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: manager
         env:
           - name: POD_NAMESPACE

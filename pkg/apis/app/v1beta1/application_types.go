@@ -89,7 +89,9 @@ type ApplicationSpec struct {
 	AddOwnerRef bool `json:"addOwnerRef,omitempty"`
 
 	// Info contains human readable key,value pairs for the Application.
-	Info []InfoItem `json:"info,omitempty"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
+	Info []InfoItem `json:"info,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 
 	// AssemblyPhase represents the current phase of the application's assembly.
 	// An empty value is equivalent to "Succeeded".

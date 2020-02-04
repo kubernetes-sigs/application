@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Adds namespace to all resources.
+# namespace: application-system
+
+# namePrefix: application-
+
+# Labels to add to all resources and selectors.
+commonLabels:
+    app.kubernetes.io/name: "wordpress-01"
+
+resources:
+- application.yaml
+- pv.yaml
+- mysql.yaml
+- webserver.yaml
+
+secretGenerator:
+- name: mysql-pass
+  type: Opaque
+  envs:
+  - secrets.txt

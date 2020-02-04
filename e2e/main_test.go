@@ -55,7 +55,7 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 }
 
 const (
-	crdPath         = "../config/crds/app_v1beta1_application.yaml"
+	crdPath         = "../config/crds/app.k8s.io_applications.yaml"
 	applicationPath = "../config/samples/app_v1beta1_application.yaml"
 )
 
