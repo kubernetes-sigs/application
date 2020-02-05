@@ -45,5 +45,4 @@ FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER nobody
-ENV NAMESPACE ""
-ENTRYPOINT ["/manager", "--namespace=${NAMESPACE}"]
+ENTRYPOINT ["/manager"]
