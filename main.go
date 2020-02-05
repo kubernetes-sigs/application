@@ -44,10 +44,10 @@ func init() {
 }
 
 func main() {
-        var namespace string
+	var namespace string
 	var metricsAddr string
 	var enableLeaderElection bool
-        flag.StringVar(&namespace, "namespace", "kubeflow", "Namespace within which CRD controller is running.")
+	flag.StringVar(&namespace, "namespace", "kubeflow", "Namespace within which CRD controller is running.")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
@@ -58,7 +58,7 @@ func main() {
 	}))
 
 	syncPeriod := 2 * time.Minute
-        if namespace == "" {
+	if namespace == "" {
 	    mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		    Scheme:             scheme,
 		    MetricsBindAddress: metricsAddr,
@@ -67,15 +67,15 @@ func main() {
 		    SyncPeriod:         &syncPeriod,
 	    })
 	} else {
-            mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-                    Scheme:             scheme,
-                    MetricsBindAddress: metricsAddr,
-                    LeaderElection:     enableLeaderElection,
-                    Port:               9443,
-                    SyncPeriod:         &syncPeriod,
-                    Namespace:          namespace,
-            })
-        }
+	    mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		    Scheme:             scheme,
+		    MetricsBindAddress: metricsAddr,
+		    LeaderElection:     enableLeaderElection,
+		    Port:               9443,
+		    SyncPeriod:         &syncPeriod,
+		    Namespace:          namespace,
+	    })
+	}
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
