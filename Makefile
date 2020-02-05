@@ -1,4 +1,7 @@
 
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true"
+
 # Define Docker related variables. Releases should modify and double check these vars.
 REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
 IMAGE_NAME ?= application-controller
@@ -26,7 +29,7 @@ KUSTOMIZE := $(TOOLS_BIN_DIR)/kustomize
 
 # Allow overriding manifest generation destination directory
 MANIFEST_ROOT ?= config
-CRD_ROOT ?= $(MANIFEST_ROOT)/crds
+CRD_ROOT ?= $(MANIFEST_ROOT)/crd/bases
 WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 COVER_FILE ?= cover.out
@@ -68,27 +71,27 @@ all: test manager
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./pkg/... ./cmd/... -coverprofile $(COVER_FILE)
+	go test -v ./api/... ./controllers/... -coverprofile $(COVER_FILE)
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager ./cmd/manager/main.go
+	go build -o bin/manager main.go
 
-# Run using the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet
-	go run ./cmd/manager/main.go
+# Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests
+	go run ./main.go
 
 # Debug using the configured Kubernetes cluster in ~/.kube/config
 debug: generate fmt vet
-	dlv debug cmd/manager/main.go
+	dlv debug ./main.go
 
 # Run go fmt against code
 fmt:
-	go fmt ./pkg/... ./cmd/...
+	go fmt ./api/... ./controllers/...
 
 # Run go vet against code
 vet:
-	go vet ./pkg/... ./cmd/...
+	go vet ./api/... ./controllers/...
 
 ## --------------------------------------
 ## Deploying
@@ -96,12 +99,16 @@ vet:
 
 # Install CRDs into a cluster
 install: $(KUSTOMIZE)
-	kubectl apply -k config/crds
+	kubectl apply -k config/crd
+
+# Uninstall CRDs from a cluster
+uninstall: $(KUSTOMIZE)
+	kubectl delete -k config/crd
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: $(KUSTOMIZE)
+	cd config/manager && ../../$(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
-
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
 undeploy: $(KUSTOMIZE)
@@ -110,12 +117,12 @@ undeploy: $(KUSTOMIZE)
 # Deploy wordpress
 deploy-wordpress: $(KUSTOMIZE)
 	mkdir -p /tmp/data1 /tmp/data2
-	$(KUSTOMIZE) build examples/wordpress | kubectl apply -f -
+	$(KUSTOMIZE) build docs/examples/wordpress | kubectl apply -f -
 
 
 # Uneploy wordpress
 undeploy-wordpress: $(KUSTOMIZE)
-	$(KUSTOMIZE) build examples/wordpress | kubectl delete -f -
+	$(KUSTOMIZE) build docs/examples/wordpress | kubectl delete -f -
 	# kubectl delete pvc --all
 	# sudo rm -fr /tmp/data1 /tmp/data2
 
@@ -127,8 +134,10 @@ undeploy-wordpress: $(KUSTOMIZE)
 .PHONY: manifests
 manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
-		paths=./pkg/apis/... \
-		crd:trivialVersions=true \
+		$(CRD_OPTIONS) \
+		rbac:roleName=manager-role \
+		paths=./... \
+		output:crd:artifacts:config=$(CRD_ROOT) \
 		output:crd:dir=$(CRD_ROOT) \
 		output:webhook:dir=$(WEBHOOK_ROOT) \
 		webhook
@@ -138,12 +147,11 @@ generate: ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) manifests
 
-# Generate code
 .PHONY: generate-go
 generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) $(KUBEBUILDER) $(KUSTOMIZE) ## Runs Go related generate targets
-	go generate ./pkg/... ./cmd/...
+	go generate ./api/... ./controllers/...
 	$(CONTROLLER_GEN) \
-		paths=./pkg/apis/app/v1beta1/... \
+		paths=./api/v1beta1/... \
 		object:headerFile=./hack/boilerplate.go.txt
 
 ## --------------------------------------
@@ -151,10 +159,10 @@ generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) $(KUBEBUILDER) $(KUS
 ## --------------------------------------
 
 .PHONY: docker-build
-docker-build: ## Build the docker image for controller-manager
+docker-build: test $(KUSTOMIZE) ## Build the docker image for controller-manager
 	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${CONTROLLER_IMG}-$(ARCH):$(TAG)"'@' ./config/default/manager_image_patch.yaml
+	cd config/manager && ../../$(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image

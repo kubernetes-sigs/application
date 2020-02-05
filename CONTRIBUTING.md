@@ -19,4 +19,4 @@ This project uses and is built with [kubebuilder](https://github.com/kubernetes-
 1. Make changes to the [Application CRD](pkg/apis/app/v1beta1/application_types.go).
 1. Add [tests](pkg/apis/app/v1beta1/application_types_test.go).
 1. Regenerate the generated code using `kubebuilder generate`.
-1. Update the [example](docs/example.yaml)
+1. Update the [example](docs/examples/example.yaml)
