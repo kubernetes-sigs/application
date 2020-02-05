@@ -47,7 +47,7 @@ func main() {
 	var namespace string
 	var metricsAddr string
 	var enableLeaderElection bool
-	flag.StringVar(&namespace, "namespace", "kubeflow", "Namespace within which CRD controller is running.")
+	flag.StringVar(&namespace, "namespace", "", "Namespace within which CRD controller is running.")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
