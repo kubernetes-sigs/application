@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/kubernetes-sigs/application.svg?branch=master)](https://travis-ci.org/kubernetes-sigs/application "Travis")
+[![Go Report Card](https://goreportcard.com/badge/sigs.k8s.io/application)](https://goreportcard.com/report/sigs.k8s.io/application)
+
 # Kubernetes Applications
 
 > Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
@@ -179,7 +182,7 @@ The application CRD can be used both via manifests and programmatically.
 
 ### Manifests
 
-The docs directory contains a [manifest](docs/example.yaml) that shows how to you can integrate the Application CRD
+The docs directory contains a [manifest](docs/examples/example.yaml) that shows how to you can integrate the Application CRD
 with a WordPress deployment.
 
 The Application object shown below declares that the Application is a WordPress installation that uses StatefulSets
@@ -200,8 +203,6 @@ spec:
   componentKinds:
     - group: core
       kind: Service
-    - group: apps
-      kind: Deployment
     - group: apps
       kind: StatefulSet
   assemblyPhase: "Pending"

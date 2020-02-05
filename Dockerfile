@@ -1,21 +1,49 @@
-# Build the manager binary
-FROM golang:1.10.3 as builder
+# Copyright 2019 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+# Build the manager binary
+FROM golang:1.13 as builder
 # Copy in the go src
-WORKDIR /go/src/github.com/kubernetes-sigs/application
-COPY pkg/    pkg/
-COPY cmd/    cmd/
-COPY vendor/ vendor/
+WORKDIR /workspace
+
+# Run this with docker build --build_arg $(go env GOPROXY) to override the goproxy
+ARG goproxy=https://proxy.golang.org
+ENV GOPROXY=$goproxy
+
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+# Cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
+
+# Copy the go source
+COPY main.go main.go
+COPY api/ api/
+COPY controllers/ controllers/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kubernetes-sigs/application/cmd/manager
+ARG ARCH
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} GO111MODULE=on \
+    go build -a -ldflags '-extldflags "-static"' \
+    -o manager main.go
 
-# Copy the controller-manager into a thin image
-FROM ubuntu:latest
-WORKDIR /root/
-COPY --from=builder /go/src/github.com/kubernetes-sigs/application/manager .
-
-# What namespace the manager controller will scan. By default it will scan all namesapces.
-# Specify a certain namespace if the controller run using a Role instead of a ClusterRole.
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/static:latest
+WORKDIR /
+COPY --from=builder /workspace/manager .
+USER nobody
 ENV NAMESPACE ""
-ENTRYPOINT ["./manager", "--namespace=${NAMESPACE}"]
+ENTRYPOINT ["/manager", "--namespace=${NAMESPACE}"]
