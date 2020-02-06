@@ -58,24 +58,14 @@ func main() {
 	}))
 
 	syncPeriod := 2 * time.Minute
-	if namespace == "" {
-	    mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		    Scheme:             scheme,
-		    MetricsBindAddress: metricsAddr,
-		    LeaderElection:     enableLeaderElection,
-		    Port:               9443,
-		    SyncPeriod:         &syncPeriod,
-	    })
-	} else {
-	    mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		    Scheme:             scheme,
-		    MetricsBindAddress: metricsAddr,
-		    LeaderElection:     enableLeaderElection,
-		    Port:               9443,
-		    SyncPeriod:         &syncPeriod,
-		    Namespace:          namespace,
-	    })
-	}
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:             scheme,
+		MetricsBindAddress: metricsAddr,
+		LeaderElection:     enableLeaderElection,
+		Port:               9443,
+		SyncPeriod:         &syncPeriod,
+		Namespace:          namespace,
+	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)

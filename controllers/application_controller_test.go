@@ -260,11 +260,11 @@ var _ = Describe("Application Reconciler", func() {
 		})
 
 		It("should update the application status, as well as the components' ownerReference", func() {
-			application := &appv1beta1.Application {
+			application := &appv1beta1.Application{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "application-01",
+					Name:      "application-01",
 					Namespace: metav1.NamespaceDefault,
-					Labels: labelSet1,
+					Labels:    labelSet1,
 				},
 				Spec: appv1beta1.ApplicationSpec{
 					Selector: &metav1.LabelSelector{MatchLabels: labelSet1},
@@ -306,7 +306,7 @@ var _ = Describe("Application Reconciler", func() {
 })
 
 func fetchUpdatedDeployment(ctx context.Context, deployment *apps.Deployment) {
-	key := types.NamespacedName {
+	key := types.NamespacedName{
 		Name:      deployment.Name,
 		Namespace: deployment.Namespace,
 	}
@@ -315,7 +315,7 @@ func fetchUpdatedDeployment(ctx context.Context, deployment *apps.Deployment) {
 }
 
 func fetchUpdatedService(ctx context.Context, service *core.Service) {
-	key := types.NamespacedName {
+	key := types.NamespacedName{
 		Name:      service.Name,
 		Namespace: service.Namespace,
 	}
@@ -324,7 +324,7 @@ func fetchUpdatedService(ctx context.Context, service *core.Service) {
 }
 
 func waitForComponentsAddedToStatus(ctx context.Context, app *appv1beta1.Application, expectedNames ...string) {
-	key := types.NamespacedName {
+	key := types.NamespacedName{
 		Name:      app.Name,
 		Namespace: app.Namespace,
 	}
