@@ -246,7 +246,7 @@ var _ = Describe("Application Reconciler", func() {
 			instance := &appv1beta1.Application{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}, Spec: appv1beta1.ApplicationSpec{}}
 
 			// Create the Application object and expect the Reconcile and Deployment to be created
-			err := c.Create(context.TODO(), instance)
+			err := c.Create(ctx, instance)
 			// The instance object may not be a valid object because it might be missing some required fields.
 			// Please modify the instance object by adding required fields and then remove the following if statement.
 			if apierrors.IsInvalid(err) {
@@ -254,7 +254,7 @@ var _ = Describe("Application Reconciler", func() {
 				return
 			}
 			Expect(err).NotTo(HaveOccurred())
-			defer c.Delete(context.TODO(), instance)
+			defer c.Delete(ctx, instance)
 			var expectedRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "foo", Namespace: "default"}}
 			Eventually(requests, timeout).Should(Receive(Equal(expectedRequest)))
 		})
@@ -284,7 +284,7 @@ var _ = Describe("Application Reconciler", func() {
 			Expect(deployment.OwnerReferences).To(BeNil())
 			Expect(service.OwnerReferences).To(BeNil())
 
-			err := c.Create(context.TODO(), application)
+			err := c.Create(ctx, application)
 			Expect(err).NotTo(HaveOccurred())
 			waitForComponentsAddedToStatus(ctx, application, deployment.Name, service.Name)
 

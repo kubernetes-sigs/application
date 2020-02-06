@@ -21,7 +21,7 @@ set -o pipefail
 source ./hack/scripts/common.sh
 
 
-K8S_VERSION="v1.16.2"
+K8S_VERSION="v1.16.4"
 
 fetch_kb_tools
 install_kind

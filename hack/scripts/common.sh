@@ -17,7 +17,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-k8s_version=1.11.0
+k8s_version=1.16.4
 goarch=amd64
 goos="unknown"
 tmp_root=/tmp
