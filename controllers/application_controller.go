@@ -139,7 +139,8 @@ func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context,
 		}
 
 		for _, u := range list.Items {
-			resources = append(resources, &u)
+			resource := u
+			resources = append(resources, &resource)
 		}
 	}
 	return resources, nil
