@@ -159,11 +159,11 @@ The controller doesn't do much at the moment. However, if you'd like to build an
 golang 1.9 or greater. To build the controller into an image named ```image``` use the following command.
 
 ```commandline
-make docker-build IMG=<image>
-make docker-push IMG=<image>
+make docker-build CONTROLLER_IMG=<image>
+make docker-push CONTROLLER_IMG=<image>
 ```
 
-## Installing the CRD
+## Installing the CRD together with the controller
 
 To install the crd and the controller, just run:
 
@@ -175,6 +175,11 @@ This will install the controller into the application-system namespace and with 
 
 There is also a sample Application CR in the config/samples folder.
 
+
+## Installing the CRD only
+```commandline
+$ make install
+```
 
 ## Using the Application CRD
 
@@ -201,7 +206,7 @@ spec:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
   componentKinds:
-    - group: core
+    - group: ""
       kind: Service
     - group: apps
       kind: StatefulSet
