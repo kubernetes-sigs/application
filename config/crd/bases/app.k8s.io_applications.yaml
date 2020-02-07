@@ -263,6 +263,9 @@ spec:
                           path:
                             description: The optional HTTP path.
                             type: string
+                          protocol:
+                            description: Protocol for the ingress
+                            type: string
                           resourceVersion:
                             description: 'Specific resourceVersion to which this reference
                               is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
@@ -347,6 +350,9 @@ spec:
                             description: The optional port to select.
                             format: int32
                             type: integer
+                          protocol:
+                            description: Protocol for the service
+                            type: string
                           resourceVersion:
                             description: 'Specific resourceVersion to which this reference
                               is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
