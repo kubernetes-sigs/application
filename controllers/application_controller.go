@@ -22,6 +22,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/equality"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -58,6 +59,9 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	var app appv1beta1.Application
 	err := r.Get(ctx, req.NamespacedName, &app)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
 		return ctrl.Result{}, err
 	}
 
