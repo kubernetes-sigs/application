@@ -10,7 +10,7 @@ spec:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
   componentKinds:
-    - group: core
+    - group: ""
       kind: Service
     - group: apps
       kind: StatefulSet
@@ -29,6 +29,7 @@ spec:
   owners:
     - name: Kenneth Owens
       email: kow3ns@github.com
+  addOwnerRef: true
   keywords:
    - "cms"
    - "blog"
