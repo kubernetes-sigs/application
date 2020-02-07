@@ -69,11 +69,11 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	resources, err := r.updateComponents(ctx, &app)
 	newApplicationStatus := r.getNewApplicationStatus(ctx, &app, resources, err)
 
+	newApplicationStatus.ObservedGeneration = app.Generation
 	if equality.Semantic.DeepEqual(newApplicationStatus, &app.Status) {
 		return ctrl.Result{}, nil
 	}
 
-	newApplicationStatus.ObservedGeneration = app.Generation
 	err = r.updateApplicationStatus(ctx, req.NamespacedName, newApplicationStatus)
 	return ctrl.Result{}, err
 }
@@ -215,7 +215,7 @@ func (r *ApplicationReconciler) updateApplicationStatus(ctx context.Context, nn 
 			return err
 		}
 		original.Status = *status
-		if err := r.Update(ctx, original); err != nil {
+		if err := r.Client.Status().Update(ctx, original); err != nil {
 			return err
 		}
 		return nil

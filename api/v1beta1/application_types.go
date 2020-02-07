@@ -302,6 +302,7 @@ const (
 )
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // Application is the Schema for the applications API
 type Application struct {
