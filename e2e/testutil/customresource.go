@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
+// CreateCRD - create application CRD
 func CreateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceDefinition) error {
 
 	_, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
@@ -52,6 +53,7 @@ func CreateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceD
 	return nil
 }
 
+// WaitForCRDOrDie - wait for CRD conditions to be set
 func WaitForCRDOrDie(kubeClient apiextcs.Interface, name string) error {
 	err := wait.PollImmediate(2*time.Second, 20*time.Second, func() (bool, error) {
 		crd, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
@@ -72,14 +74,13 @@ func establishedCondition(conditions []apiextensions.CustomResourceDefinitionCon
 	return false
 }
 
+// DeleteCRD - Delete CRD from cluster
 func DeleteCRD(kubeClient apiextcs.Interface, crdName string) error {
-	if err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crdName, &metav1.DeleteOptions{}); err != nil {
-		return err
-	}
-
-	return nil
+	err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crdName, &metav1.DeleteOptions{})
+	return err
 }
 
+// ParseCRDYaml - load crd from file
 func ParseCRDYaml(relativePath string) (*apiextensions.CustomResourceDefinition, error) {
 	var manifest *os.File
 	var err error
@@ -101,7 +102,7 @@ func ParseCRDYaml(relativePath string) (*apiextensions.CustomResourceDefinition,
 		if out.GetKind() == "CustomResourceDefinition" {
 			var marshaled []byte
 			marshaled, err = out.MarshalJSON()
-			json.Unmarshal(marshaled, &crd)
+			_ = json.Unmarshal(marshaled, &crd)
 			break
 		}
 	}

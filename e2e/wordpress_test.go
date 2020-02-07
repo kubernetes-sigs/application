@@ -61,7 +61,7 @@ func getClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 
 var _ = Describe("Application status should be updated", func() {
 	s := scheme.Scheme
-	appv1beta1.AddToScheme(s)
+	_ = appv1beta1.AddToScheme(s)
 
 	config, err := clientConfig()
 	if err != nil {
@@ -101,7 +101,7 @@ var _ = Describe("Application status should be updated", func() {
 
 func validateComponentOwnerReferences(kubeClient client.Client, list *unstructured.UnstructuredList, matchedingLabels map[string]string) {
 	componentsUpdated := false
-	wait.PollImmediate(time.Second, time.Second * 30, func() (bool, error) {
+	_ = wait.PollImmediate(time.Second, time.Second*30, func() (bool, error) {
 
 		if err := kubeClient.List(context.TODO(), list, client.InNamespace(metav1.NamespaceDefault), client.MatchingLabels(matchedingLabels)); err != nil {
 			return false, err
@@ -120,7 +120,7 @@ func validateComponentOwnerReferences(kubeClient client.Client, list *unstructur
 }
 
 func waitForApplicationStatusUpdated(kubeClient client.Client, key client.ObjectKey, app *appv1beta1.Application) {
-	wait.PollImmediate(time.Second, time.Second * 30, func() (bool, error) {
+	_ = wait.PollImmediate(time.Second, time.Second*30, func() (bool, error) {
 		if err := kubeClient.Get(context.TODO(), key, app); err != nil {
 			return false, err
 		}

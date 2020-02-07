@@ -61,7 +61,7 @@ const (
 
 var _ = Describe("Application CRD should install correctly", func() {
 	s := scheme.Scheme
-	appv1beta1.AddToScheme(s)
+	_ = appv1beta1.AddToScheme(s)
 
 	crd, err := testutil.ParseCRDYaml(crdPath)
 	if err != nil {
