@@ -6,6 +6,7 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/mock v1.3.1 // indirect
+	github.com/google/addlicense v0.0.0-20200109101052-9fa18aaf59fb // indirect
 	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
