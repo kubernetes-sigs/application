@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// CreateApplication -  create application object
 func CreateApplication(kubeClient client.Client, ns string, relativePath string) error {
 	app, err := parseApplicationYaml(relativePath)
 	if err != nil {
@@ -62,6 +63,7 @@ func CreateApplication(kubeClient client.Client, ns string, relativePath string)
 	return nil
 }
 
+// DeleteApplication - delete application object
 func DeleteApplication(kubeClient client.Client, ns string, relativePath string) error {
 	app, err := parseApplicationYaml(relativePath)
 	if err != nil {
@@ -102,7 +104,7 @@ func parseApplicationYaml(relativePath string) (*applicationsv1beta1.Application
 		if out.GetKind() == "Application" {
 			var marshaled []byte
 			marshaled, err = out.MarshalJSON()
-			json.Unmarshal(marshaled, &app)
+			_ = json.Unmarshal(marshaled, &app)
 			break
 		}
 	}

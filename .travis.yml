@@ -1,3 +1,6 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
 language: go
 
 os:
@@ -10,9 +13,7 @@ go:
 git:
   depth: 3
 
-go_import_path: github.com/kubernetes-sigs/application
-# TODO: switch to below when https://github.com/kubernetes-sigs/application/pull/133 is merged
-#go_import_path: sigs.k8s.io/application
+go_import_path: sigs.k8s.io/application
 
 # Install must be set to prevent default `go get` to run.
 # The dependencies have already been vendored by `dep` so
@@ -24,8 +25,11 @@ script:
 # enable golangci-lint check when the code is migrated to kubebuilder v2.0, which is a simplified version
 #- curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.21.0
 #- golangci-lint run --enable=gofmt --enable=goimports --enable=unparam --enable=nakedret
-- ./hack/scripts/test.sh
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then PATH=$PATH:$(pwd) ./e2e/test_e2e.sh; fi
+
+# Ensure Build works and unit tests pass
+- make
+# Run e2e tests
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then make e2e-test; fi
 
 # TBD. Suppressing for now.
 notifications:

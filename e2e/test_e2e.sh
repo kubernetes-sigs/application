@@ -18,38 +18,17 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source ./hack/scripts/common.sh
-
-
 K8S_VERSION="v1.16.4"
 
-fetch_kb_tools
-install_kind
-setup_envs
-
-export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
-# You can use --image flag to specify the cluster version you want, e.g --image=kindest/node:v1.13.6, the supported version are listed at https://hub.docker.com/r/kindest/node/tags
-kind create cluster -v 4 --retain --wait=1m --config e2e/kind-config.yaml --image=kindest/node:$K8S_VERSION
+export KUBECONFIG="$(${BIN}/kind get kubeconfig-path --name="kind")"
+# image supported version are listed at https://hub.docker.com/r/kindest/node/tags
+${BIN}/kind create cluster -v 4 --retain --wait=1m --config e2e/kind-config.yaml --image=kindest/node:$K8S_VERSION
 
 # remove running containers on exit
 function cleanup() {
-#    make undeploy-wordpress
-#    make undeploy
-    kind delete cluster
+    ${BIN}/kind delete cluster
 }
 
 trap cleanup EXIT
 
 go test -v ./e2e/main_test.go
-
-# test the wordpress example
-# Disable E2E test for the wordpress example because the controller image is not available to the travis build
-
-#export REGISTRY="gcr.io/application-crd"
-#export TAG="travis-build"
-#make docker-build -o test
-#make docker-push
-#make deploy
-#make deploy-wordpress
-
-#go test -v ./e2e/wordpress_test.go

@@ -183,7 +183,7 @@ var _ = Describe("Application Reconciler", func() {
 		var key types.NamespacedName
 		var resources []*unstructured.Unstructured
 		var uid types.UID = "old-uid"
-		var newUid types.UID = "new-uid"
+		var newUID types.UID = "new-uid"
 		var ownerRef = metav1.OwnerReference{
 			APIVersion: "app.k8s.io/v1beta1",
 			Kind:       "Application",
@@ -216,27 +216,27 @@ var _ = Describe("Application Reconciler", func() {
 			Expect(resource.GetOwnerReferences()).To(HaveLen(1))
 			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(uid))
 
-			ownerRef.UID = newUid
+			ownerRef.UID = newUID
 			err = applicationReconciler.setOwnerRefForResources(ctx, ownerRef, resources)
 			Expect(err).NotTo(HaveOccurred())
 			err = c.Get(ctx, key, resource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resource.GetOwnerReferences()).To(HaveLen(1))
-			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUid))
+			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUID))
 		})
 
 		It("should NOT update identical ownerReference", func() {
 			err := c.Get(ctx, key, resource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resource.GetOwnerReferences()).To(HaveLen(1))
-			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUid))
+			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUID))
 
 			err = applicationReconciler.setOwnerRefForResources(ctx, ownerRef, resources)
 			Expect(err).NotTo(HaveOccurred())
 			err = c.Get(ctx, key, resource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resource.GetOwnerReferences()).To(HaveLen(1))
-			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUid))
+			Expect(resource.GetOwnerReferences()[0].UID).To(Equal(newUID))
 		})
 	})
 
@@ -254,7 +254,9 @@ var _ = Describe("Application Reconciler", func() {
 				return
 			}
 			Expect(err).NotTo(HaveOccurred())
-			defer c.Delete(ctx, instance)
+			defer func() {
+				_ = c.Delete(ctx, instance)
+			}()
 			var expectedRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "foo", Namespace: "default"}}
 			Eventually(requests, timeout).Should(Receive(Equal(expectedRequest)))
 		})
@@ -288,7 +290,7 @@ var _ = Describe("Application Reconciler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			waitForComponentsAddedToStatus(ctx, application, deployment.Name, service.Name)
 
-			wait.PollImmediate(time.Second, timeout, func() (bool, error) {
+			_ = wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 				fetchUpdatedDeployment(ctx, deployment)
 				fetchUpdatedService(ctx, service)
 				if len(deployment.OwnerReferences) == 1 && len(service.OwnerReferences) == 1 {
@@ -328,7 +330,7 @@ func waitForComponentsAddedToStatus(ctx context.Context, app *appv1beta1.Applica
 		Name:      app.Name,
 		Namespace: app.Namespace,
 	}
-	wait.PollImmediate(time.Second, timeout, func() (bool, error) {
+	_ = wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		names, err := applicationStatusComponentNames(ctx, app, key)
 		if err != nil {
 			return false, err
@@ -354,7 +356,7 @@ func applicationStatusComponentNames(ctx context.Context, app *appv1beta1.Applic
 }
 
 func componentKinds(list []*unstructured.Unstructured) []string {
-	var kinds []string = nil
+	var kinds []string
 	for _, l := range list {
 		kinds = append(kinds, l.GetKind())
 	}

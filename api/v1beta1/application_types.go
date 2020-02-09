@@ -284,7 +284,7 @@ type IngressSelector struct {
 	Path string `json:"path,omitempty"`
 }
 
-// ApplicationAssemblyPhase tracks the Application CRD phases: pending, succeded, failed
+// ApplicationAssemblyPhase tracks the Application CRD phases: pending, succeeded, failed
 type ApplicationAssemblyPhase string
 
 // Constants
@@ -326,7 +326,7 @@ func init() {
 	SchemeBuilder.Register(&Application{}, &ApplicationList{})
 }
 
-// Strip the version part of gv
+// StripVersion the version part of gv
 func StripVersion(gv string) string {
 	if gv == "" {
 		return gv

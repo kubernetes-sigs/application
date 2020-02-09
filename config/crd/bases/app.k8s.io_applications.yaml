@@ -473,8 +473,6 @@ spec:
               format: int64
               type: integer
           type: object
-      required:
-      - spec
       type: object
   version: v1beta1
   versions:
