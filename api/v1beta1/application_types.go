@@ -272,6 +272,8 @@ type ServiceSelector struct {
 	Port *int32 `json:"port,omitempty"`
 	// The optional HTTP path.
 	Path string `json:"path,omitempty"`
+	// Protocol for the service
+	Protocol string `json:"protocol,omitempty"`
 }
 
 // IngressSelector selects an Ingress.
@@ -282,6 +284,8 @@ type IngressSelector struct {
 	Host string `json:"host,omitempty"`
 	// The optional HTTP path.
 	Path string `json:"path,omitempty"`
+	// Protocol for the ingress
+	Protocol string `json:"protocol,omitempty"`
 }
 
 // ApplicationAssemblyPhase tracks the Application CRD phases: pending, succeeded, failed
