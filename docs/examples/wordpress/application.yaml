@@ -13,7 +13,7 @@ spec:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
   componentKinds:
-    - group: ""
+    - group: v1
       kind: Service
     - group: apps
       kind: StatefulSet

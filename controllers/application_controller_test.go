@@ -112,15 +112,15 @@ var _ = Describe("Application Reconciler", func() {
 					Kind:  "Job",
 				},
 				{
-					Group: "", // NOTICE: The group of Service should be empty, instead of "core"
+					Group: "v1",
 					Kind:  "Service",
 				},
 				{
-					Group: "", // NOTICE: The group of PVC should be empty, instead of "core"
+					Group: "v1",
 					Kind:  "PersistentVolumeClaim",
 				},
 				{
-					Group: "", // NOTICE: The group of Pod should be empty, instead of "core"
+					Group: "v1",
 					Kind:  "Pod",
 				},
 				{
@@ -263,7 +263,7 @@ var _ = Describe("Application Reconciler", func() {
 							Kind:  "Deployment",
 						},
 						{
-							Group: "", // NOTICE: The group of Service should be empty, instead of "core"
+							Group: "v1",
 							Kind:  "Service",
 						},
 					},
