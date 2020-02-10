@@ -73,7 +73,7 @@ var _ = Describe("Application status should be updated", func() {
 
 		list := &unstructured.UnstructuredList{}
 		list.SetGroupVersionKind(schema.GroupVersionKind{
-			Group: "",
+			Group: "v1",
 			Kind:  "Service",
 		})
 		validateComponentOwnerReferences(kubeClient, list, matchingLabels)
