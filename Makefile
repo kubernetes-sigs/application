@@ -29,7 +29,7 @@ COVER_FILE ?= cover.out
 
 .DEFAULT_GOAL := all
 .PHONY: all
-all: generate license fix vet fmt manifests test lint misspell tidy bin/manager
+all: generate fix vet fmt manifests license test lint misspell tidy bin/manager
 
 ## --------------------------------------
 ## Tooling Binaries

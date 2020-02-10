@@ -23,8 +23,10 @@ import (
 	appv1beta1 "sigs.k8s.io/application/api/v1beta1"
 )
 
+type keyString string
+
 const (
-	loggerCtxKey = "logger"
+	loggerCtxKey keyString = "logger"
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -38,6 +40,7 @@ type ApplicationReconciler struct {
 // +kubebuilder:rbac:groups=app.k8s.io,resources=applications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.k8s.io,resources=applications/status,verbs=get;update;patch
 
+// Reconcile - main entry
 func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	rootCtx := context.Background()
 	logger := r.Log.WithValues("application", req.NamespacedName)
@@ -206,16 +209,15 @@ func (r *ApplicationReconciler) updateApplicationStatus(ctx context.Context, nn 
 			return err
 		}
 		original.Status = *status
-		if err := r.Client.Status().Update(ctx, original); err != nil {
-			return err
-		}
-		return nil
+		err := r.Client.Status().Update(ctx, original)
+		return err
 	}); err != nil {
 		return fmt.Errorf("failed to update status of Application %s/%s: %v", nn.Namespace, nn.Name, err)
 	}
 	return nil
 }
 
+// SetupWithManager - create controller with manager
 func (r *ApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1beta1.Application{}).
