@@ -4,16 +4,26 @@
 package main
 
 import (
+	"bytes"
+	"context"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
@@ -46,7 +56,7 @@ const (
 	applicationPath = "../config/samples/app_v1beta1_application.yaml"
 )
 
-var _ = Describe("Application CRD should install correctly", func() {
+var _ = Describe("Application CRD e2e", func() {
 	s := scheme.Scheme
 	_ = appv1beta1.AddToScheme(s)
 
@@ -64,6 +74,12 @@ var _ = Describe("Application CRD should install correctly", func() {
 	if err != nil {
 		log.Fatal("Unable to construct extensions client", err)
 	}
+
+	var managerStdout bytes.Buffer
+	var managerStderr bytes.Buffer
+	managerCmd := exec.Command("../bin/manager", "--sync-period", "30")
+	managerCmd.Stdout = &managerStdout
+	managerCmd.Stderr = &managerStderr
 
 	It("should create CRD", func() {
 		err = testutil.CreateCRD(extClient, crd)
@@ -84,8 +100,128 @@ var _ = Describe("Application CRD should install correctly", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should start the controller", func() {
+		err = managerCmd.Start()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should create the wordpress application", func() {
+		err = applyKustomize("../docs/examples/wordpress")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should update application status", func() {
+		kubeClient := getKubeClientOrDie(config, s)
+		application := &appv1beta1.Application{}
+		objectKey := types.NamespacedName{
+			Namespace: metav1.NamespaceDefault,
+			Name:      "wordpress-01",
+		}
+		waitForApplicationStatusUpdated(kubeClient, objectKey, application)
+		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 5))
+		Expect(application.Status.ComponentList.Objects).To(HaveLen(5))
+	})
+
+	It("should add ownerReference to components", func() {
+		kubeClient := getKubeClientOrDie(config, s)
+		matchingLabels := map[string]string{"app.kubernetes.io/name": "wordpress-01"}
+
+		list := &unstructured.UnstructuredList{}
+		list.SetGroupVersionKind(schema.GroupVersionKind{
+			Group: "",
+			Kind:  "Service",
+		})
+		validateComponentOwnerReferences(kubeClient, list, matchingLabels)
+
+		list.SetGroupVersionKind(schema.GroupVersionKind{
+			Group: "apps",
+			Kind:  "StatefulSet",
+		})
+		validateComponentOwnerReferences(kubeClient, list, matchingLabels)
+	})
+
+	It("should stop the controller", func() {
+		err = managerCmd.Process.Signal(os.Interrupt)
+		_, _ = io.Copy(os.Stderr, &managerStderr)
+		_, _ = io.Copy(os.Stdout, &managerStdout)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("should delete application CRD", func() {
 		err = testutil.DeleteCRD(extClient, crd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
+
+func validateComponentOwnerReferences(kubeClient client.Client, list *unstructured.UnstructuredList, matchedingLabels map[string]string) {
+	componentsUpdated := false
+	_ = wait.PollImmediate(time.Second, time.Second*30, func() (bool, error) {
+
+		if err := kubeClient.List(context.TODO(), list, client.InNamespace(metav1.NamespaceDefault), client.MatchingLabels(matchedingLabels)); err != nil {
+			return false, err
+		}
+
+		updated := true
+		for _, item := range list.Items {
+			if item.GetOwnerReferences() == nil || len(item.GetOwnerReferences()) < 1 || item.GetOwnerReferences()[0].Name != "wordpress-01" {
+				updated = false
+			}
+		}
+		componentsUpdated = updated
+		return updated, nil
+	})
+	Expect(componentsUpdated).To(BeTrue())
+}
+
+func waitForApplicationStatusUpdated(kubeClient client.Client, key client.ObjectKey, app *appv1beta1.Application) {
+	_ = wait.PollImmediate(time.Second, time.Second*180, func() (bool, error) {
+		if err := kubeClient.Get(context.TODO(), key, app); err != nil {
+			return false, err
+		}
+
+		if app.Status.ComponentList.Objects != nil && len(app.Status.ComponentList.Objects) == 5 && app.Status.Conditions != nil {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
+func applyKustomize(path string) error {
+	var err error
+	var kubectlOP bytes.Buffer
+	var kubectlError bytes.Buffer
+	var kustError bytes.Buffer
+
+	kustomize := exec.Command("../hack/tools/bin/kustomize", "build", path)
+	kubectl := exec.Command("../hack/tools/bin/kubectl", "apply", "-f", "-")
+
+	r, w := io.Pipe()
+	kustomize.Stdout = w
+	kustomize.Stderr = &kustError
+	kubectl.Stdin = r
+	kubectl.Stderr = &kubectlError
+	kubectl.Stdout = &kubectlOP
+
+	err = kustomize.Start()
+	if err != nil {
+		return err
+	}
+	err = kubectl.Start()
+	if err != nil {
+		return err
+	}
+	err = kustomize.Wait()
+	if err != nil {
+		_, _ = io.Copy(os.Stdout, &kustError)
+		return err
+	}
+	w.Close()
+	err = kubectl.Wait()
+	if err != nil {
+		_, _ = io.Copy(os.Stdout, &kubectlError)
+		return err
+	}
+	_, _ = io.Copy(os.Stdout, &kubectlOP)
+
+	return nil
+}

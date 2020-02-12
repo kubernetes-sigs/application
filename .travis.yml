@@ -21,11 +21,19 @@ go_import_path: sigs.k8s.io/application
 install:
 -
 
+before_script:
+# create Kind cluster
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then make e2e-setup; fi
+
 script:
 # Ensure Build works and unit tests pass
 - make
 # Run e2e tests
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then make e2e-test; fi
+
+after_script:
+# Delete Kind cluster
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then make e2e-cleanup; fi
 
 # TBD. Suppressing for now.
 notifications:

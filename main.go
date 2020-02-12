@@ -33,9 +33,11 @@ func init() {
 func main() {
 	var namespace string
 	var metricsAddr string
+	var syncPeriod int64
 	var enableLeaderElection bool
 	flag.StringVar(&namespace, "namespace", "", "Namespace within which CRD controller is running.")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.Int64Var(&syncPeriod, "sync-period", 120, "Sync every sync-period seconds.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
@@ -44,13 +46,13 @@ func main() {
 		o.Development = true
 	}))
 
-	syncPeriod := 2 * time.Minute
+	syncPeriodD := time.Duration(int64(time.Second) * syncPeriod)
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
 		Port:               9443,
-		SyncPeriod:         &syncPeriod,
+		SyncPeriod:         &syncPeriodD,
 		Namespace:          namespace,
 	})
 	if err != nil {
