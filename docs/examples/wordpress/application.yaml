@@ -27,11 +27,11 @@ spec:
       type: "image/png"
       size: "2000x680"
   maintainers:
-    - name: Kenneth Owens
-      email: kow3ns@github.com
+    - name: Wordpress Dev
+      email: dev@wordpress.org
   owners:
-    - name: Kenneth Owens
-      email: kow3ns@github.com
+    - name: Wordpress Admin
+      email: admin@wordpress.org
   addOwnerRef: true
   keywords:
    - "cms"
