@@ -21,6 +21,18 @@ spec:
   - group: test.crd.com
     kind: TestCRD
   addOwnerRef: true
+  descriptor:
+    type: "test"
+    keywords:
+    - "test"
+    version: "0.0.1"
+    description: "It is a simple E2E test app"
+    maintainers:
+    - name: Test Dev
+      email: dev@test.org
+    owners:
+    - name: Test Admin
+      email: admin@test.org
 ---
 apiVersion: apps/v1
 kind: Deployment
