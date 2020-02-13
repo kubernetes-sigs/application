@@ -155,11 +155,18 @@ make
 
 ### Controller
 
-The controller doesn't do much at the moment. However, if you'd like to build an image you'll need to install Docker and
-golang 1.9 or greater. To build the controller into an image named ```image``` use the following command.
+To build the controller into an image named `image` use the following command.
+
+NOTES:
+- Docker and golang 1.9 or greater need to be installer before building the image.
+- `CONTROLLER_IMG` is optional and the default value is `gcr.io/$(shell gcloud config get-value project)/application-controller`.
 
 ```commandline
 make docker-build CONTROLLER_IMG=<image>
+```
+
+To push the controller image, run:
+```commandline
 make docker-push CONTROLLER_IMG=<image>
 ```
 
@@ -168,10 +175,13 @@ make docker-push CONTROLLER_IMG=<image>
 To install the crd and the controller, just run:
 
 ```commandline
-make deploy
+make deploy CONTROLLER_IMG=<image>
 ```
 
-This will install the controller into the application-system namespace and with the default RBAC permissions.
+NOTES:
+- This will install the controller into the application-system namespace and with the default RBAC permissions.
+- It will also install the Application CRD.
+- If a docker image is not built before deploying the controller, run `make docker-build CONTROLLER_IMG=<image>` first.
 
 There is also a sample Application CR in the config/samples folder.
 
