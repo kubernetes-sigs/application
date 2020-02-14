@@ -2,21 +2,23 @@
 
 ## Sign the CLA
 
-Kubernetes projects require that you sign a Contributor License Agreement (CLA) before we can accept your pull requests.  Please see https://git.k8s.io/community/CLA.md for more info
+Kubernetes projects require that you sign a Contributor License Agreement (CLA) before we can accept your pull requests.
 
-## Contributing A Patch
+Please see https://git.k8s.io/community/CLA.md for more info
 
-1. Submit an issue describing your proposed change to the repo in question.
+## Contributing
+
+1. Submit an issue describing your proposed change
 1. The [repo owners](OWNERS) will respond to your issue promptly.
-1. If your proposed change is accepted, and you haven't already done so, sign a Contributor License Agreement (see details above).
-1. Fork the desired repo, develop and test your code changes.
+1. Develop and test your code changes.
 1. Submit a pull request.
 
-### Code Generation
+## CI Tests
 
-This project uses and is built with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder). Kubebuilder does generates some of the code. Prior to submitting a pull request please check that you are not altering generated code and check if you need to regenerated code due to your change.
+See [Travis](.travis.yml) file to check the travis tests. It is setup to run for all pull requests.
+In the Pull request check the CI job `continuous-integration/travis-ci/pr` and click on `Details`.
 
-1. Make changes to the [Application CRD](pkg/apis/app/v1beta1/application_types.go).
-1. Add [tests](pkg/apis/app/v1beta1/application_types_test.go).
-1. Regenerate the generated code using `kubebuilder generate`.
-1. Update the [example](docs/examples/example.yaml)
+## Changing API
+
+This project uses and is built with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder).
+To regenerate code after changes to the [Application CRD](pkg/apis/app/v1beta1/application_types.go), run `make generate`. Typically `make all` would take care of it. Make sure you add enough [tests](pkg/apis/app/v1beta1/application_types_test.go). Update the [example](docs/examples/example.yaml)
