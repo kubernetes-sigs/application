@@ -39,8 +39,33 @@ func status(u *unstructured.Unstructured) (string, error) {
 	case "PodDisruptionBudget.policy":
 		return pdbStatus(u)
 	default:
-		return StatusReady, nil
+		return statusFromStandardConditions(u)
 	}
+}
+
+// Status from standard conditions
+func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) {
+	condition := StatusReady
+
+	// Check Ready condition
+	_, cs, found, err := getConditionOfType(u, StatusReady)
+	if err != nil {
+		return "", err
+	}
+	if found && cs == corev1.ConditionFalse {
+		condition = StatusInProgress
+	}
+
+	// Check InProgress condition
+	_, cs, found, err = getConditionOfType(u, StatusInProgress)
+	if err != nil {
+		return "", err
+	}
+	if found && cs == corev1.ConditionTrue {
+		condition = StatusInProgress
+	}
+
+	return condition, nil
 }
 
 // Statefulset
