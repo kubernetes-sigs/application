@@ -15,10 +15,10 @@ These tools are installed with `make install-tools`:
 - mockgen
 - conversion-gen
 - kubebuilder
-- kustomize
+- [kustomize](https://github.com/kubernetes-sigs/kustomize)
 - addlicense
 - misspell
-- kind
+- [kind](https://github.com/kubernetes-sigs/kind)
 
 ### Cluster
 - Access to a Kubernetes v1.11.3+ cluster.
@@ -35,7 +35,7 @@ mkdir -p $GOPATH/src/sigs.k8s.io
 cd $GOPATH/src/sigs.k8s.io
 
 GITHUBID=<githubid>
-git clone git@github.com:${GITHUBID}/application.git $GOPATH/src/sigs.k8s.io/kubebuilder
+git clone git@github.com:${GITHUBID}/application.git $GOPATH/src/sigs.k8s.io/application
 ```
 
 ### Cluster access

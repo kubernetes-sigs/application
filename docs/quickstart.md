@@ -8,7 +8,7 @@ cd $GOPATH/src/sigs.k8s.io
 # fork https://github.com/kubernetes-sigs/application
 # clone
 GITHUBID=<githubid>
-git clone git@github.com:${GITHUBID}/application.git $GOPATH/src/sigs.k8s.io/kubebuilder
+git clone git@github.com:${GITHUBID}/application.git $GOPATH/src/sigs.k8s.io/application
 ```
 
 Run locally

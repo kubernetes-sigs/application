@@ -21,4 +21,4 @@ In the Pull request check the CI job `continuous-integration/travis-ci/pr` and c
 ## Changing API
 
 This project uses and is built with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder).
-To regenerate code after changes to the [Application CRD](pkg/apis/app/v1beta1/application_types.go), run `make generate`. Typically `make all` would take care of it. Make sure you add enough [tests](pkg/apis/app/v1beta1/application_types_test.go). Update the [example](docs/examples/example.yaml)
+To regenerate code after changes to the [Application CRD](api/v1beta1/application_types.go), run `make generate`. Typically `make all` would take care of it. Make sure you add enough [tests](api/v1beta1/application_types_test.go). Update the [example](docs/examples/example.yaml)
