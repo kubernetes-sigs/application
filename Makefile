@@ -8,12 +8,12 @@
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Releases should modify and double check these vars.
-REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
-IMAGE_NAME ?= application-controller
-CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-TAG ?= dev
 ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
+IMAGE_NAME ?= kubernetes-application-$(ARCH)
+TAG ?= dev
+REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 
 # Directories.
 TOOLS_DIR := $(shell pwd)/hack/tools
@@ -164,7 +164,7 @@ uninstall: $(TOOLBIN)/kustomize
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
 deploy: $(TOOLBIN)/kustomize
-	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 	$(TOOLBIN)/kustomize build config/default | kubectl apply -f -
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -220,13 +220,13 @@ generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/moc
 
 .PHONY: docker-build
 docker-build: test $(TOOLBIN)/kustomize ## Build the docker image for controller-manager
-	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)
 	@echo "updating kustomize image patch file for manager resource"
-	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
-	docker push $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	docker push $(CONTROLLER_IMG)
 
 .PHONY: clean
 clean:
