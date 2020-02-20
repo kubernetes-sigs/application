@@ -87,14 +87,13 @@ func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1
 
 func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app *appv1beta1.Application, resources []*unstructured.Unstructured, err error) *appv1beta1.ApplicationStatus {
 	objectStatuses := r.objectStatuses(ctx, resources)
-	aggReady := aggregateReady(objectStatuses)
+	aggReady, countReady := aggregateReady(objectStatuses)
 
 	newApplicationStatus := app.Status.DeepCopy()
-
 	newApplicationStatus.ComponentList = appv1beta1.ComponentList{
 		Objects: objectStatuses,
 	}
-
+	newApplicationStatus.ComponentsReady = fmt.Sprintf("%d/%d", countReady, len(objectStatuses))
 	if aggReady {
 		setReadyCondition(newApplicationStatus, "ComponentsReady", "all components ready")
 	} else {
@@ -190,13 +189,17 @@ func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []
 	return objectStatuses
 }
 
-func aggregateReady(objectStatuses []appv1beta1.ObjectStatus) bool {
+func aggregateReady(objectStatuses []appv1beta1.ObjectStatus) (bool, int) {
+	countReady := 0
 	for _, os := range objectStatuses {
-		if os.Status != StatusReady {
-			return false
+		if os.Status == StatusReady {
+			countReady++
 		}
 	}
-	return true
+	if countReady == len(objectStatuses) {
+		return true, countReady
+	}
+	return false, countReady
 }
 
 func (r *ApplicationReconciler) updateApplicationStatus(ctx context.Context, nn types.NamespacedName, status *appv1beta1.ApplicationStatus) error {

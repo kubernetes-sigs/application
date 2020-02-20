@@ -145,6 +145,9 @@ type ApplicationStatus struct {
 	// Resources embeds a list of object statuses
 	// +optional
 	ComponentList `json:",inline,omitempty"`
+	// ComponentsReady: status of the components in the format ready/total
+	// +optional
+	ComponentsReady string `json:"componentsReady,omitempty"`
 }
 
 // ImageSpec contains information about an image used as an icon.
@@ -293,7 +296,13 @@ const (
 )
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:categories=all,shortName=app
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Type",type=string,description="The type of the application",JSONPath=`.spec.descriptor.type`,priority=0
+// +kubebuilder:printcolumn:name="Version",type=string,description="The creation date",JSONPath=`.spec.descriptor.version`,priority=0
+// +kubebuilder:printcolumn:name="Owner",type=boolean,description="The application object owns the matched resources",JSONPath=`.spec.addOwnerRef`,priority=0
+// +kubebuilder:printcolumn:name="Ready",type=string,description="Numbers of components ready",JSONPath=`.status.componentsReady`,priority=0
+// +kubebuilder:printcolumn:name="Age",type=date,description="The creation date",JSONPath=`.metadata.creationTimestamp`,priority=0
 
 // Application is the Schema for the applications API
 type Application struct {
