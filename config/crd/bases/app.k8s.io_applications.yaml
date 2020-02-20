@@ -11,11 +11,36 @@ metadata:
   creationTimestamp: null
   name: applications.app.k8s.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.descriptor.type
+    description: The type of the application
+    name: Type
+    type: string
+  - JSONPath: .spec.descriptor.version
+    description: The creation date
+    name: Version
+    type: string
+  - JSONPath: .spec.addOwnerRef
+    description: The application object owns the matched resources
+    name: Owner
+    type: boolean
+  - JSONPath: .status.componentsReady
+    description: Numbers of components ready
+    name: Ready
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: The creation date
+    name: Age
+    type: date
   group: app.k8s.io
   names:
+    categories:
+    - all
     kind: Application
     listKind: ApplicationList
     plural: applications
+    shortNames:
+    - app
     singular: application
   scope: Namespaced
   subresources:
@@ -442,6 +467,10 @@ spec:
                     type: string
                 type: object
               type: array
+            componentsReady:
+              description: 'ComponentsReady: status of the components in the format
+                ready/total'
+              type: string
             conditions:
               description: Conditions represents the latest state of the object
               items:
