@@ -88,7 +88,7 @@ var _ = Describe("Application CRD e2e", func() {
 
 	var managerStdout bytes.Buffer
 	var managerStderr bytes.Buffer
-	managerCmd := exec.Command("../bin/manager", "--sync-period", syncPeriod)
+	managerCmd := exec.Command("../bin/kube-app-manager", "--sync-period", syncPeriod)
 	managerCmd.Stdout = &managerStdout
 	managerCmd.Stderr = &managerStderr
 
