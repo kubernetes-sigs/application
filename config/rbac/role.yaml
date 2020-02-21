@@ -10,6 +10,16 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - app.k8s.io
   resources:
   - applications
@@ -28,11 +38,4 @@ rules:
   verbs:
   - get
   - patch
-  - update
-- apiGroups:
-  - '*'
-  resources:
-  - '*'
-  verbs:
-  - list
   - update

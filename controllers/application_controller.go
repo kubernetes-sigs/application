@@ -37,6 +37,7 @@ type ApplicationReconciler struct {
 
 // +kubebuilder:rbac:groups=app.k8s.io,resources=applications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.k8s.io,resources=applications/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=*,resources=*,verbs=list;get;update;patch;watch
 
 func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	rootCtx := context.Background()
