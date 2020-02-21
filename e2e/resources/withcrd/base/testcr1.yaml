@@ -1,0 +1,9 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: test.crd.com/v1
+kind: TestCRD
+metadata:
+  name: cr1
+spec:
+  foo: bar

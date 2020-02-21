@@ -1,0 +1,10 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  data-1: value-1
+  data-2: value-2
