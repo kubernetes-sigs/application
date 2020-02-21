@@ -55,6 +55,7 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 
 const (
 	crdPath         = "../config/crd/bases/app.k8s.io_applications.yaml"
+	testCrdPath     = "resources/withcrd/test_crd.yaml"
 	applicationPath = "../config/samples/app_v1beta1_application.yaml"
 	waitTimeout     = time.Second * 120
 	pullPeriod      = time.Second * 2
@@ -68,6 +69,11 @@ var _ = Describe("Application CRD e2e", func() {
 	crd, err := testutil.ParseCRDYaml(crdPath)
 	if err != nil {
 		log.Fatal("Unable to parse CRD YAML", err)
+	}
+
+	testcrd, err := testutil.ParseCRDYaml(testCrdPath)
+	if err != nil {
+		log.Fatal("Unable to parse test CRD YAML", err)
 	}
 
 	config, err := getClientConfig()
@@ -90,6 +96,13 @@ var _ = Describe("Application CRD e2e", func() {
 		err = testutil.CreateCRD(extClient, crd)
 		Expect(err).NotTo(HaveOccurred())
 		err = testutil.WaitForCRDOrDie(extClient, crd.Name)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should create test CRD", func() {
+		err = testutil.CreateCRD(extClient, testcrd)
+		Expect(err).NotTo(HaveOccurred())
+		err = testutil.WaitForCRDOrDie(extClient, testcrd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -116,9 +129,7 @@ var _ = Describe("Application CRD e2e", func() {
 	})
 
 	It("should create the test application with custom resources", func() {
-		err = kubeApply("../docs/examples/test_app/test_crd.yaml")
-		Expect(err).NotTo(HaveOccurred())
-		err = kubeApply("../docs/examples/test_app/application.yaml")
+		err = applyKustomize("resources/withcrd/overlays/working")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -134,15 +145,16 @@ var _ = Describe("Application CRD e2e", func() {
 		Expect(application.Status.ComponentList.Objects).To(HaveLen(5))
 	})
 
-	It("should update test-application-01 status", func() {
+	It("should update ok-withcrd status", func() {
 		kubeClient := getKubeClientOrDie(config, s)
 		application := &appv1beta1.Application{}
 		objectKey := types.NamespacedName{
 			Namespace: metav1.NamespaceDefault,
-			Name:      "test-application-01",
+			Name:      "ok-withcrd",
 		}
 		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 7)
 		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 7))
+		Expect(application.Status.ComponentList.Objects).To(HaveLen(7))
 	})
 
 	It("should add ownerReference to components", func() {
@@ -171,17 +183,17 @@ var _ = Describe("Application CRD e2e", func() {
 	})
 
 	It("should mark the application not-ready if not all components are ready", func() {
-		err = kubeApply("app-with-bad-deployment.yaml")
+		err = applyKustomize("resources/withcrd/overlays/broken")
 		Expect(err).NotTo(HaveOccurred())
 
 		kubeClient := getKubeClientOrDie(config, s)
 		application := &appv1beta1.Application{}
 		objectKey := types.NamespacedName{
 			Namespace: metav1.NamespaceDefault,
-			Name:      "app-with-bad-deployment",
+			Name:      "nok-withcrd",
 		}
-		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 4)
-		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 4))
+		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 7)
+		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 7))
 		Expect(hasConditionTypeStatusAndReason(application.Status.Conditions, controllers.StatusReady, corev1.ConditionFalse, "ComponentsNotReady")).To(BeTrue())
 	})
 
@@ -194,6 +206,11 @@ var _ = Describe("Application CRD e2e", func() {
 
 	It("should delete application CRD", func() {
 		err = testutil.DeleteCRD(extClient, crd.Name)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should delete test CRD", func() {
+		err = testutil.DeleteCRD(extClient, testcrd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
@@ -225,9 +242,13 @@ func waitForApplicationStatusToHaveNComponents(kubeClient client.Client, key cli
 			return false, nil
 		}
 
-		if app.Status.ComponentList.Objects != nil && len(app.Status.ComponentList.Objects) == n && app.Status.Conditions != nil {
-			log.Println("Application status has been updated successfully")
-			return true, nil
+		if app.Status.ComponentList.Objects != nil {
+			if len(app.Status.ComponentList.Objects) == n && app.Status.Conditions != nil {
+				log.Println("Application status has been updated successfully")
+				return true, nil
+			}
+			log.Printf("Application status ready components: %d/%d", len(app.Status.ComponentList.Objects), n)
+			return false, nil
 		}
 		log.Println("Application status has NOT been updated yet")
 		return false, nil
@@ -273,13 +294,6 @@ func applyKustomize(path string) error {
 	_, _ = io.Copy(os.Stdout, &kubectlOP)
 
 	return nil
-}
-
-func kubeApply(path string) error {
-	kubectl := exec.Command("../hack/tools/bin/kubectl", "apply", "-f", path)
-	out, err := kubectl.CombinedOutput()
-	log.Println(string(out))
-	return err
 }
 
 func hasConditionTypeStatusAndReason(conditions []appv1beta1.Condition, t appv1beta1.ConditionType, s corev1.ConditionStatus, r string) bool {

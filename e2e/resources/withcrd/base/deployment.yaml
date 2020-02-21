@@ -1,0 +1,31 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+  labels:
+    app.kubernetes.io/version: "3"
+    app.kubernetes.io/component: "hello-world"
+    app.kubernetes.io/tier: "backend"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "test-01"
+      app.kubernetes.io/component: "hello-world"
+      app.kubernetes.io/tier: "backend"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "test-01"
+        app.kubernetes.io/component: "hello-world"
+        app.kubernetes.io/tier: "backend"
+    spec:
+      containers:
+      - image: gcr.io/google-samples/node-hello:1.0
+        name: hello-world
+        ports:
+        - containerPort: 8080
+          protocol: TCP

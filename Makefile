@@ -106,6 +106,9 @@ e2e-cleanup: $(TOOLBIN)/kind
 e2e-test: generate fmt vet manifests $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	go test -v ./e2e/main_test.go
 
+.PHONY: local-e2e-test
+local-e2e-test: e2e-setup e2e-test e2e-cleanup
+
 ## --------------------------------------
 ## Build and run
 ## --------------------------------------

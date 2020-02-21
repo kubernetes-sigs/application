@@ -1,0 +1,36 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: "withcrd"
+spec:
+  type: "test"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "withcrd-ok"
+  componentKinds:
+  - group: apps
+    kind: Deployment
+  - group: batch
+    kind: Job
+  - group: v1
+    kind: Service
+  - group: v1
+    kind: ConfigMap
+  - group: test.crd.com
+    kind: TestCRD
+  addOwnerRef: true
+  descriptor:
+    type: "test"
+    keywords:
+    - "test"
+    version: "0.0.1"
+    description: "It is a simple E2E test app"
+    maintainers:
+    - name: Test Dev
+      email: dev@test.org
+    owners:
+    - name: Test Admin
+      email: admin@test.org
