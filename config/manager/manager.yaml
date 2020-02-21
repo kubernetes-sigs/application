@@ -44,12 +44,12 @@ spec:
     spec:
       containers:
       - command:
-        - /manager
+        - /kube-app-manager
         args:
         - --enable-leader-election
         image: controller:latest
         imagePullPolicy: IfNotPresent
-        name: manager
+        name: kube-app-manager
         resources:
           limits:
             cpu: 100m

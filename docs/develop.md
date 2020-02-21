@@ -39,7 +39,7 @@ git clone git@github.com:${GITHUBID}/application.git $GOPATH/src/sigs.k8s.io/app
 ```
 
 ### Cluster access
-For running e2e tests and development testing you need access to a cluster. You could create a cluster with your cloud provider and ensure the `kubeconfig` points to the cluster. 
+For running e2e tests and development testing you need access to a cluster. You could create a cluster with your cloud provider and ensure the `kubeconfig` points to the cluster.
 
 ##### Local cluster
 For local testing you could create a `kind`.
@@ -56,7 +56,7 @@ make
 
 # individual run make targets
 #
-# generate code 
+# generate code
 make generate
 
 # create manifests
@@ -65,8 +65,8 @@ make manifests
 # Inject license header to all generated files
 make license
 
-# building the manager
-make bin/manager
+# building the kube-app-manager
+make bin/kube-app-manager
 ```
 
 ### Running tests

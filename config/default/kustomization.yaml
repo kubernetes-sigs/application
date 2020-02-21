@@ -12,17 +12,18 @@ namespace: application-system
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: application-
+namePrefix: kube-app-manager-
 
 # Labels to add to all resources and selectors.
 commonLabels:
-  control-plane: application-manager
+  control-plane: kube-app-manager
 
 bases:
 - ../crd
 - ../rbac
 - ../manager
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in crd/kustomization.yaml
+
 #- ../webhook
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
 #- ../certmanager
