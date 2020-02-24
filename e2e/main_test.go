@@ -56,7 +56,7 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 const (
 	crdPath         = "../config/crd/bases/app.k8s.io_applications.yaml"
 	testCrdPath     = "resources/withcrd/test_crd.yaml"
-	applicationPath = "../config/samples/app_v1beta1_application.yaml"
+	applicationPath = "resources/withcrd/base/application.yaml"
 	waitTimeout     = time.Second * 120
 	pullPeriod      = time.Second * 2
 	syncPeriod      = "2"
