@@ -18,6 +18,7 @@ import (
 const (
 	StatusReady      = "Ready"
 	StatusInProgress = "InProgress"
+	StatusUnknown    = "Unknown"
 	StatusDisabled   = "Disabled"
 )
 
@@ -56,7 +57,7 @@ func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) 
 	// Check Ready condition
 	_, cs, found, err := getConditionOfType(u, StatusReady)
 	if err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 	if found && cs == corev1.ConditionFalse {
 		condition = StatusInProgress
@@ -65,7 +66,7 @@ func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) 
 	// Check InProgress condition
 	_, cs, found, err = getConditionOfType(u, StatusInProgress)
 	if err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 	if found && cs == corev1.ConditionTrue {
 		condition = StatusInProgress
@@ -78,7 +79,7 @@ func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) 
 func stsStatus(u *unstructured.Unstructured) (string, error) {
 	sts := &appsv1.StatefulSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sts); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if sts.Status.ObservedGeneration == sts.Generation &&
@@ -94,7 +95,7 @@ func stsStatus(u *unstructured.Unstructured) (string, error) {
 func deploymentStatus(u *unstructured.Unstructured) (string, error) {
 	deployment := &appsv1.Deployment{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, deployment); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	replicaFailure := false
@@ -134,7 +135,7 @@ func deploymentStatus(u *unstructured.Unstructured) (string, error) {
 func replicasetStatus(u *unstructured.Unstructured) (string, error) {
 	rs := &appsv1.ReplicaSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rs); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	replicaFailure := false
@@ -160,7 +161,7 @@ func replicasetStatus(u *unstructured.Unstructured) (string, error) {
 func daemonsetStatus(u *unstructured.Unstructured) (string, error) {
 	ds := &appsv1.DaemonSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, ds); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if ds.Status.ObservedGeneration == ds.Generation &&
@@ -175,7 +176,7 @@ func daemonsetStatus(u *unstructured.Unstructured) (string, error) {
 func pvcStatus(u *unstructured.Unstructured) (string, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pvc); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if pvc.Status.Phase == corev1.ClaimBound {
@@ -188,7 +189,7 @@ func pvcStatus(u *unstructured.Unstructured) (string, error) {
 func serviceStatus(u *unstructured.Unstructured) (string, error) {
 	service := &corev1.Service{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, service); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 	stype := service.Spec.Type
 
@@ -204,7 +205,7 @@ func serviceStatus(u *unstructured.Unstructured) (string, error) {
 func podStatus(u *unstructured.Unstructured) (string, error) {
 	pod := &corev1.Pod{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pod); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	for _, condition := range pod.Status.Conditions {
@@ -219,7 +220,7 @@ func podStatus(u *unstructured.Unstructured) (string, error) {
 func pdbStatus(u *unstructured.Unstructured) (string, error) {
 	pdb := &policyv1beta1.PodDisruptionBudget{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pdb); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if pdb.Status.ObservedGeneration == pdb.Generation &&
@@ -232,7 +233,7 @@ func pdbStatus(u *unstructured.Unstructured) (string, error) {
 func replicationControllerStatus(u *unstructured.Unstructured) (string, error) {
 	rc := &corev1.ReplicationController{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rc); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if rc.Status.ObservedGeneration == rc.Generation &&
@@ -248,7 +249,7 @@ func jobStatus(u *unstructured.Unstructured) (string, error) {
 	job := &batchv1.Job{}
 
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, job); err != nil {
-		return "", err
+		return StatusUnknown, err
 	}
 
 	if job.Status.StartTime == nil {

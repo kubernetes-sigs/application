@@ -129,13 +129,14 @@ var _ = Describe("Application Reconciler", func() {
 				},
 			}
 
-			ns1List, err := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), namespace1)
-			Expect(err).NotTo(HaveOccurred())
+			var errs []error
+			ns1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), namespace1, &errs)
+			Expect(errs).To(BeNil())
 			Expect(len(ns1List)).To(Equal(3))
 			Expect(componentKinds(ns1List)).To(ConsistOf("StatefulSet", "Deployment", "Service"))
 
-			ns2List, err := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet2), namespace2)
-			Expect(err).NotTo(HaveOccurred())
+			ns2List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet2), namespace2, &errs)
+			Expect(errs).To(BeNil())
 			Expect(len(ns2List)).To(Equal(5))
 			Expect(componentKinds(ns2List)).To(ConsistOf("ReplicaSet", "DaemonSet", "PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
 
@@ -153,8 +154,9 @@ var _ = Describe("Application Reconciler", func() {
 				},
 			}
 
-			ns1List, err := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), metav1.NamespaceDefault)
-			Expect(err).NotTo(HaveOccurred())
+			var errs []error
+			ns1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), metav1.NamespaceDefault, &errs)
+			Expect(errs).To(BeNil())
 			Expect(len(ns1List)).To(Equal(2))
 			Expect(componentKinds(ns1List)).To(ConsistOf("Deployment", "Service"))
 
