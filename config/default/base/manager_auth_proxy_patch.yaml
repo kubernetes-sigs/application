@@ -6,7 +6,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: controller
   namespace: system
 spec:
   template:
@@ -22,7 +22,7 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-      - name: manager
+      - name: kube-app-manager
         args:
         - "--metrics-addr=127.0.0.1:8080"
         - "--enable-leader-election"

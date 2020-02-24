@@ -8,11 +8,19 @@
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Releases should modify and double check these vars.
+VERSION ?= dev
 ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
-IMAGE_NAME ?= kubernetes-application-$(ARCH)
-TAG ?= dev
-REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+IMAGE_NAME ?= kube-app-manager
+ifeq ($(ARCH), amd64)
+TAG ?= $(VERSION)
+else
+TAG ?= $ARCH-$(VERSION)
+endif
+# GCLOUD_REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+# REGISTRY = $(GCLOUD_REGISTRY)
+
+REGISTRY ?= quay.io/kubernetes-sigs
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 
 # Directories.
@@ -186,9 +194,18 @@ uninstall: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
-deploy: $(TOOLBIN)/kustomize
+deploy: $(TOOLBIN)/kustomize update-version
 	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 	$(TOOLBIN)/kustomize build config/default | $(TOOLBIN)/kubectl apply -f -
+
+.PHONY: update-version
+update-version:
+	sed -i ''  "s|app.kubernetes.io/version: dev|app.kubernetes.io/version: $(VERSION)|g" config/default/kustomization.yaml
+
+.PHONY: generate-resources
+genererate-resources:
+	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
+	$(TOOLBIN)/kustomize build config/default -o deploy/kube-app-manager-aio.yaml
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: undeploy
