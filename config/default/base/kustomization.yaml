@@ -1,0 +1,29 @@
+# Copyright 2020 The Kubernetes Authors.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Adds namespace to all resources.
+namespace: application-system
+
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the namespace
+# field above.
+namePrefix: kube-app-manager-
+
+# Labels to add to all resources and selectors.
+
+bases:
+- ../../crd
+- ../../rbac
+- ../../kube-app-manager
+# [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
+#- ../../prometheus
+
+patchesStrategicMerge:
+  # Protect the /metrics endpoint by putting it behind auth.
+- manager_auth_proxy_patch.yaml
