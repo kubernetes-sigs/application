@@ -29,7 +29,8 @@ COVER_FILE ?= cover.out
 
 .DEFAULT_GOAL := all
 .PHONY: all
-all: generate fix vet fmt manifests test lint license misspell tidy bin/manager
+all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app-manager
+
 
 ## --------------------------------------
 ## Tooling Binaries
@@ -113,19 +114,19 @@ local-e2e-test: e2e-setup e2e-test e2e-cleanup
 ## Build and run
 ## --------------------------------------
 
-# Build manager binary
-bin/manager: main.go generate fmt vet manifests
-	go build -o bin/manager main.go
+# Build kube-app-kube-app-manager binary
+bin/kube-app-manager: main.go generate fmt vet manifests
+	go build -o bin/kube-app-manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: runbg
-runbg: bin/manager
-	bin/manager --metrics-addr ":8083" >& manager.log & echo $$! > manager.pid
+runbg: bin/kube-app-manager
+	bin/kube-app-manager --metrics-addr ":8083" >& kube-app-manager.log & echo $$! > kube-app-manager.pid
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
-run: bin/manager
-	bin/manager
+run: bin/kube-app-manager
+	bin/kube-app-manager
 
 # Debug using the configured Kubernetes cluster in ~/.kube/config
 .PHONY: debug
@@ -186,7 +187,7 @@ uninstall: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
 deploy: $(TOOLBIN)/kustomize
-	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
+	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 	$(TOOLBIN)/kustomize build config/default | $(TOOLBIN)/kubectl apply -f -
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -222,7 +223,7 @@ generate: ## Generate code
 manifests: $(TOOLBIN)/controller-gen
 	$(TOOLBIN)/controller-gen \
 		$(CRD_OPTIONS) \
-		rbac:roleName=manager-role \
+		rbac:roleName=kube-app-manager-role \
 		paths=./... \
 		output:crd:artifacts:config=$(CRD_ROOT) \
 		output:crd:dir=$(CRD_ROOT) \
@@ -241,10 +242,10 @@ generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/moc
 ## --------------------------------------
 
 .PHONY: docker-build
-docker-build: test $(TOOLBIN)/kustomize ## Build the docker image for controller-manager
+docker-build: test $(TOOLBIN)/kustomize ## Build the docker image for kube-app-manager
 	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)
-	@echo "updating kustomize image patch file for manager resource"
-	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
+	@echo "updating kustomize image patch file for kube-app-manager resource"
+	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
