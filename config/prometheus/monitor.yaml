@@ -8,7 +8,7 @@ kind: ServiceMonitor
 metadata:
   labels:
     control-plane: controller-manager
-  name: controller-manager-metrics-monitor
+  name: metrics-monitor
   namespace: system
 spec:
   endpoints:

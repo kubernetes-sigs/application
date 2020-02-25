@@ -3,3 +3,6 @@
 
 resources:
 - monitor.yaml
+
+configurations:
+- kustomizeconfig.yaml
