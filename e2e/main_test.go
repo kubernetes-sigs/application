@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -140,7 +141,7 @@ var _ = Describe("Application CRD e2e", func() {
 			Namespace: metav1.NamespaceDefault,
 			Name:      "wordpress-01",
 		}
-		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 5)
+		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 5, 5)
 		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 5))
 		Expect(application.Status.ComponentList.Objects).To(HaveLen(5))
 	})
@@ -152,7 +153,7 @@ var _ = Describe("Application CRD e2e", func() {
 			Namespace: metav1.NamespaceDefault,
 			Name:      "ok-withcrd",
 		}
-		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 7)
+		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 7, 7)
 		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 7))
 		Expect(application.Status.ComponentList.Objects).To(HaveLen(7))
 	})
@@ -192,7 +193,7 @@ var _ = Describe("Application CRD e2e", func() {
 			Namespace: metav1.NamespaceDefault,
 			Name:      "nok-withcrd",
 		}
-		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 7)
+		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 6, 7)
 		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 7))
 		Expect(hasConditionTypeStatusAndReason(application.Status.Conditions, controllers.StatusReady, corev1.ConditionFalse, "ComponentsNotReady")).To(BeTrue())
 	})
@@ -235,7 +236,7 @@ func validateComponentOwnerReferences(kubeClient client.Client, list *unstructur
 	Expect(err).NotTo(HaveOccurred())
 }
 
-func waitForApplicationStatusToHaveNComponents(kubeClient client.Client, key client.ObjectKey, app *appv1beta1.Application, n int) {
+func waitForApplicationStatusToHaveNComponents(kubeClient client.Client, key client.ObjectKey, app *appv1beta1.Application, ready int, total int) {
 	err := wait.PollImmediate(pullPeriod, waitTimeout, func() (bool, error) {
 		log.Println("Pulling the application status")
 		if err := kubeClient.Get(context.TODO(), key, app); err != nil {
@@ -243,11 +244,11 @@ func waitForApplicationStatusToHaveNComponents(kubeClient client.Client, key cli
 		}
 
 		if app.Status.ComponentList.Objects != nil {
-			if len(app.Status.ComponentList.Objects) == n && app.Status.Conditions != nil {
+			if len(app.Status.ComponentList.Objects) == total && app.Status.Conditions != nil && app.Status.ComponentsReady == fmt.Sprintf("%d/%d", ready, total) {
 				log.Println("Application status has been updated successfully")
 				return true, nil
 			}
-			log.Printf("Application status ready components: %d/%d", len(app.Status.ComponentList.Objects), n)
+			log.Printf("Application status ready components: %s", app.Status.ComponentsReady)
 			return false, nil
 		}
 		log.Println("Application status has NOT been updated yet")

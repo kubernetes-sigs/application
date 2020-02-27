@@ -17,7 +17,7 @@ spec:
   selector:
     app.kubernetes.io/name: "wordpress-01"
     app.kubernetes.io/component: "wordpress-webserver"
-  type: LoadBalancer
+  clusterIP: None
 ---
 apiVersion: v1
 kind: Service

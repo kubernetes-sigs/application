@@ -4,12 +4,14 @@
 package controllers
 
 import (
-	"fmt"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Constants defining labels
@@ -38,6 +40,10 @@ func status(u *unstructured.Unstructured) (string, error) {
 		return podStatus(u)
 	case "PodDisruptionBudget.policy":
 		return pdbStatus(u)
+	case "ReplicationController":
+		return replicationControllerStatus(u)
+	case "Job.batch":
+		return jobStatus(u)
 	default:
 		return statusFromStandardConditions(u)
 	}
@@ -69,26 +75,16 @@ func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) 
 }
 
 // Statefulset
-func stsStatus(sts *unstructured.Unstructured) (string, error) {
-	readyReplicas, err := getNestedInt64(sts, "status", "readyReplicas")
-	if err != nil {
+func stsStatus(u *unstructured.Unstructured) (string, error) {
+	sts := &appsv1.StatefulSet{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sts); err != nil {
 		return "", err
 	}
 
-	currentReplicas, err := getNestedInt64(sts, "status", "currentReplicas")
-	if err != nil {
-		return "", err
-	}
-
-	replicas, found, err := unstructured.NestedInt64(sts.Object, "spec", "replicas")
-	if err != nil {
-		return "", err
-	}
-	if !found {
-		replicas = 1 // This is the default value in the controller if the field is not set.
-	}
-
-	if readyReplicas == replicas && currentReplicas == replicas {
+	if sts.Status.ObservedGeneration == sts.Generation &&
+		sts.Status.Replicas == *sts.Spec.Replicas &&
+		sts.Status.ReadyReplicas == *sts.Spec.Replicas &&
+		sts.Status.CurrentReplicas == *sts.Spec.Replicas {
 		return StatusReady, nil
 	}
 	return StatusInProgress, nil
@@ -96,94 +92,80 @@ func stsStatus(sts *unstructured.Unstructured) (string, error) {
 
 // Deployment
 func deploymentStatus(u *unstructured.Unstructured) (string, error) {
-	status := StatusInProgress
-	progress := true
-	available := true
-
-	reason, conditionStatus, found, err := getConditionOfType(u, string(appsv1.DeploymentProgressing))
-	if err != nil {
+	deployment := &appsv1.Deployment{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, deployment); err != nil {
 		return "", err
 	}
-	if found {
-		if conditionStatus != corev1.ConditionTrue || reason != "NewReplicaSetAvailable" {
-			progress = false
+
+	replicaFailure := false
+	progressing := false
+	available := false
+
+	for _, condition := range deployment.Status.Conditions {
+		switch condition.Type {
+		case appsv1.DeploymentProgressing:
+			if condition.Status == corev1.ConditionTrue && condition.Reason == "NewReplicaSetAvailable" {
+				progressing = true
+			}
+		case appsv1.DeploymentAvailable:
+			if condition.Status == corev1.ConditionTrue {
+				available = true
+			}
+		case appsv1.DeploymentReplicaFailure:
+			if condition.Status == corev1.ConditionTrue {
+				replicaFailure = true
+				break
+			}
 		}
 	}
 
-	_, conditionStatus, found, err = getConditionOfType(u, string(appsv1.DeploymentAvailable))
-	if err != nil {
-		return "", err
+	if deployment.Status.ObservedGeneration == deployment.Generation &&
+		deployment.Status.Replicas == *deployment.Spec.Replicas &&
+		deployment.Status.ReadyReplicas == *deployment.Spec.Replicas &&
+		deployment.Status.AvailableReplicas == *deployment.Spec.Replicas &&
+		deployment.Status.Conditions != nil && len(deployment.Status.Conditions) > 0 &&
+		(progressing || available) && !replicaFailure {
+		return StatusReady, nil
 	}
-	if found {
-		if conditionStatus == corev1.ConditionFalse {
-			available = false
-		}
-	}
-
-	if progress && available {
-		status = StatusReady
-	}
-
-	return status, nil
+	return StatusInProgress, nil
 }
 
 // Replicaset
 func replicasetStatus(u *unstructured.Unstructured) (string, error) {
-	status := StatusInProgress
-
-	_, conditionStatus, found, err := getConditionOfType(u, string(appsv1.ReplicaSetReplicaFailure))
-	if err != nil {
+	rs := &appsv1.ReplicaSet{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rs); err != nil {
 		return "", err
 	}
-	if found {
-		if conditionStatus == corev1.ConditionTrue {
-			return status, nil
+
+	replicaFailure := false
+	for _, condition := range rs.Status.Conditions {
+		switch condition.Type {
+		case appsv1.ReplicaSetReplicaFailure:
+			if condition.Status == corev1.ConditionTrue {
+				replicaFailure = true
+				break
+			}
 		}
 	}
-
-	readyReplicas, err := getNestedInt64(u, "status", "readyReplicas")
-	if err != nil {
-		return "", err
+	if rs.Status.ObservedGeneration == rs.Generation &&
+		rs.Status.Replicas == *rs.Spec.Replicas &&
+		rs.Status.ReadyReplicas == *rs.Spec.Replicas &&
+		rs.Status.AvailableReplicas == *rs.Spec.Replicas && !replicaFailure {
+		return StatusReady, nil
 	}
-
-	availableReplicas, err := getNestedInt64(u, "status", "availableReplicas")
-	if err != nil {
-		return "", err
-	}
-
-	replicas, found, err := unstructured.NestedInt64(u.Object, "spec", "replicas")
-	if err != nil {
-		return "", err
-	}
-	if !found {
-		replicas = 1 // This is the default value in the controller if the field is not set.
-	}
-
-	if readyReplicas == replicas && replicas == availableReplicas {
-		status = StatusReady
-	}
-
-	return status, nil
+	return StatusInProgress, nil
 }
 
 // Daemonset
 func daemonsetStatus(u *unstructured.Unstructured) (string, error) {
-	desiredNumberScheduled, err := getNestedInt64(u, "status", "desiredNumberScheduled")
-	if err != nil {
+	ds := &appsv1.DaemonSet{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, ds); err != nil {
 		return "", err
 	}
 
-	numberAvailable, err := getNestedInt64(u, "status", "numberAvailable")
-	if err != nil {
-		return "", err
-	}
-
-	numberReady, err := getNestedInt64(u, "status", "numberReady")
-	if err != nil {
-		return "", err
-	}
-
-	if desiredNumberScheduled == numberAvailable && desiredNumberScheduled == numberReady {
+	if ds.Status.ObservedGeneration == ds.Generation &&
+		ds.Status.DesiredNumberScheduled == ds.Status.NumberAvailable &&
+		ds.Status.DesiredNumberScheduled == ds.Status.NumberReady {
 		return StatusReady, nil
 	}
 	return StatusInProgress, nil
@@ -191,30 +173,42 @@ func daemonsetStatus(u *unstructured.Unstructured) (string, error) {
 
 // PVC
 func pvcStatus(u *unstructured.Unstructured) (string, error) {
-	phase, err := getNestedString(u, "status", "phase")
-	if err != nil {
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pvc); err != nil {
 		return "", err
 	}
 
-	if phase == string(corev1.ClaimBound) {
+	if pvc.Status.Phase == corev1.ClaimBound {
 		return StatusReady, nil
 	}
 	return StatusInProgress, nil
 }
 
 // Service
-func serviceStatus(_ *unstructured.Unstructured) (string, error) {
-	return StatusReady, nil
+func serviceStatus(u *unstructured.Unstructured) (string, error) {
+	service := &corev1.Service{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, service); err != nil {
+		return "", err
+	}
+	stype := service.Spec.Type
+
+	if stype == corev1.ServiceTypeClusterIP || stype == corev1.ServiceTypeNodePort || stype == corev1.ServiceTypeExternalName ||
+		stype == corev1.ServiceTypeLoadBalancer && isEmpty(service.Spec.ClusterIP) &&
+			len(service.Status.LoadBalancer.Ingress) > 0 && !hasEmptyIngressIP(service.Status.LoadBalancer.Ingress) {
+		return StatusReady, nil
+	}
+	return StatusInProgress, nil
 }
 
 // Pod
 func podStatus(u *unstructured.Unstructured) (string, error) {
-	_, conditionStatus, found, err := getConditionOfType(u, string(corev1.PodReady))
-	if err != nil {
+	pod := &corev1.Pod{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pod); err != nil {
 		return "", err
 	}
-	if found {
-		if conditionStatus == corev1.ConditionTrue {
+
+	for _, condition := range pod.Status.Conditions {
+		if condition.Type == corev1.PodReady && (condition.Reason == "PodCompleted" || condition.Status == corev1.ConditionTrue) {
 			return StatusReady, nil
 		}
 	}
@@ -223,36 +217,58 @@ func podStatus(u *unstructured.Unstructured) (string, error) {
 
 // PodDisruptionBudget
 func pdbStatus(u *unstructured.Unstructured) (string, error) {
-	currentHealthy, err := getNestedInt64(u, "status", "currentHealthy")
-	if err != nil {
+	pdb := &policyv1beta1.PodDisruptionBudget{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pdb); err != nil {
 		return "", err
 	}
 
-	desiredHealthy, err := getNestedInt64(u, "status", "desiredHealthy")
-	if err != nil {
-		return "", err
-	}
-
-	if currentHealthy >= desiredHealthy {
+	if pdb.Status.ObservedGeneration == pdb.Generation &&
+		pdb.Status.CurrentHealthy >= pdb.Status.DesiredHealthy {
 		return StatusReady, nil
 	}
 	return StatusInProgress, nil
 }
 
-func getNestedInt64(u *unstructured.Unstructured, fields ...string) (int64, error) {
-	integer, found, err := unstructured.NestedInt64(u.Object, fields...)
-	if !found {
-		return integer, fmt.Errorf("field %s not found", strings.Join(fields, "."))
+func replicationControllerStatus(u *unstructured.Unstructured) (string, error) {
+	rc := &corev1.ReplicationController{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rc); err != nil {
+		return "", err
 	}
-	return integer, err
+
+	if rc.Status.ObservedGeneration == rc.Generation &&
+		rc.Status.Replicas == *rc.Spec.Replicas &&
+		rc.Status.ReadyReplicas == *rc.Spec.Replicas &&
+		rc.Status.AvailableReplicas == *rc.Spec.Replicas {
+		return StatusReady, nil
+	}
+	return StatusInProgress, nil
 }
 
-func getNestedString(u *unstructured.Unstructured, fields ...string) (string, error) {
-	s, found, err := unstructured.NestedString(u.Object, fields...)
-	if !found {
-		return s, fmt.Errorf("field %s not found", strings.Join(fields, "."))
+func jobStatus(u *unstructured.Unstructured) (string, error) {
+	job := &batchv1.Job{}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, job); err != nil {
+		return "", err
 	}
-	return s, err
+
+	if job.Status.StartTime == nil {
+		return StatusInProgress, nil
+	}
+
+	return StatusReady, nil
+}
+
+func hasEmptyIngressIP(ingress []corev1.LoadBalancerIngress) bool {
+	for _, i := range ingress {
+		if isEmpty(i.IP) {
+			return true
+		}
+	}
+	return false
+}
+
+func isEmpty(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
 }
 
 func getConditionOfType(u *unstructured.Unstructured, conditionType string) (string, corev1.ConditionStatus, bool, error) {

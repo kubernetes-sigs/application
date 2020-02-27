@@ -14,4 +14,4 @@ spec:
   - port: 80
   selector:
     app.kubernetes.io/component: "test-webserver"
-  type: LoadBalancer
+  clusterIP: None
