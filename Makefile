@@ -187,7 +187,7 @@ uninstall: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
 deploy: $(TOOLBIN)/kustomize
-	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
+	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 	$(TOOLBIN)/kustomize build config/default | $(TOOLBIN)/kubectl apply -f -
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -245,7 +245,7 @@ generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/moc
 docker-build: test $(TOOLBIN)/kustomize ## Build the docker image for kube-app-manager
 	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)
 	@echo "updating kustomize image patch file for kube-app-manager resource"
-	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
+	cd config/manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
