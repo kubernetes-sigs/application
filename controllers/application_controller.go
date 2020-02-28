@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,8 +59,8 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, nil
 	}
 
-	resources, err := r.updateComponents(ctx, &app)
-	newApplicationStatus := r.getNewApplicationStatus(ctx, &app, resources, err)
+	resources, errs := r.updateComponents(ctx, &app)
+	newApplicationStatus := r.getNewApplicationStatus(ctx, &app, resources, &errs)
 
 	newApplicationStatus.ObservedGeneration = app.Generation
 	if equality.Semantic.DeepEqual(newApplicationStatus, &app.Status) {
@@ -70,24 +71,24 @@ func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	return ctrl.Result{}, err
 }
 
-func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1beta1.Application) ([]*unstructured.Unstructured, error) {
-	resources, err := r.fetchComponentListResources(ctx, app.Spec.ComponentGroupKinds, app.Spec.Selector, app.Namespace)
-	if err != nil {
-		return resources, err
-	}
+func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1beta1.Application) ([]*unstructured.Unstructured, []error) {
+	var errs []error
+	resources := r.fetchComponentListResources(ctx, app.Spec.ComponentGroupKinds, app.Spec.Selector, app.Namespace, &errs)
 
 	if app.Spec.AddOwnerRef {
 		ownerRef := metav1.NewControllerRef(app, appv1beta1.GroupVersion.WithKind("Application"))
 		*ownerRef.Controller = false
 		if err := r.setOwnerRefForResources(ctx, *ownerRef, resources); err != nil {
-			return resources, err
+			errs = append(errs, err)
 		}
 	}
-	return resources, nil
+	return resources, errs
 }
 
-func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app *appv1beta1.Application, resources []*unstructured.Unstructured, err error) *appv1beta1.ApplicationStatus {
-	objectStatuses := r.objectStatuses(ctx, resources)
+func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app *appv1beta1.Application, resources []*unstructured.Unstructured, errList *[]error) *appv1beta1.ApplicationStatus {
+	objectStatuses := r.objectStatuses(ctx, resources, errList)
+	errs := utilerrors.NewAggregate(*errList)
+
 	aggReady, countReady := aggregateReady(objectStatuses)
 
 	newApplicationStatus := app.Status.DeepCopy()
@@ -95,14 +96,14 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 		Objects: objectStatuses,
 	}
 	newApplicationStatus.ComponentsReady = fmt.Sprintf("%d/%d", countReady, len(objectStatuses))
-	if aggReady {
+	if aggReady && errs != nil {
 		setReadyCondition(newApplicationStatus, "ComponentsReady", "all components ready")
 	} else {
 		setNotReadyCondition(newApplicationStatus, "ComponentsNotReady", "some components not ready")
 	}
 
-	if err != nil {
-		setErrorCondition(newApplicationStatus, "ErrorSeen", err.Error())
+	if errs != nil {
+		setErrorCondition(newApplicationStatus, "ErrorSeen", errs.Error())
 	} else {
 		clearErrorCondition(newApplicationStatus)
 	}
@@ -110,7 +111,7 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 	return newApplicationStatus
 }
 
-func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context, groupKinds []metav1.GroupKind, selector *metav1.LabelSelector, namespace string) ([]*unstructured.Unstructured, error) {
+func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context, groupKinds []metav1.GroupKind, selector *metav1.LabelSelector, namespace string, errs *[]error) []*unstructured.Unstructured {
 	logger := getLoggerOrDie(ctx)
 	var resources []*unstructured.Unstructured
 	for _, gk := range groupKinds {
@@ -126,7 +127,9 @@ func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context,
 		list := &unstructured.UnstructuredList{}
 		list.SetGroupVersionKind(mapping.GroupVersionKind)
 		if err = r.Client.List(ctx, list, client.InNamespace(namespace), client.MatchingLabels(selector.MatchLabels)); err != nil {
-			return resources, err
+			logger.Error(err, "unable to list resources for GVK", "gvk", mapping.GroupVersionKind)
+			*errs = append(*errs, err)
+			continue
 		}
 
 		for _, u := range list.Items {
@@ -134,7 +137,7 @@ func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context,
 			resources = append(resources, &resource)
 		}
 	}
-	return resources, nil
+	return resources
 }
 
 func (r *ApplicationReconciler) setOwnerRefForResources(ctx context.Context, ownerRef metav1.OwnerReference, resources []*unstructured.Unstructured) error {
@@ -167,7 +170,7 @@ func (r *ApplicationReconciler) setOwnerRefForResources(ctx context.Context, own
 	return nil
 }
 
-func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []*unstructured.Unstructured) []appv1beta1.ObjectStatus {
+func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []*unstructured.Unstructured, errs *[]error) []appv1beta1.ObjectStatus {
 	logger := getLoggerOrDie(ctx)
 	var objectStatuses []appv1beta1.ObjectStatus
 	for _, resource := range resources {
@@ -179,10 +182,9 @@ func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []
 		}
 		s, err := status(resource)
 		if err != nil {
-			// Just logging the error for now. Not sure if this is the right way to handle it.
 			logger.Error(err, "unable to compute status for resource", "gvk", resource.GroupVersionKind().String(),
 				"namespace", resource.GetNamespace(), "name", resource.GetName())
-			continue
+			*errs = append(*errs, err)
 		}
 		os.Status = s
 		objectStatuses = append(objectStatuses, os)
