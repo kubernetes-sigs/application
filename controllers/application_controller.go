@@ -96,10 +96,12 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 		Objects: objectStatuses,
 	}
 	newApplicationStatus.ComponentsReady = fmt.Sprintf("%d/%d", countReady, len(objectStatuses))
-	if aggReady && errs != nil {
+	if errs != nil {
+		setReadyUnknownCondition(newApplicationStatus, "ComponentsReadyUnknown", "failed to aggregate all components' statuses, check the Error condition for details")
+	} else if aggReady {
 		setReadyCondition(newApplicationStatus, "ComponentsReady", "all components ready")
 	} else {
-		setNotReadyCondition(newApplicationStatus, "ComponentsNotReady", "some components not ready")
+		setNotReadyCondition(newApplicationStatus, "ComponentsNotReady", fmt.Sprintf("%d components not ready", len(objectStatuses) - countReady))
 	}
 
 	if errs != nil {
