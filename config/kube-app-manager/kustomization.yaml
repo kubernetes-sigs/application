@@ -7,10 +7,5 @@ kind: Kustomization
 resources:
 - manager.yaml
 
-images:
-- name: controller
-  newName: quay.io/kubernetes-sigs/kube-app-manager
-  newTag: dev
-
 configurations:
 - kustomizeconfig.yaml

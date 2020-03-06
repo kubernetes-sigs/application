@@ -4,15 +4,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-commonLabels:
-  control-plane: kube-app-manager
-  app.kubernetes.io/name: kube-app-manager
-  app.kubernetes.io/version: dev
-
 # Adds namespace to all resources.
 namespace: application-system
-bases:
-- base
 
-resources:
-- namespace.yaml
+bases:
+- ../base
+
+images:
+- name: kube-app-manager
+  newName: quay.io/kubernetes-sigs/kube-app-manager
+  newTag: v0.8.1

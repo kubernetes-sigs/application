@@ -40,7 +40,7 @@ spec:
         - /kube-app-manager
         args:
         - --enable-leader-election
-        image: controller:dev
+        image: kube-app-manager:dev
         imagePullPolicy: IfNotPresent
         name: kube-app-manager
         resources:
