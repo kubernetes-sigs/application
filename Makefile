@@ -8,11 +8,19 @@
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Releases should modify and double check these vars.
+VERSION ?= dev
 ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
-IMAGE_NAME ?= kubernetes-application-$(ARCH)
-TAG ?= dev
-REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+IMAGE_NAME ?= kube-app-manager
+ifeq ($(ARCH), amd64)
+TAG ?= $(VERSION)
+else
+TAG ?= $ARCH-$(VERSION)
+endif
+# GCLOUD_REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+# REGISTRY = $(GCLOUD_REGISTRY)
+
+REGISTRY ?= quay.io/kubernetes-sigs
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 
 # Directories.
@@ -26,7 +34,7 @@ WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 COVER_FILE ?= cover.out
 
-
+VERSIONS := dev v0.8.1
 .DEFAULT_GOAL := all
 .PHONY: all
 all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app-manager
@@ -35,7 +43,6 @@ all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app
 ## --------------------------------------
 ## Tooling Binaries
 ## --------------------------------------
-
 
 $(TOOLBIN)/controller-gen:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5
@@ -133,6 +140,7 @@ run: bin/kube-app-manager
 debug: generate fmt vet manifests
 	dlv debug ./main.go
 
+
 ## --------------------------------------
 ## Code maintenance
 ## --------------------------------------
@@ -171,29 +179,35 @@ misspell-fix: $(TOOLBIN)/misspell
 
 
 ## --------------------------------------
-## Deploying
+## Deploy all (CRDs + Controller)
 ## --------------------------------------
 
-# Install CRDs into a cluster
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: deploy
+deploy: $(TOOLBIN)/kubectl
+	$(TOOLBIN)/kubectl apply -f deploy/kube-app-manager-aio_$(VERSION).yaml
+
+# unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: undeploy
+undeploy: $(TOOLBIN)/kubectl
+		$(TOOLBIN)/kubectl delete -f deploy/kube-app-manager-aio_$(VERSION).yaml
+
+## --------------------------------------
+## Deploy CRDs only
+## --------------------------------------
+# Install CRDs into a cluster,
 .PHONY: install
-install: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
+deploy-crd: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	$(TOOLBIN)/kustomize build config/crd| $(TOOLBIN)/kubectl apply -f -
 
 # Uninstall CRDs from a cluster
 .PHONY: uninstall
-uninstall: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
+undeploy-crd: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	$(TOOLBIN)/kustomize build config/crd| $(TOOLBIN)/kubectl delete -f -
 
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-.PHONY: deploy
-deploy: $(TOOLBIN)/kustomize
-	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
-	$(TOOLBIN)/kustomize build config/default | $(TOOLBIN)/kubectl apply -f -
-
-# unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
-.PHONY: undeploy
-undeploy: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
-	$(TOOLBIN)/kustomize build config/default | $(TOOLBIN)/kubectl delete -f -
+## --------------------------------------
+## Deploy demo
+## --------------------------------------
 
 # Deploy wordpress
 .PHONY: deploy-wordpress
@@ -216,7 +230,7 @@ undeploy-wordpress: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 generate: ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) manifests
-
+	$(MAKE) generate-resources
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -230,6 +244,14 @@ manifests: $(TOOLBIN)/controller-gen
 		output:webhook:dir=$(WEBHOOK_ROOT) \
 		webhook
 
+.PHONY: generate-resources
+generate-resources: $(TOOLBIN)/kustomize
+	$(TOOLBIN)/kustomize build config/default/$(VERSION) -o deploy/kube-app-manager-aio_$(VERSION).yaml
+
+.PHONY: generate-resources-%
+generate-resources-%:
+	$(MAKE) VERSION=$* generate-resources
+
 .PHONY: generate-go
 generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/mockgen
 	go generate ./api/... ./controllers/...
@@ -240,12 +262,14 @@ generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/moc
 ## --------------------------------------
 ## Docker
 ## --------------------------------------
+.PHONY: set-image
+set-image: $(TOOLBIN)/kustomize
+	@echo "updating kustomize image patch file for kube-app-manager resource"
+	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image kube-app-manager=$(CONTROLLER_IMG)
 
 .PHONY: docker-build
-docker-build: test $(TOOLBIN)/kustomize ## Build the docker image for kube-app-manager
+docker-build: set-image test $(TOOLBIN)/kustomize ## Build the docker image for kube-app-manager
 	docker build --network=host --pull --build-arg ARCH=$(ARCH) . -t $(CONTROLLER_IMG)
-	@echo "updating kustomize image patch file for kube-app-manager resource"
-	cd config/kube-app-manager && $(TOOLBIN)/kustomize edit set image controller=$(CONTROLLER_IMG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
