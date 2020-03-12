@@ -1,3 +1,9 @@
+# specific paths
+
+config/default/scratch/kustomization.yaml
+deploy/kube-app-manager-aio-dev.yaml
+
+
 # OSX leaves these everywhere on SMB shares
 ._*
 

@@ -3,25 +3,30 @@
 #
 # Makefile for application
 
+VERSION_FILE ?= VERSION-DEV
+
+include $(VERSION_FILE)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Releases should modify and double check these vars.
-VERSION ?= dev
+VER ?= v${app_major}.${app_minor}.${app_patch}
 ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
-IMAGE_NAME ?= kube-app-manager
-ifeq ($(ARCH), amd64)
-TAG ?= $(VERSION)
-else
-TAG ?= $ARCH-$(VERSION)
-endif
-# GCLOUD_REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
-# REGISTRY = $(GCLOUD_REGISTRY)
+IMAGE_NAME = kube-app-manager
 
-REGISTRY ?= quay.io/kubernetes-sigs
-CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+ifeq ($(ARCH), amd64)
+IMAGE_TAG ?= $(VER)
+else
+IMAGE_TAG ?= $(ARCH)-$(VER)
+endif
+
+RELEASE_REMOTE ?= origin
+RELEASE_BRANCH ?= release-v${app_major}.${app_minor}
+RELEASE_TAG ?= v${app_major}.${app_minor}.${app_patch}
+
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 # Directories.
 TOOLS_DIR := $(shell pwd)/hack/tools
@@ -34,7 +39,7 @@ WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 COVER_FILE ?= cover.out
 
-VERSIONS := dev v0.8.1
+VERS := dev v0.8.1
 .DEFAULT_GOAL := all
 .PHONY: all
 all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app-manager
@@ -183,25 +188,35 @@ misspell-fix: $(TOOLBIN)/misspell
 ## --------------------------------------
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+# This is expected to be used by user during dev
 .PHONY: deploy
-deploy: $(TOOLBIN)/kubectl
-	$(TOOLBIN)/kubectl apply -f deploy/kube-app-manager-aio_$(VERSION).yaml
+deploy:
+	kubectl apply -f deploy/kube-app-manager-aio.yaml
 
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: undeploy
-undeploy: $(TOOLBIN)/kubectl
-		$(TOOLBIN)/kubectl delete -f deploy/kube-app-manager-aio_$(VERSION).yaml
+undeploy:
+	kubectl delete -f deploy/kube-app-manager-aio.yaml
+
+.PHONY: deploy-dev
+deploy-dev: $(TOOLBIN)/kubectl generate-resources
+	$(TOOLBIN)/kubectl apply -f $(AIO_YAML)
+
+# unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: undeploy-dev
+undeploy-dev: $(TOOLBIN)/kubectl generate-resources
+		$(TOOLBIN)/kubectl delete -f $(AIO_YAML)
 
 ## --------------------------------------
 ## Deploy CRDs only
 ## --------------------------------------
 # Install CRDs into a cluster,
-.PHONY: install
+.PHONY: deploy-crd
 deploy-crd: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	$(TOOLBIN)/kustomize build config/crd| $(TOOLBIN)/kubectl apply -f -
 
 # Uninstall CRDs from a cluster
-.PHONY: uninstall
+.PHONY: undeploy-crd
 undeploy-crd: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	$(TOOLBIN)/kustomize build config/crd| $(TOOLBIN)/kubectl delete -f -
 
@@ -231,6 +246,7 @@ generate: ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) manifests
 	$(MAKE) generate-resources
+	VERSION_FILE=VERSION $(MAKE) generate-resources
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -246,11 +262,8 @@ manifests: $(TOOLBIN)/controller-gen
 
 .PHONY: generate-resources
 generate-resources: $(TOOLBIN)/kustomize
-	$(TOOLBIN)/kustomize build config/default/$(VERSION) -o deploy/kube-app-manager-aio_$(VERSION).yaml
-
-.PHONY: generate-resources-%
-generate-resources-%:
-	$(MAKE) VERSION=$* generate-resources
+	cd config/default/scratch && $(TOOLBIN)/kustomize edit set image kube-app-manager=$(CONTROLLER_IMG)
+	$(TOOLBIN)/kustomize build config/default/scratch/ -o $(AIO_YAML)
 
 .PHONY: generate-go
 generate-go: $(TOOLBIN)/controller-gen $(TOOLBIN)/conversion-gen  $(TOOLBIN)/mockgen
@@ -292,3 +305,34 @@ clean:
 	rm -f $(TOOLBIN)/kustomize
 	rm -f $(TOOLBIN)/misspell
 	rm -f $(TOOLBIN)/mockgen
+
+
+## --------------------------------------
+## Releasing
+## --------------------------------------
+.PHONY: release-branch
+release-branch:
+	echo "checking branch=$(RELEASE_BRANCH)"
+	git ls-remote --exit-code `git remote get-url $(RELEASE_REMOTE)` $(RELEASE_BRANCH) || make create-release-branch
+
+.PHONY: create-release-branch
+create-release-branch:
+	git fetch upstream
+	git checkout master
+	git rebase upstream/master
+	git branch -D $(RELEASE_BRANCH) || true
+	git checkout -b $(RELEASE_BRANCH)
+	git push -f $(RELEASE_REMOTE) $(RELEASE_BRANCH)
+
+.PHONY: release-tag
+release-tag: release-branch
+	git branch -D $(RELEASE_BRANCH) || true
+	git branch ${RELEASE_BRANCH} ${RELEASE_REMOTE}/${RELEASE_BRANCH}
+	git checkout $(RELEASE_BRANCH)
+	git tag -a ${RELEASE_TAG} -m "Release ${RELEASE_TAG} on branch ${RELEASE_BRANCH}"
+	git push $(RELEASE_REMOTE) ${RELEASE_TAG}
+
+.PHONY: delete-release-tag
+delete-release-tag:
+	git tag --delete $(RELEASE_TAG)
+	git push $(RELEASE_REMOTE) :refs/tags/$(RELEASE_TAG)

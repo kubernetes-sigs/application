@@ -7,10 +7,10 @@ kind: Kustomization
 # Adds namespace to all resources.
 namespace: application-system
 
-bases:
-- ../base
 
 images:
 - name: kube-app-manager
   newName: quay.io/kubernetes-sigs/kube-app-manager
-  newTag: v0.8.1
+  newTag: v0.8.2
+resources:
+- ../base
