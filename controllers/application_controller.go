@@ -101,7 +101,7 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 	} else if aggReady {
 		setReadyCondition(newApplicationStatus, "ComponentsReady", "all components ready")
 	} else {
-		setNotReadyCondition(newApplicationStatus, "ComponentsNotReady", fmt.Sprintf("%d components not ready", len(objectStatuses) - countReady))
+		setNotReadyCondition(newApplicationStatus, "ComponentsNotReady", fmt.Sprintf("%d components not ready", len(objectStatuses)-countReady))
 	}
 
 	if errs != nil {
