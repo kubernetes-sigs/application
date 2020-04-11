@@ -1,0 +1,8 @@
+export app_major=0
+export app_minor=0
+export app_patch=0.$(shell git log --pretty=format:'%h' -n 1)
+
+
+export REGISTRY=gcr.io/$(shell gcloud config get-value project)
+export RELEASE_REMOTE=origin
+export AIO_YAML=deploy/kube-app-manager-aio-dev.yaml

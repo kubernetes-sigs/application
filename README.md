@@ -46,7 +46,7 @@ For an example look at [wordpress application](docs/examples/wordpress/applicati
 
 Refer [Quickstart Guide](docs/quickstart.md)
 
-## Build and Deploy
+## Development
 
 Refer [Development Guide](docs/develop.md)
 
@@ -66,3 +66,7 @@ You can reach the maintainers of this project at:
 ### Code of conduct
 
 Participation in the Kubernetes community is governed by the [Kubernetes Code of Conduct](code-of-conduct.md).
+
+## Releasing
+
+Refer [Releasing Guide](docs/release.md)

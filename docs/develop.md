@@ -97,7 +97,7 @@ make e2e-cleanup
 To build the controller into an image named `image` use the following command.
 
 NOTE:
-`CONTROLLER_IMG` is optional. The default value is `gcr.io/$(shell gcloud config get-value project)/application-controller`
+`CONTROLLER_IMG` is optional. The default value is `gcr.io/$(shell gcloud config get-value project)/kube-app-manager`
 
 ```commandline
 make docker-build CONTROLLER_IMG=<image>

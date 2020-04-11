@@ -1,4 +1,23 @@
 # Quick Start
+Clone
+```bash
+mkdir -p $GOPATH/src/sigs.k8s.io
+cd $GOPATH/src/sigs.k8s.io
+
+# clone
+git clone git@github.com:kubernetes-sigs/application.git
+```
+
+Deploy to cluster
+```bash
+# deploy to cluster
+make deploy
+
+# un-deploy from cluster
+make undeploy
+```
+
+# Dev Quick Start
 
 Fork and clone
 ```bash
@@ -17,7 +36,7 @@ Run locally
 make e2e-setup
 
 # install CRD
-make install
+make deploy-crd
 
 # run locally
 make run
@@ -28,16 +47,15 @@ make e2e-cleanup
 
 Run against cluster
 ```bash
-# The default image is `gcr.io/$(shell gcloud config get-value project)/application-controller`
-# to use different image 
-export CONTROLLER_IMG=<image>
+# The default image is `gcr.io/$(shell gcloud config get-value project)/kube-app-manager`
+# to use different image edit VERSION-DEV file
 
 # build docker image
 make docker-build
 make docker-push
 
-# deploy to cluster
-make deploy
+# deploy to cluster. This generates the manifests and deploys
+make deploy-dev
 
 # deploy example
 make deploy-wordpress
