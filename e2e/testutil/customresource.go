@@ -17,13 +17,16 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateCRD - create application CRD
-func CreateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceDefinition) error {
+// CreateOrUpdateCRD - create or update application CRD
+func CreateOrUpdateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceDefinition) error {
 
-	_, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
+	currentCrd, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
 
 	if err == nil {
 		// CustomResourceDefinition already exists -> Update
+
+		// Bypass the 'metadata.resourceVersion: Invalid value: 0x0: must be specified for an update' error
+		crd.ResourceVersion = currentCrd.ResourceVersion
 		_, err = kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Update(crd)
 		if err != nil {
 			return err

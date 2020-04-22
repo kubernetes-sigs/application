@@ -56,6 +56,7 @@ func getKubeClientOrDie(config *rest.Config, s *runtime.Scheme) client.Client {
 
 const (
 	crdPath         = "../config/crd/bases/app.k8s.io_applications.yaml"
+	crdv080Path     = "resources/app-crd-v0.8.0.yaml"
 	testCrdPath     = "resources/withcrd/test_crd.yaml"
 	applicationPath = "resources/withcrd/base/application.yaml"
 	waitTimeout     = time.Second * 120
@@ -66,6 +67,11 @@ const (
 var _ = Describe("Application CRD e2e", func() {
 	s := scheme.Scheme
 	_ = appv1beta1.AddToScheme(s)
+
+	crdv080, err := testutil.ParseCRDYaml(crdv080Path)
+	if err != nil {
+		log.Fatal("Unable to parse CRD YAML with version 0.8.0", err)
+	}
 
 	crd, err := testutil.ParseCRDYaml(crdPath)
 	if err != nil {
@@ -93,15 +99,27 @@ var _ = Describe("Application CRD e2e", func() {
 	managerCmd.Stdout = &managerStdout
 	managerCmd.Stderr = &managerStderr
 
-	It("should create CRD", func() {
-		err = testutil.CreateCRD(extClient, crd)
+	It("should create CRD v0.8.0", func() {
+		err = testutil.CreateOrUpdateCRD(extClient, crdv080)
+		Expect(err).NotTo(HaveOccurred())
+		err = testutil.WaitForCRDOrDie(extClient, crdv080.Name)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should create the wordpress application", func() {
+		err = applyKustomize("../docs/examples/wordpress")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should update the CRD v0.8.0 to new CRD", func() {
+		err = testutil.CreateOrUpdateCRD(extClient, crd)
 		Expect(err).NotTo(HaveOccurred())
 		err = testutil.WaitForCRDOrDie(extClient, crd.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should create test CRD", func() {
-		err = testutil.CreateCRD(extClient, testcrd)
+		err = testutil.CreateOrUpdateCRD(extClient, testcrd)
 		Expect(err).NotTo(HaveOccurred())
 		err = testutil.WaitForCRDOrDie(extClient, testcrd.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -121,11 +139,6 @@ var _ = Describe("Application CRD e2e", func() {
 
 	It("should start the controller", func() {
 		err = managerCmd.Start()
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	It("should create the wordpress application", func() {
-		err = applyKustomize("../docs/examples/wordpress")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
