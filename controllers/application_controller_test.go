@@ -80,8 +80,8 @@ var _ = Describe("Application Reconciler", func() {
 			objs = append(objs, service)
 			objs = append(objs, statefulSet)
 			objs = append(objs, createPod(labelSet2, namespace2))
-			objs = append(objs, createDaemonSet(labelSet2, namespace2))
-			objs = append(objs, createReplicaSet(labelSet2, namespace2))
+			objs = append(objs, createDaemonSet(labelSet1, namespace2))
+			objs = append(objs, createReplicaSet(labelSet1, namespace2))
 			objs = append(objs, CreatePersistentVolumeClaim(labelSet2, namespace2))
 			objs = append(objs, createPodDisruptionBudget(labelSet2, namespace2))
 
@@ -135,10 +135,26 @@ var _ = Describe("Application Reconciler", func() {
 			Expect(len(ns1List)).To(Equal(3))
 			Expect(componentKinds(ns1List)).To(ConsistOf("StatefulSet", "Deployment", "Service"))
 
-			ns2List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet2), namespace2, &errs)
+			ns2l1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), namespace2, &errs)
 			Expect(errs).To(BeNil())
-			Expect(len(ns2List)).To(Equal(5))
-			Expect(componentKinds(ns2List)).To(ConsistOf("ReplicaSet", "DaemonSet", "PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
+			Expect(len(ns2l1List)).To(Equal(2))
+			Expect(componentKinds(ns2l1List)).To(ConsistOf("ReplicaSet", "DaemonSet"))
+
+			ns2l2List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet2), namespace2, &errs)
+			Expect(errs).To(BeNil())
+			Expect(len(ns2l2List)).To(Equal(3))
+			Expect(componentKinds(ns2l2List)).To(ConsistOf("PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
+
+			// Empty selector will select ALL resources in the namespace
+			ns2AllList := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(map[string]string{}), namespace2, &errs)
+			Expect(errs).To(BeNil())
+			Expect(len(ns2AllList)).To(Equal(5))
+			Expect(componentKinds(ns2AllList)).To(ConsistOf("ReplicaSet", "DaemonSet", "PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
+
+			// No selector will select NO resources in the namespace
+			ns2NoList := applicationReconciler.fetchComponentListResources(ctx, groupKinds, nil, namespace2, &errs)
+			Expect(errs).To(BeNil())
+			Expect(ns2NoList).To(BeNil())
 
 		})
 

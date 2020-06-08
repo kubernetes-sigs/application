@@ -116,6 +116,12 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context, groupKinds []metav1.GroupKind, selector *metav1.LabelSelector, namespace string, errs *[]error) []*unstructured.Unstructured {
 	logger := getLoggerOrDie(ctx)
 	var resources []*unstructured.Unstructured
+
+	if selector == nil {
+		logger.Info("No selector is specified")
+		return resources
+	}
+
 	for _, gk := range groupKinds {
 		mapping, err := r.Mapper.RESTMapping(schema.GroupKind{
 			Group: appv1beta1.StripVersion(gk.Group),
