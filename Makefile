@@ -39,7 +39,7 @@ WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
 RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
 COVER_FILE ?= cover.out
 
-VERS := dev v0.8.1
+VERS := dev v0.8.3
 .DEFAULT_GOAL := all
 .PHONY: all
 all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app-manager
