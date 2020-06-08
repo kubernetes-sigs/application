@@ -11,6 +11,6 @@ namespace: application-system
 images:
 - name: kube-app-manager
   newName: quay.io/kubernetes-sigs/kube-app-manager
-  newTag: v0.8.2
+  newTag: v0.8.3
 resources:
 - ../base
