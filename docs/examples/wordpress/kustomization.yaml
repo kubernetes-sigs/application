@@ -22,5 +22,4 @@ resources:
 secretGenerator:
 - name: mysql-pass
   type: Opaque
-  envs:
-  - secrets.txt
+  env: secrets.txt
