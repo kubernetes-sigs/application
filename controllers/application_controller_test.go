@@ -44,7 +44,7 @@ var _ = Describe("Application Reconciler", func() {
 	var labelSet1 = map[string]string{"foo": "bar"}
 	var labelSet2 = map[string]string{"baz": "qux"}
 	var namespace1 = metav1.NamespaceDefault
-	var namespace2 = "default2"
+	var namespace2 = "kube-system"
 	var deployment *apps.Deployment
 	var statefulSet *apps.StatefulSet
 	var service *core.Service
@@ -182,8 +182,9 @@ var _ = Describe("Application Reconciler", func() {
 	Describe("setOwnerRefForResources", func() {
 		var resource = &unstructured.Unstructured{}
 		resource.SetGroupVersionKind(schema.GroupVersionKind{
-			Group: "apps",
-			Kind:  "StatefulSet",
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "StatefulSet",
 		})
 		var key types.NamespacedName
 		var resources []*unstructured.Unstructured

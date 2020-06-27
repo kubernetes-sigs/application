@@ -8,7 +8,7 @@ VERSION_FILE ?= VERSION-DEV
 include $(VERSION_FILE)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false,crdVersions={v1beta1,v1}"
 
 # Releases should modify and double check these vars.
 VER ?= v${app_major}.${app_minor}.${app_patch}
@@ -50,7 +50,7 @@ all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app
 ## --------------------------------------
 
 $(TOOLBIN)/controller-gen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
 
 $(TOOLBIN)/golangci-lint:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6
@@ -59,7 +59,7 @@ $(TOOLBIN)/mockgen:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golang/mock/mockgen@v1.3.1
 
 $(TOOLBIN)/conversion-gen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.17.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.18.2
 
 $(TOOLBIN)/kubebuilder $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl:
 	cd $(TOOLS_DIR); ./install_kubebuilder.sh
@@ -68,7 +68,7 @@ $(TOOLBIN)/kustomize:
 	cd $(TOOLS_DIR); ./install_kustomize.sh
 
 $(TOOLBIN)/kind:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.6.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.8.1
 
 $(TOOLBIN)/addlicense:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/google/addlicense
@@ -101,7 +101,7 @@ test: $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl
 	go test -v ./api/... ./controllers/... -coverprofile $(COVER_FILE)
 
 # Run e2e-tests
-K8S_VERSION := "v1.16.4"
+K8S_VERSION := "v1.18.2"
 
 .PHONY: e2e-setup
 e2e-setup: $(TOOLBIN)/kind
@@ -259,6 +259,10 @@ manifests: $(TOOLBIN)/controller-gen
 		output:crd:dir=$(CRD_ROOT) \
 		output:webhook:dir=$(WEBHOOK_ROOT) \
 		webhook
+	@for f in config/crd/bases/*.yaml; do \
+		kubectl annotate --overwrite -f $$f --local=true -o yaml api-approved.kubernetes.io=https://github.com/kubernetes-sigs/application/pull/2 > $$f.bk; \
+		mv $$f.bk $$f; \
+	done
 
 .PHONY: generate-resources
 generate-resources: $(TOOLBIN)/kustomize
