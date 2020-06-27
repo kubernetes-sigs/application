@@ -12,7 +12,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.2.5
+    controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
   labels:
     app.kubernetes.io/name: kube-app-manager
@@ -50,6 +50,7 @@ spec:
     shortNames:
     - app
     singular: application
+  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     status: {}

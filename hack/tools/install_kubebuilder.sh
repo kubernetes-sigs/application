@@ -5,7 +5,7 @@
 
 source ./common.sh
 
-version=2.2.0
+version=2.3.1
 
 header_text "Checking for bin/kubebuilder"
 [[ -f bin/kubebuilder ]] && exit 0
