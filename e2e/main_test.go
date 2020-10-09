@@ -179,12 +179,14 @@ var _ = Describe("Application CRD e2e", func() {
 		list.SetGroupVersionKind(schema.GroupVersionKind{
 			Group: "",
 			Kind:  "Service",
+			Version: "v1",
 		})
 		validateComponentOwnerReferences(kubeClient, list, matchingLabels, "wordpress-01")
 
 		list.SetGroupVersionKind(schema.GroupVersionKind{
 			Group: "apps",
 			Kind:  "StatefulSet",
+			Version: "v1",
 		})
 		validateComponentOwnerReferences(kubeClient, list, matchingLabels, "wordpress-01")
 
@@ -192,6 +194,7 @@ var _ = Describe("Application CRD e2e", func() {
 		list.SetGroupVersionKind(schema.GroupVersionKind{
 			Group: "test.crd.com",
 			Kind:  "TestCRD",
+			Version: "v1",
 		})
 		validateComponentOwnerReferences(kubeClient, list, matchingLabels, "test-application-01")
 	})

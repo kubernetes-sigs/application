@@ -8,7 +8,7 @@ VERSION_FILE ?= VERSION-DEV
 include $(VERSION_FILE)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false,crdVersions={v1beta1,v1}"
+CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1"
 
 # Releases should modify and double check these vars.
 VER ?= v${app_major}.${app_minor}.${app_patch}
@@ -49,7 +49,7 @@ all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app
 ## Tooling Binaries
 ## --------------------------------------
 
-$(TOOLBIN)/controller-gen:
+$(TOOLBIN)/controller-gen: $(TOOLBIN)/kubectl
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
 
 $(TOOLBIN)/golangci-lint:
@@ -63,6 +63,7 @@ $(TOOLBIN)/conversion-gen:
 
 $(TOOLBIN)/kubebuilder $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl:
 	cd $(TOOLS_DIR); ./install_kubebuilder.sh
+	cp $(TOOLBIN)/kubectl $(HOME)/bin
 
 $(TOOLBIN)/kustomize:
 	cd $(TOOLS_DIR); ./install_kustomize.sh
@@ -105,7 +106,6 @@ K8S_VERSION := "v1.18.2"
 
 .PHONY: e2e-setup
 e2e-setup: $(TOOLBIN)/kind
-	KUBECONFIG=$(shell $(TOOLBIN)/kind get kubeconfig-path --name="kind") \
 	$(TOOLBIN)/kind create cluster \
 	 -v 4 --retain --wait=1m \
 	 --config e2e/kind-config.yaml \
@@ -116,7 +116,7 @@ e2e-cleanup: $(TOOLBIN)/kind
 	$(TOOLBIN)/kind delete cluster
 
 .PHONY: e2e-test
-e2e-test: generate fmt vet manifests $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
+e2e-test: generate fmt vet $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	go test -v ./e2e/main_test.go
 
 .PHONY: local-e2e-test
@@ -242,11 +242,12 @@ undeploy-wordpress: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 ## --------------------------------------
 
 .PHONY: generate
-generate: ## Generate code
+generate: license ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) manifests
 	$(MAKE) generate-resources
 	VERSION_FILE=VERSION $(MAKE) generate-resources
+	$(MAKE) license
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests

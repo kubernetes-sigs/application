@@ -6,7 +6,6 @@ kind: Application
 metadata:
   name: "withcrd"
 spec:
-  type: "test"
   selector:
     matchLabels:
       app.kubernetes.io/name: "withcrd-ok"
