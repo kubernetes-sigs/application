@@ -105,7 +105,7 @@ func deploymentStatus(u *unstructured.Unstructured) (string, error) {
 	for _, condition := range deployment.Status.Conditions {
 		switch condition.Type {
 		case appsv1.DeploymentProgressing:
-			if condition.Status == corev1.ConditionTrue && condition.Reason == "NewReplicaSetAvailable" {
+			if condition.Status == corev1.ConditionTrue && condition.Reason == "ReplicaSetUpdated" {
 				progressing = true
 			}
 		case appsv1.DeploymentAvailable:
