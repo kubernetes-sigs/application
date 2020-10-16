@@ -73,6 +73,7 @@ var _ = Describe("Application Reconciler", func() {
 	Describe("fetchComponentListResources", func() {
 		It("should fetch corresponding components with matched labels within a namespace", func() {
 			var objs []runtime.Object = nil
+			createNamespace(namespace2, ctx)
 			deployment = createDeployment(labelSet1, namespace1)
 			service = createService(labelSet1, namespace1)
 			statefulSet = createStatefulSet(labelSet1, namespace1)
@@ -182,8 +183,9 @@ var _ = Describe("Application Reconciler", func() {
 	Describe("setOwnerRefForResources", func() {
 		var resource = &unstructured.Unstructured{}
 		resource.SetGroupVersionKind(schema.GroupVersionKind{
-			Group: "apps",
-			Kind:  "StatefulSet",
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "StatefulSet",
 		})
 		var key types.NamespacedName
 		var resources []*unstructured.Unstructured
@@ -399,6 +401,16 @@ func createStatefulSet(labels map[string]string, ns string) *apps.StatefulSet {
 			UpdateStrategy:      apps.StatefulSetUpdateStrategy{Type: apps.RollingUpdateStatefulSetStrategyType},
 		},
 	}
+}
+
+func createNamespace(name string, ctx context.Context) {
+	namespace := &core.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+	err := c.Create(ctx, namespace)
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func createDeployment(labels map[string]string, ns string) *apps.Deployment {

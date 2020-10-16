@@ -4,11 +4,12 @@
 package testutil
 
 import (
+	"context"
 	"io"
 	"os"
 	"time"
 
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -20,21 +21,21 @@ import (
 // CreateOrUpdateCRD - create or update application CRD
 func CreateOrUpdateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomResourceDefinition) error {
 
-	currentCrd, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
+	currentCrd, err := kubeClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), crd.Name, metav1.GetOptions{})
 
 	if err == nil {
 		// CustomResourceDefinition already exists -> Update
 
 		// Bypass the 'metadata.resourceVersion: Invalid value: 0x0: must be specified for an update' error
 		crd.ResourceVersion = currentCrd.ResourceVersion
-		_, err = kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Update(crd)
+		_, err = kubeClient.ApiextensionsV1().CustomResourceDefinitions().Update(context.TODO(), crd, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
 
 	} else {
 		// CustomResourceDefinition doesn't exist -> Create
-		_, err = kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+		_, err = kubeClient.ApiextensionsV1().CustomResourceDefinitions().Create(context.TODO(), crd, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -46,7 +47,7 @@ func CreateOrUpdateCRD(kubeClient apiextcs.Interface, crd *apiextensions.CustomR
 // WaitForCRDOrDie - wait for CRD conditions to be set
 func WaitForCRDOrDie(kubeClient apiextcs.Interface, name string) error {
 	err := wait.PollImmediate(2*time.Second, 20*time.Second, func() (bool, error) {
-		crd, err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
+		crd, err := kubeClient.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
@@ -66,7 +67,7 @@ func establishedCondition(conditions []apiextensions.CustomResourceDefinitionCon
 
 // DeleteCRD - Delete CRD from cluster
 func DeleteCRD(kubeClient apiextcs.Interface, crdName string) error {
-	err := kubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(crdName, &metav1.DeleteOptions{})
+	err := kubeClient.ApiextensionsV1().CustomResourceDefinitions().Delete(context.TODO(), crdName, metav1.DeleteOptions{})
 	return err
 }
 

@@ -8,7 +8,9 @@ VERSION_FILE ?= VERSION-DEV
 include $(VERSION_FILE)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1"
+# Turn on the CRD_OPTIONS below to generate the v1beta1 version of the Application CRD for kubernetes < 1.16
+#CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1beta1"
 
 # Releases should modify and double check these vars.
 VER ?= v${app_major}.${app_minor}.${app_patch}
@@ -49,8 +51,8 @@ all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app
 ## Tooling Binaries
 ## --------------------------------------
 
-$(TOOLBIN)/controller-gen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5
+$(TOOLBIN)/controller-gen: $(TOOLBIN)/kubectl
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0
 
 $(TOOLBIN)/golangci-lint:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6
@@ -59,16 +61,17 @@ $(TOOLBIN)/mockgen:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golang/mock/mockgen@v1.3.1
 
 $(TOOLBIN)/conversion-gen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.17.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.18.9
 
 $(TOOLBIN)/kubebuilder $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl:
 	cd $(TOOLS_DIR); ./install_kubebuilder.sh
+	cp $(TOOLBIN)/kubectl $(HOME)/bin
 
 $(TOOLBIN)/kustomize:
 	cd $(TOOLS_DIR); ./install_kustomize.sh
 
 $(TOOLBIN)/kind:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.6.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.9.0
 
 $(TOOLBIN)/addlicense:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/google/addlicense
@@ -101,11 +104,10 @@ test: $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl
 	go test -v ./api/... ./controllers/... -coverprofile $(COVER_FILE)
 
 # Run e2e-tests
-K8S_VERSION := "v1.16.4"
+K8S_VERSION := "v1.18.2"
 
 .PHONY: e2e-setup
 e2e-setup: $(TOOLBIN)/kind
-	KUBECONFIG=$(shell $(TOOLBIN)/kind get kubeconfig-path --name="kind") \
 	$(TOOLBIN)/kind create cluster \
 	 -v 4 --retain --wait=1m \
 	 --config e2e/kind-config.yaml \
@@ -116,7 +118,7 @@ e2e-cleanup: $(TOOLBIN)/kind
 	$(TOOLBIN)/kind delete cluster
 
 .PHONY: e2e-test
-e2e-test: generate fmt vet manifests $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
+e2e-test: generate fmt vet $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 	go test -v ./e2e/main_test.go
 
 .PHONY: local-e2e-test
@@ -242,11 +244,12 @@ undeploy-wordpress: $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
 ## --------------------------------------
 
 .PHONY: generate
-generate: ## Generate code
+generate: license ## Generate code
 	$(MAKE) generate-go
 	$(MAKE) manifests
 	$(MAKE) generate-resources
 	VERSION_FILE=VERSION $(MAKE) generate-resources
+	$(MAKE) license
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -259,6 +262,10 @@ manifests: $(TOOLBIN)/controller-gen
 		output:crd:dir=$(CRD_ROOT) \
 		output:webhook:dir=$(WEBHOOK_ROOT) \
 		webhook
+	@for f in config/crd/bases/*.yaml; do \
+		kubectl annotate --overwrite -f $$f --local=true -o yaml api-approved.kubernetes.io=https://github.com/kubernetes-sigs/application/pull/2 > $$f.bk; \
+		mv $$f.bk $$f; \
+	done
 
 .PHONY: generate-resources
 generate-resources: $(TOOLBIN)/kustomize
@@ -305,6 +312,7 @@ clean:
 	rm -f $(TOOLBIN)/kustomize
 	rm -f $(TOOLBIN)/misspell
 	rm -f $(TOOLBIN)/mockgen
+	rm -f $(TOOLBIN)/kind
 
 
 ## --------------------------------------
