@@ -191,13 +191,11 @@ func serviceStatus(u *unstructured.Unstructured) (string, error) {
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, service); err != nil {
 		return StatusUnknown, err
 	}
-	stype := service.Spec.Type
 
-	if stype == corev1.ServiceTypeClusterIP || stype == corev1.ServiceTypeNodePort || stype == corev1.ServiceTypeExternalName ||
-		stype == corev1.ServiceTypeLoadBalancer && isEmpty(service.Spec.ClusterIP) &&
-			len(service.Status.LoadBalancer.Ingress) > 0 && !hasEmptyIngressIP(service.Status.LoadBalancer.Ingress) {
+	if serviceIsReady(service) {
 		return StatusReady, nil
 	}
+
 	return StatusInProgress, nil
 }
 
@@ -257,6 +255,42 @@ func jobStatus(u *unstructured.Unstructured) (string, error) {
 	}
 
 	return StatusReady, nil
+}
+
+func serviceIsReady(service *corev1.Service) bool {
+	stype := service.Spec.Type
+
+	if stype == corev1.ServiceTypeExternalName {
+		return true
+	}
+
+	isReady := !isEmpty(service.Spec.ClusterIP)
+	if stype == corev1.ServiceTypeClusterIP {
+		return isReady
+	}
+
+	isReady = isReady && !hasEmptyNodePort(service.Spec.Ports)
+	if stype == corev1.ServiceTypeNodePort {
+		return isReady
+	}
+
+	isReady = isReady && len(service.Status.LoadBalancer.Ingress) > 0 &&
+		!hasEmptyIngressIP(service.Status.LoadBalancer.Ingress)
+	if stype == corev1.ServiceTypeLoadBalancer {
+		return isReady
+	}
+
+	return false
+}
+
+func hasEmptyNodePort(ports []corev1.ServicePort) bool {
+	for _, p := range ports {
+		if p.NodePort == 0 {
+			return true
+		}
+	}
+
+	return false
 }
 
 func hasEmptyIngressIP(ingress []corev1.LoadBalancerIngress) bool {
