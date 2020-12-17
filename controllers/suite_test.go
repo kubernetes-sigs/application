@@ -4,8 +4,8 @@
 package controllers
 
 import (
+	"context"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -44,7 +44,7 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -78,8 +78,8 @@ var _ = AfterSuite(func() {
 // writes the request to requests after Reconcile is finished.
 func SetupTestReconcile(inner reconcile.Reconciler) (reconcile.Reconciler, chan reconcile.Request) {
 	requests := make(chan reconcile.Request)
-	fn := reconcile.Func(func(req reconcile.Request) (reconcile.Result, error) {
-		result, err := inner.Reconcile(req)
+	fn := reconcile.Func(func(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+		result, err := inner.Reconcile(ctx, req)
 		requests <- req
 		return result, err
 	})
@@ -87,15 +87,11 @@ func SetupTestReconcile(inner reconcile.Reconciler) (reconcile.Reconciler, chan 
 }
 
 // StartTestManager adds recFn
-func StartTestManager(mgr manager.Manager) (chan struct{}, *sync.WaitGroup) {
-	stop := make(chan struct{})
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+func StartTestManager(ctx context.Context, mgr manager.Manager) {
 	go func() {
-		Expect(mgr.Start(stop)).NotTo(HaveOccurred())
-		wg.Done()
+		defer GinkgoRecover()
+		Expect(mgr.Start(ctx)).NotTo(HaveOccurred())
 	}()
-	return stop, wg
 }
 
 func NewReconciler(mgr manager.Manager) *ApplicationReconciler {

@@ -1,21 +1,24 @@
 module sigs.k8s.io/application
 
-go 1.13
+go 1.15
 
 require (
-	github.com/go-logr/logr v0.1.0
-	github.com/golang/mock v1.3.1 // indirect
-	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
+	github.com/go-logr/logr v0.3.0
 	github.com/google/uuid v1.1.1
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.1
+	github.com/kr/text v0.2.0 // indirect
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.2
 	github.com/pkg/errors v0.9.1
-	k8s.io/api v0.18.2
-	k8s.io/apiextensions-apiserver v0.18.2
-	k8s.io/apimachinery v0.18.2
-	k8s.io/client-go v0.18.2
-	k8s.io/code-generator v0.18.9 // indirect
-	sigs.k8s.io/controller-runtime v0.6.0
-	sigs.k8s.io/controller-tools v0.4.0 // indirect
-	sigs.k8s.io/kind v0.8.1 // indirect
+	github.com/stretchr/testify v1.6.1 // indirect
+	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
+	golang.org/x/sys v0.0.0-20201009025420-dfb3f7c4e634 // indirect
+	golang.org/x/tools v0.0.0-20201013201025-64a9e34f3752 // indirect
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
+	k8s.io/api v0.19.2
+	k8s.io/apiextensions-apiserver v0.19.2
+	k8s.io/apimachinery v0.19.2
+	k8s.io/client-go v0.19.2
+	sigs.k8s.io/controller-runtime v0.7.0
 )

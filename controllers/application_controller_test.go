@@ -6,7 +6,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -35,11 +33,10 @@ var c client.Client
 const timeout = time.Second * 30
 
 var _ = Describe("Application Reconciler", func() {
-	var stopMgr chan struct{}
-	var mgrStopped *sync.WaitGroup
 	var recFn reconcile.Reconciler
 	var requests chan reconcile.Request
 	var ctx context.Context
+	var cancel context.CancelFunc
 	var applicationReconciler *ApplicationReconciler
 	var labelSet1 = map[string]string{"foo": "bar"}
 	var labelSet2 = map[string]string{"baz": "qux"}
@@ -58,21 +55,20 @@ var _ = Describe("Application Reconciler", func() {
 
 		applicationReconciler = NewReconciler(mgr)
 		logger := applicationReconciler.Log.WithValues("application", metav1.NamespaceDefault+"/application")
-		ctx = context.WithValue(context.Background(), loggerCtxKey, logger)
+		ctx, cancel = context.WithCancel(context.WithValue(context.Background(), loggerCtxKey, logger))
 		recFn, requests = SetupTestReconcile(applicationReconciler)
 		Expect(CreateController("app", mgr, recFn)).NotTo(HaveOccurred())
 
-		stopMgr, mgrStopped = StartTestManager(mgr)
+		StartTestManager(ctx, mgr)
 	})
 
 	AfterEach(func() {
-		close(stopMgr)
-		mgrStopped.Wait()
+		cancel()
 	})
 
 	Describe("fetchComponentListResources", func() {
 		It("should fetch corresponding components with matched labels within a namespace", func() {
-			var objs []runtime.Object = nil
+			var objs []client.Object = nil
 			createNamespace(namespace2, ctx)
 			deployment = createDeployment(labelSet1, namespace1)
 			service = createService(labelSet1, namespace1)

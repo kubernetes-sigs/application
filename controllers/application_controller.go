@@ -24,8 +24,10 @@ import (
 	appv1beta1 "sigs.k8s.io/application/api/v1beta1"
 )
 
+type loggerCtxKeyType string
+
 const (
-	loggerCtxKey = "logger"
+	loggerCtxKey = loggerCtxKeyType("logger")
 )
 
 // ApplicationReconciler reconciles a Application object
@@ -40,7 +42,7 @@ type ApplicationReconciler struct {
 // +kubebuilder:rbac:groups=app.k8s.io,resources=applications/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=*,resources=*,verbs=list;get;update;patch;watch
 
-func (r *ApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ApplicationReconciler) Reconcile(newCtx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rootCtx := context.Background()
 	logger := r.Log.WithValues("application", req.NamespacedName)
 	ctx := context.WithValue(rootCtx, loggerCtxKey, logger)
