@@ -500,7 +500,7 @@ func createService(labels map[string]string, ns string) *core.Service {
 			SessionAffinity: "None",
 			Type:            core.ServiceTypeClusterIP,
 			Ports:           []core.ServicePort{{Name: "p", Protocol: "TCP", Port: 8675, TargetPort: intstr.FromInt(8675)}},
-			IPFamily:        &serviceIPFamily,
+			IPFamilies:      []core.IPFamily{serviceIPFamily},
 		},
 	}
 }
