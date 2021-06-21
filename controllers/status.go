@@ -187,7 +187,7 @@ func serviceStatus(u *unstructured.Unstructured) (string, error) {
 	stype := service.Spec.Type
 
 	if stype == corev1.ServiceTypeClusterIP || stype == corev1.ServiceTypeNodePort || stype == corev1.ServiceTypeExternalName ||
-		stype == corev1.ServiceTypeLoadBalancer && isEmpty(service.Spec.ClusterIP) &&
+		stype == corev1.ServiceTypeLoadBalancer && !isEmpty(service.Spec.ClusterIP) &&
 			len(service.Status.LoadBalancer.Ingress) > 0 && !hasEmptyIngressIP(service.Status.LoadBalancer.Ingress) {
 		return appv1beta1.StatusReady, nil
 	}
