@@ -9,16 +9,21 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: "withcrd-ok"
-  componentKinds:
+  componentGVKs:
   - group: apps
+    version: v1
     kind: Deployment
   - group: batch
+    version: v1
     kind: Job
-  - group: v1
+  - group: ""
+    version: v1
     kind: Service
-  - group: v1
+  - group: ""
+    version: v1
     kind: ConfigMap
   - group: test.crd.com
+    version: v1
     kind: TestCRD
   addOwnerRef: true
   descriptor:

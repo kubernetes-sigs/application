@@ -6,7 +6,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -35,11 +33,10 @@ var c client.Client
 const timeout = time.Second * 30
 
 var _ = Describe("Application Reconciler", func() {
-	var stopMgr chan struct{}
-	var mgrStopped *sync.WaitGroup
 	var recFn reconcile.Reconciler
 	var requests chan reconcile.Request
 	var ctx context.Context
+	var cancel context.CancelFunc
 	var applicationReconciler *ApplicationReconciler
 	var labelSet1 = map[string]string{"foo": "bar"}
 	var labelSet2 = map[string]string{"baz": "qux"}
@@ -58,21 +55,20 @@ var _ = Describe("Application Reconciler", func() {
 
 		applicationReconciler = NewReconciler(mgr)
 		logger := applicationReconciler.Log.WithValues("application", metav1.NamespaceDefault+"/application")
-		ctx = context.WithValue(context.Background(), loggerCtxKey, logger)
+		ctx, cancel = context.WithCancel(context.WithValue(context.Background(), loggerCtxKey, logger))
 		recFn, requests = SetupTestReconcile(applicationReconciler)
 		Expect(CreateController("app", mgr, recFn)).NotTo(HaveOccurred())
 
-		stopMgr, mgrStopped = StartTestManager(mgr)
+		StartTestManager(ctx, mgr)
 	})
 
 	AfterEach(func() {
-		close(stopMgr)
-		mgrStopped.Wait()
+		cancel()
 	})
 
 	Describe("fetchComponentListResources", func() {
 		It("should fetch corresponding components with matched labels within a namespace", func() {
-			var objs []runtime.Object = nil
+			var objs []client.Object = nil
 			createNamespace(namespace2, ctx)
 			deployment = createDeployment(labelSet1, namespace1)
 			service = createService(labelSet1, namespace1)
@@ -91,76 +87,85 @@ var _ = Describe("Application Reconciler", func() {
 				Expect(err).NotTo(HaveOccurred())
 			}
 
-			groupKinds := []metav1.GroupKind{
+			gvks := []metav1.GroupVersionKind{
 				{
-					Group: "apps",
-					Kind:  "StatefulSet",
+					Group:   "apps",
+					Version: "v1",
+					Kind:    "StatefulSet",
 				},
 				{
-					Group: "apps",
-					Kind:  "Deployment",
+					Group:   "apps",
+					Version: "v1",
+					Kind:    "Deployment",
 				},
 				{
-					Group: "apps",
-					Kind:  "ReplicaSet",
+					Group:   "apps",
+					Version: "v1",
+					Kind:    "ReplicaSet",
 				},
 				{
-					Group: "apps",
-					Kind:  "DaemonSet",
+					Group:   "apps",
+					Version: "v1",
+					Kind:    "DaemonSet",
 				},
 				{
-					Group: "batch",
-					Kind:  "Job",
+					Group:   "batch",
+					Version: "v1",
+					Kind:    "Job",
 				},
 				{
-					Group: "v1",
-					Kind:  "Service",
+					Group:   "",
+					Version: "v1",
+					Kind:    "Service",
 				},
 				{
-					Group: "v1",
-					Kind:  "PersistentVolumeClaim",
+					Group:   "",
+					Version: "v1",
+					Kind:    "PersistentVolumeClaim",
 				},
 				{
-					Group: "v1",
-					Kind:  "Pod",
+					Group:   "",
+					Version: "v1",
+					Kind:    "Pod",
 				},
 				{
-					Group: "policy",
-					Kind:  "PodDisruptionBudget",
+					Group:   "policy",
+					Version: "v1beta1",
+					Kind:    "PodDisruptionBudget",
 				},
 			}
 
 			var errs []error
-			ns1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), namespace1, &errs)
+			ns1List := applicationReconciler.fetchComponentListResources(ctx, gvks, metav1.SetAsLabelSelector(labelSet1), namespace1, &errs)
 			Expect(errs).To(BeNil())
 			Expect(len(ns1List)).To(Equal(3))
 			Expect(componentKinds(ns1List)).To(ConsistOf("StatefulSet", "Deployment", "Service"))
 
-			ns2l1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), namespace2, &errs)
+			ns2l1List := applicationReconciler.fetchComponentListResources(ctx, gvks, metav1.SetAsLabelSelector(labelSet1), namespace2, &errs)
 			Expect(errs).To(BeNil())
 			Expect(len(ns2l1List)).To(Equal(2))
 			Expect(componentKinds(ns2l1List)).To(ConsistOf("ReplicaSet", "DaemonSet"))
 
-			ns2l2List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet2), namespace2, &errs)
+			ns2l2List := applicationReconciler.fetchComponentListResources(ctx, gvks, metav1.SetAsLabelSelector(labelSet2), namespace2, &errs)
 			Expect(errs).To(BeNil())
 			Expect(len(ns2l2List)).To(Equal(3))
 			Expect(componentKinds(ns2l2List)).To(ConsistOf("PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
 
 			// Empty selector will select ALL resources in the namespace
-			ns2AllList := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(map[string]string{}), namespace2, &errs)
+			ns2AllList := applicationReconciler.fetchComponentListResources(ctx, gvks, metav1.SetAsLabelSelector(map[string]string{}), namespace2, &errs)
 			Expect(errs).To(BeNil())
 			Expect(len(ns2AllList)).To(Equal(5))
 			Expect(componentKinds(ns2AllList)).To(ConsistOf("ReplicaSet", "DaemonSet", "PersistentVolumeClaim", "Pod", "PodDisruptionBudget"))
 
 			// No selector will select NO resources in the namespace
-			ns2NoList := applicationReconciler.fetchComponentListResources(ctx, groupKinds, nil, namespace2, &errs)
+			ns2NoList := applicationReconciler.fetchComponentListResources(ctx, gvks, nil, namespace2, &errs)
 			Expect(errs).To(BeNil())
 			Expect(ns2NoList).To(BeNil())
 
 		})
 
 		It("should fetch components when version is included in the group", func() {
-			groupKinds := []metav1.GroupKind{
+			gvks := []metav1.GroupVersionKind{
 				{
 					Group: "apps/v1",
 					Kind:  "Deployment",
@@ -172,7 +177,7 @@ var _ = Describe("Application Reconciler", func() {
 			}
 
 			var errs []error
-			ns1List := applicationReconciler.fetchComponentListResources(ctx, groupKinds, metav1.SetAsLabelSelector(labelSet1), metav1.NamespaceDefault, &errs)
+			ns1List := applicationReconciler.fetchComponentListResources(ctx, gvks, metav1.SetAsLabelSelector(labelSet1), metav1.NamespaceDefault, &errs)
 			Expect(errs).To(BeNil())
 			Expect(len(ns1List)).To(Equal(2))
 			Expect(componentKinds(ns1List)).To(ConsistOf("Deployment", "Service"))
@@ -277,14 +282,16 @@ var _ = Describe("Application Reconciler", func() {
 				},
 				Spec: appv1beta1.ApplicationSpec{
 					Selector: &metav1.LabelSelector{MatchLabels: labelSet1},
-					ComponentGroupKinds: []metav1.GroupKind{
+					ComponentGVKs: []metav1.GroupVersionKind{
 						{
-							Group: "apps",
-							Kind:  "Deployment",
+							Group:   "apps",
+							Version: "v1",
+							Kind:    "Deployment",
 						},
 						{
-							Group: "v1",
-							Kind:  "Service",
+							Group:   "",
+							Version: "v1",
+							Kind:    "Service",
 						},
 					},
 					AddOwnerRef: true,
@@ -497,14 +504,13 @@ func createPodDisruptionBudget(labels map[string]string, ns string) *policy.PodD
 }
 
 func createService(labels map[string]string, ns string) *core.Service {
-	serviceIPFamily := core.IPv4Protocol
 	return &core.Service{
 		ObjectMeta: objectMeta("service", labels, ns),
 		Spec: core.ServiceSpec{
 			SessionAffinity: "None",
 			Type:            core.ServiceTypeClusterIP,
 			Ports:           []core.ServicePort{{Name: "p", Protocol: "TCP", Port: 8675, TargetPort: intstr.FromInt(8675)}},
-			IPFamily:        &serviceIPFamily,
+			IPFamilies:      []core.IPFamily{core.IPv4Protocol},
 		},
 	}
 }

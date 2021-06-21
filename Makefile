@@ -52,16 +52,16 @@ all: generate fix vet fmt manifests test lint license misspell tidy bin/kube-app
 ## --------------------------------------
 
 $(TOOLBIN)/controller-gen: $(TOOLBIN)/kubectl
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.0
 
 $(TOOLBIN)/golangci-lint:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1
 
 $(TOOLBIN)/mockgen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golang/mock/mockgen@v1.3.1
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/golang/mock/mockgen@v1.6.0
 
 $(TOOLBIN)/conversion-gen:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.18.9
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get k8s.io/code-generator/cmd/conversion-gen@v0.21.2
 
 $(TOOLBIN)/kubebuilder $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl:
 	cd $(TOOLS_DIR); ./install_kubebuilder.sh
@@ -71,7 +71,7 @@ $(TOOLBIN)/kustomize:
 	cd $(TOOLS_DIR); ./install_kustomize.sh
 
 $(TOOLBIN)/kind:
-	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.9.0
+	GOBIN=$(TOOLBIN) GO111MODULE=on go get sigs.k8s.io/kind@v0.11.1
 
 $(TOOLBIN)/addlicense:
 	GOBIN=$(TOOLBIN) GO111MODULE=on go get github.com/google/addlicense
@@ -101,10 +101,11 @@ test: $(TOOLBIN)/etcd $(TOOLBIN)/kube-apiserver $(TOOLBIN)/kubectl
 	TEST_ASSET_KUBECTL=$(TOOLBIN)/kubectl \
 	TEST_ASSET_KUBE_APISERVER=$(TOOLBIN)/kube-apiserver \
 	TEST_ASSET_ETCD=$(TOOLBIN)/etcd \
+	ACK_GINKGO_DEPRECATIONS=1.16.4 \
 	go test -v ./api/... ./controllers/... -coverprofile $(COVER_FILE)
 
 # Run e2e-tests
-K8S_VERSION := "v1.18.2"
+K8S_VERSION := "v1.21.1"
 
 .PHONY: e2e-setup
 e2e-setup: $(TOOLBIN)/kind
@@ -119,6 +120,7 @@ e2e-cleanup: $(TOOLBIN)/kind
 
 .PHONY: e2e-test
 e2e-test: generate fmt vet $(TOOLBIN)/kind $(TOOLBIN)/kustomize $(TOOLBIN)/kubectl
+	ACK_GINKGO_DEPRECATIONS=1.16.4 \
 	go test -v ./e2e/main_test.go
 
 .PHONY: local-e2e-test

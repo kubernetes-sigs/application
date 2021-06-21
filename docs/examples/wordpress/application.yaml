@@ -11,10 +11,12 @@ spec:
   selector:
     matchLabels:
      app.kubernetes.io/name: "wordpress-01"
-  componentKinds:
-    - group: v1
+  componentGVKs:
+    - group: ""
+      version: v1
       kind: Service
     - group: apps
+      version: v1
       kind: StatefulSet
   addOwnerRef: true
   descriptor:

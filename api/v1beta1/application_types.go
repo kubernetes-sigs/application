@@ -27,6 +27,14 @@ const (
 	ReasonInit = "Init"
 )
 
+// Constants for status
+const (
+	StatusReady      = "Ready"
+	StatusInProgress = "InProgress"
+	StatusUnknown    = "Unknown"
+	StatusDisabled   = "Disabled"
+)
+
 // Descriptor defines the Metadata and informations about the Application.
 type Descriptor struct {
 	// Type is the type of the application (e.g. WordPress, MySQL, Cassandra).
@@ -63,9 +71,9 @@ type Descriptor struct {
 
 // ApplicationSpec defines the specification for an Application.
 type ApplicationSpec struct {
-	// ComponentGroupKinds is a list of Kinds for Application's components (e.g. Deployments, Pods, Services, CRDs). It
+	// ComponentGVKs is a list of GVKs for Application's components (e.g. Deployments, Pods, Services, CRDs). It
 	// can be used in conjunction with the Application's Selector to list or watch the Applications components.
-	ComponentGroupKinds []metav1.GroupKind `json:"componentKinds,omitempty"`
+	ComponentGVKs []metav1.GroupVersionKind `json:"componentGVKs,omitempty"`
 
 	// Descriptor regroups information and metadata about an application.
 	Descriptor Descriptor `json:"descriptor,omitempty"`
@@ -104,6 +112,8 @@ type ObjectStatus struct {
 	Kind string `json:"kind,omitempty"`
 	// Object group
 	Group string `json:"group,omitempty"`
+	// Version of object
+	Version string `json:"version,omitempty"`
 	// Status. Values: InProgress, Ready, Unknown
 	Status string `json:"status,omitempty"`
 }

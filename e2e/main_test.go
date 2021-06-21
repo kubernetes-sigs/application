@@ -31,7 +31,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	appv1beta1 "sigs.k8s.io/application/api/v1beta1"
-	"sigs.k8s.io/application/controllers"
 	"sigs.k8s.io/application/e2e/testutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -211,7 +210,7 @@ var _ = Describe("Application CRD e2e", func() {
 		}
 		waitForApplicationStatusToHaveNComponents(kubeClient, objectKey, application, 6, 7)
 		Expect(application.Status.ObservedGeneration).To(BeNumerically("<=", 7))
-		Expect(hasConditionTypeStatusAndReason(application.Status.Conditions, controllers.StatusReady, corev1.ConditionFalse, "ComponentsNotReady")).To(BeTrue())
+		Expect(hasConditionTypeStatusAndReason(application.Status.Conditions, appv1beta1.StatusReady, corev1.ConditionFalse, "ComponentsNotReady")).To(BeTrue())
 	})
 
 	It("should stop the controller", func() {
