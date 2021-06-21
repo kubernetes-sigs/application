@@ -72,7 +72,7 @@ func (r *ApplicationReconciler) Reconcile(rootCtx context.Context, req ctrl.Requ
 
 func (r *ApplicationReconciler) updateComponents(ctx context.Context, app *appv1beta1.Application) ([]*unstructured.Unstructured, []error) {
 	var errs []error
-	resources := r.fetchComponentListResources(ctx, app.Spec.ComponentGroupKinds, app.Spec.Selector, app.Namespace, &errs)
+	resources := r.fetchComponentListResources(ctx, app.Spec.ComponentGVKs, app.Spec.Selector, app.Namespace, &errs)
 
 	if app.Spec.AddOwnerRef {
 		ownerRef := metav1.NewControllerRef(app, appv1beta1.GroupVersion.WithKind("Application"))
@@ -112,7 +112,7 @@ func (r *ApplicationReconciler) getNewApplicationStatus(ctx context.Context, app
 	return newApplicationStatus
 }
 
-func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context, groupKinds []metav1.GroupKind, selector *metav1.LabelSelector, namespace string, errs *[]error) []*unstructured.Unstructured {
+func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context, gvks []metav1.GroupVersionKind, selector *metav1.LabelSelector, namespace string, errs *[]error) []*unstructured.Unstructured {
 	logger := getLoggerOrDie(ctx)
 	var resources []*unstructured.Unstructured
 
@@ -121,13 +121,13 @@ func (r *ApplicationReconciler) fetchComponentListResources(ctx context.Context,
 		return resources
 	}
 
-	for _, gk := range groupKinds {
+	for _, gvk := range gvks {
 		mapping, err := r.Mapper.RESTMapping(schema.GroupKind{
-			Group: appv1beta1.StripVersion(gk.Group),
-			Kind:  gk.Kind,
-		})
+			Group: appv1beta1.StripVersion(gvk.Group),
+			Kind:  gvk.Kind,
+		}, gvk.Version)
 		if err != nil {
-			logger.Info("NoMappingForGK", "gk", gk.String())
+			logger.Info("NoMappingForGVK", "gvk", gvk.String())
 			continue
 		}
 
@@ -182,10 +182,11 @@ func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []
 	var objectStatuses []appv1beta1.ObjectStatus
 	for _, resource := range resources {
 		os := appv1beta1.ObjectStatus{
-			Group: resource.GroupVersionKind().Group,
-			Kind:  resource.GetKind(),
-			Name:  resource.GetName(),
-			Link:  resource.GetSelfLink(),
+			Group:   resource.GroupVersionKind().Group,
+			Version: resource.GroupVersionKind().Version,
+			Kind:    resource.GetKind(),
+			Name:    resource.GetName(),
+			Link:    resource.GetSelfLink(),
 		}
 		s, err := status(resource)
 		if err != nil {

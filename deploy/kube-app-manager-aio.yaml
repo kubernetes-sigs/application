@@ -82,23 +82,26 @@ spec:
                 description: AssemblyPhase represents the current phase of the application's
                   assembly. An empty value is equivalent to "Succeeded".
                 type: string
-              componentKinds:
-                description: ComponentGroupKinds is a list of Kinds for Application's
-                  components (e.g. Deployments, Pods, Services, CRDs). It can be used
-                  in conjunction with the Application's Selector to list or watch
-                  the Applications components.
+              componentGVKs:
+                description: ComponentGVKs is a list of GVKs for Application's components
+                  (e.g. Deployments, Pods, Services, CRDs). It can be used in conjunction
+                  with the Application's Selector to list or watch the Applications
+                  components.
                 items:
-                  description: GroupKind specifies a Group and a Kind, but does not
-                    force a version.  This is useful for identifying concepts during
-                    lookup stages without having partially valid types
+                  description: GroupVersionKind unambiguously identifies a kind.  It
+                    doesn't anonymously include GroupVersion to avoid automatic coersion.  It
+                    doesn't use a GroupVersion to avoid custom marshalling
                   properties:
                     group:
                       type: string
                     kind:
                       type: string
+                    version:
+                      type: string
                   required:
                   - group
                   - kind
+                  - version
                   type: object
                 type: array
               descriptor:
@@ -482,6 +485,9 @@ spec:
                       type: string
                     status:
                       description: 'Status. Values: InProgress, Ready, Unknown'
+                      type: string
+                    version:
+                      description: Version of object
                       type: string
                   type: object
                 type: array
