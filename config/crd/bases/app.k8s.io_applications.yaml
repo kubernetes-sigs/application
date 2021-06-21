@@ -1,4 +1,4 @@
-# Copyright 2020 The Kubernetes Authors.
+# Copyright 2021 The Kubernetes Authors.
 # SPDX-License-Identifier: Apache-2.0
 
 apiVersion: apiextensions.k8s.io/v1
@@ -6,7 +6,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/application/pull/2
-    controller-gen.kubebuilder.io/version: v0.4.0
+    controller-gen.kubebuilder.io/version: v0.6.0
   creationTimestamp: null
   name: applications.app.k8s.io
 spec:
