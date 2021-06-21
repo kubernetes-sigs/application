@@ -12,14 +12,7 @@ import (
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-)
-
-// Constants defining labels
-const (
-	StatusReady      = "Ready"
-	StatusInProgress = "InProgress"
-	StatusUnknown    = "Unknown"
-	StatusDisabled   = "Disabled"
+	appv1beta1 "sigs.k8s.io/application/api/v1beta1"
 )
 
 func status(u *unstructured.Unstructured) (string, error) {
@@ -52,24 +45,24 @@ func status(u *unstructured.Unstructured) (string, error) {
 
 // Status from standard conditions
 func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) {
-	condition := StatusReady
+	condition := appv1beta1.StatusReady
 
 	// Check Ready condition
-	_, cs, found, err := getConditionOfType(u, StatusReady)
+	_, cs, found, err := getConditionOfType(u, appv1beta1.StatusReady)
 	if err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 	if found && cs == corev1.ConditionFalse {
-		condition = StatusInProgress
+		condition = appv1beta1.StatusInProgress
 	}
 
 	// Check InProgress condition
-	_, cs, found, err = getConditionOfType(u, StatusInProgress)
+	_, cs, found, err = getConditionOfType(u, appv1beta1.StatusInProgress)
 	if err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 	if found && cs == corev1.ConditionTrue {
-		condition = StatusInProgress
+		condition = appv1beta1.StatusInProgress
 	}
 
 	return condition, nil
@@ -79,23 +72,23 @@ func statusFromStandardConditions(u *unstructured.Unstructured) (string, error) 
 func stsStatus(u *unstructured.Unstructured) (string, error) {
 	sts := &appsv1.StatefulSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sts); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if sts.Status.ObservedGeneration == sts.Generation &&
 		sts.Status.Replicas == *sts.Spec.Replicas &&
 		sts.Status.ReadyReplicas == *sts.Spec.Replicas &&
 		sts.Status.CurrentReplicas == *sts.Spec.Replicas {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // Deployment
 func deploymentStatus(u *unstructured.Unstructured) (string, error) {
 	deployment := &appsv1.Deployment{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, deployment); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	replicaFailure := false
@@ -126,16 +119,16 @@ func deploymentStatus(u *unstructured.Unstructured) (string, error) {
 		deployment.Status.AvailableReplicas == *deployment.Spec.Replicas &&
 		deployment.Status.Conditions != nil && len(deployment.Status.Conditions) > 0 &&
 		(progressing || available) && !replicaFailure {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // Replicaset
 func replicasetStatus(u *unstructured.Unstructured) (string, error) {
 	rs := &appsv1.ReplicaSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rs); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	replicaFailure := false
@@ -152,111 +145,111 @@ func replicasetStatus(u *unstructured.Unstructured) (string, error) {
 		rs.Status.Replicas == *rs.Spec.Replicas &&
 		rs.Status.ReadyReplicas == *rs.Spec.Replicas &&
 		rs.Status.AvailableReplicas == *rs.Spec.Replicas && !replicaFailure {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // Daemonset
 func daemonsetStatus(u *unstructured.Unstructured) (string, error) {
 	ds := &appsv1.DaemonSet{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, ds); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if ds.Status.ObservedGeneration == ds.Generation &&
 		ds.Status.DesiredNumberScheduled == ds.Status.NumberAvailable &&
 		ds.Status.DesiredNumberScheduled == ds.Status.NumberReady {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // PVC
 func pvcStatus(u *unstructured.Unstructured) (string, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pvc); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if pvc.Status.Phase == corev1.ClaimBound {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // Service
 func serviceStatus(u *unstructured.Unstructured) (string, error) {
 	service := &corev1.Service{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, service); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 	stype := service.Spec.Type
 
 	if stype == corev1.ServiceTypeClusterIP || stype == corev1.ServiceTypeNodePort || stype == corev1.ServiceTypeExternalName ||
 		stype == corev1.ServiceTypeLoadBalancer && isEmpty(service.Spec.ClusterIP) &&
 			len(service.Status.LoadBalancer.Ingress) > 0 && !hasEmptyIngressIP(service.Status.LoadBalancer.Ingress) {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // Pod
 func podStatus(u *unstructured.Unstructured) (string, error) {
 	pod := &corev1.Pod{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pod); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	for _, condition := range pod.Status.Conditions {
 		if condition.Type == corev1.PodReady && (condition.Reason == "PodCompleted" || condition.Status == corev1.ConditionTrue) {
-			return StatusReady, nil
+			return appv1beta1.StatusReady, nil
 		}
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 // PodDisruptionBudget
 func pdbStatus(u *unstructured.Unstructured) (string, error) {
 	pdb := &policyv1beta1.PodDisruptionBudget{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, pdb); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if pdb.Status.ObservedGeneration == pdb.Generation &&
 		pdb.Status.CurrentHealthy >= pdb.Status.DesiredHealthy {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 func replicationControllerStatus(u *unstructured.Unstructured) (string, error) {
 	rc := &corev1.ReplicationController{}
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, rc); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if rc.Status.ObservedGeneration == rc.Generation &&
 		rc.Status.Replicas == *rc.Spec.Replicas &&
 		rc.Status.ReadyReplicas == *rc.Spec.Replicas &&
 		rc.Status.AvailableReplicas == *rc.Spec.Replicas {
-		return StatusReady, nil
+		return appv1beta1.StatusReady, nil
 	}
-	return StatusInProgress, nil
+	return appv1beta1.StatusInProgress, nil
 }
 
 func jobStatus(u *unstructured.Unstructured) (string, error) {
 	job := &batchv1.Job{}
 
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, job); err != nil {
-		return StatusUnknown, err
+		return appv1beta1.StatusUnknown, err
 	}
 
 	if job.Status.StartTime == nil {
-		return StatusInProgress, nil
+		return appv1beta1.StatusInProgress, nil
 	}
 
-	return StatusReady, nil
+	return appv1beta1.StatusReady, nil
 }
 
 func hasEmptyIngressIP(ingress []corev1.LoadBalancerIngress) bool {

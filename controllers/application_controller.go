@@ -202,7 +202,7 @@ func (r *ApplicationReconciler) objectStatuses(ctx context.Context, resources []
 func aggregateReady(objectStatuses []appv1beta1.ObjectStatus) (bool, int) {
 	countReady := 0
 	for _, os := range objectStatuses {
-		if os.Status == StatusReady {
+		if os.Status == appv1beta1.StatusReady {
 			countReady++
 		}
 	}

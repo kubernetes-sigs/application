@@ -27,6 +27,14 @@ const (
 	ReasonInit = "Init"
 )
 
+// Constants for status
+const (
+	StatusReady      = "Ready"
+	StatusInProgress = "InProgress"
+	StatusUnknown    = "Unknown"
+	StatusDisabled   = "Disabled"
+)
+
 // Descriptor defines the Metadata and informations about the Application.
 type Descriptor struct {
 	// Type is the type of the application (e.g. WordPress, MySQL, Cassandra).
