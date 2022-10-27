@@ -11,7 +11,7 @@ The Application CRD [(Custom Resource Definition)](https://kubernetes.io/docs/co
 
 **It provides:**
 
-* The ability to describe an applications metadata (e.g., that an application like WordPress is running)
+* The ability to describe an application's metadata (e.g., that an application like WordPress is running)
 * A point to connect the infrastructure, such as Deployments, to as a root object. This is useful for tying things together and even cleanup (i.e., garbage collection)
 * Information for supporting applications to help them query and understand the objects supporting an application
 * Application level health checks
