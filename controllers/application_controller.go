@@ -153,6 +153,7 @@ func (r *ApplicationReconciler) setOwnerRefForResources(ctx context.Context, own
 	for _, resource := range resources {
 		ownerRefs := resource.GetOwnerReferences()
 		ownerRefFound := false
+		ownerRefSame := false
 		for i, refs := range ownerRefs {
 			if ownerRef.Kind == refs.Kind &&
 				ownerRef.APIVersion == refs.APIVersion &&
@@ -160,12 +161,18 @@ func (r *ApplicationReconciler) setOwnerRefForResources(ctx context.Context, own
 				ownerRefFound = true
 				if ownerRef.UID != refs.UID {
 					ownerRefs[i] = ownerRef
+				} else {
+					ownerRefSame = true
 				}
 			}
 		}
 
 		if !ownerRefFound {
 			ownerRefs = append(ownerRefs, ownerRef)
+		}
+		if ownerRefSame {
+			// needless to Update
+			continue
 		}
 		resource.SetOwnerReferences(ownerRefs)
 		err := r.Client.Update(ctx, resource)
