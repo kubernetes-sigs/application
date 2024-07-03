@@ -103,4 +103,5 @@ bin
 
 !vendor/**/zz_generated.*
 
+vendor
 

@@ -195,6 +195,15 @@ misspell-fix: $(TOOLBIN)/misspell
 deploy:
 	kubectl apply -f deploy/kube-app-manager-aio.yaml
 
+.PHONY: e2e-test
+deploy-e2e:
+	echo "deploying kube-app-manager ${IMAGE} to e2e cluster"
+	yq e 'select(documentIndex == 10) | (.spec.template.spec.containers[1].image) = "$(IMAGE)"' -i deploy/kube-app-manager-aio.yaml
+	cat deploy/kube-app-manager-aio.yaml | grep image
+
+	kubectl apply -f deploy/kube-app-manager-aio.yaml
+	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=kube-app-manager --timeout=15m -A
+
 # unDeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: undeploy
 undeploy:

@@ -1,0 +1,82 @@
+name: Build Images
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
+
+  workflow_dispatch:
+  
+jobs:
+  init-variable:
+    runs-on: ubuntu-latest
+    outputs:
+      container_tag: ${{ steps.init_variable.outputs.container_tag }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: output environment variable
+        id: init_variable
+        run: |
+          set -x
+          if [[ $GITHUB_REF =~ ^refs/tags/v ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --abbrev=8)
+          fi
+          echo "container_tag=${VERSION}" >> $GITHUB_OUTPUT
+  build-push-image:
+    permissions:
+      contents: read
+      packages: write
+    needs: [init-variable]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: login
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+      - name: use-setup-buildx-action
+        uses: docker/setup-buildx-action@v2
+      - name: build image
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./
+          file: ./Dockerfile
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/kube-app-manager:${{ needs.init-variable.outputs.container_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/kube-app-manager:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  e2e:
+    runs-on: ubuntu-latest
+    if: github.ref_type != 'tag'
+    needs: [ init-variable, build-push-image ]
+    steps:  
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.7.0
+
+      - name: Deploy Application
+        run: |
+          IMAGE=${{ secrets.DOCKER_USERNAME }}/kube-app-manager:${{ needs.init-variable.outputs.container_tag }} make e2e-test
