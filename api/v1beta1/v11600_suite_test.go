@@ -1,7 +1,7 @@
-// Copyright 2020 The Kubernetes Authors.
+// Copyright 2025 The Next featured store
 // SPDX-License-Identifier: Apache-2.0
 
-package v1beta1
+package v0
 
 import (
 	"log"
