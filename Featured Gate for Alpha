@@ -1,6 +1,4 @@
 
-
-Featured new Store
 Feature	Default	Stage	Since	Until
 AnonymousAuthConfigurableEndpoints	false	Alpha	1.31	–
 AnyVolumeDataSource	false	Alpha	1.18	1.23
